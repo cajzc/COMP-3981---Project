@@ -29,7 +29,7 @@ def print_board(board):
     for key, value in board.items():
         row = chr((key[1]) + 69)
         column = key[0] + 5
-        print(f'{row}{column}{value}', end=' ')
+        print(f'{row}{column}{value}', end=',')
 
 
 def main():
