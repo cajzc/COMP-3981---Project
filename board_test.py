@@ -25,6 +25,21 @@
 def read_input(filename):
     pass
 
+def validate_pos(x,y):
+    return -4 <= x <= 4 and -4 <= y <= 4 and -4 <= (x - y) <= 4
+
+def generate_moves(board, player):
+    single_mb_moves = []
+    inline_moves = []
+    side_moves = []
+
+
+
+def generate_board():
+    """ read a single move from file and generate a new board state"""
+    pass
+
+
 
 def print_board(board):
     elements = []
@@ -44,10 +59,14 @@ def main():
     # # Initialize the board with all positions as 'N' (neutral/empty)
     # board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
-    with open('Test1.input','r') as f:
+    with open('Test2.input','r') as f:
         player = f.readline().strip()
         marbles = f.readline().strip().split(',')
     print(marbles)
+
+    print(validate_pos(4, 5))
+    print(validate_pos(-4, -4))
+    print(validate_pos(4, 6))
 
     board = {(int(marble[1])-5,  ord(marble[0]) - ord('E')): marble[2] for marble in marbles}
 
