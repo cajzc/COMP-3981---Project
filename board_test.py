@@ -1,32 +1,53 @@
-# Black marbles (14)
-black_marbles = [
-    (-4,-4,'B'), (-3,-4,'B'), (-2,-4,'B'), (-1,-4,'B'), (0,-4,'B'),
-    (-4,-3,'B'), (-3,-3,'B'), (-2,-3,'B'), (-1,-3,'B'), (0,-3,'B'), (1,-3,'B'),
-    (-2,-2,'B'), (-2,-1,'B'), (-2,0,'B')
-]
+# # Black marbles (14)
+# black_marbles = [
+#     (-4,-4,'b'), (-3,-4,'b'), (-2,-4,'b'), (-1,-4,'b'), (0,-4,'b'),
+#     (-4,-3,'b'), (-3,-3,'b'), (-2,-3,'b'), (-1,-3,'b'), (0,-3,'b'), (1,-3,'b'),
+#     (-2,-2,'b'), (-2,-1,'b'), (-2,0,'b')
+# ]
+#
+# # White marbles (14)
+# white_marbles = [
+#     (0,4,'w'), (1,4,'w'), (2,4,'w'), (3,4,'w'), (4,4,'w'),
+#     (-1,3,'w'), (0,3,'w'), (1,3,'w'), (2,3,'w'), (3,3,'w'), (4,3,'w'),
+#     (0,2,'w'), (1,2,'w'), (2,2,'w')
+# ]
 
-# White marbles (14)
-white_marbles = [
-    (0,4,'W'), (1,4,'W'), (2,4,'W'), (3,4,'W'), (4,4,'W'),
-    (-1,3,'W'), (0,3,'W'), (1,3,'W'), (2,3,'W'), (3,3,'W'), (4,3,'W'),
-    (0,2,'W'), (1,2,'W'), (2,2,'W')
-]
 
-# Initialize the board with all positions as 'N' (neutral/empty)
-board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
+#
+# # Place black marbles
+# for (x, y, _) in black_marbles:
+#     board[(x, y)] = 'b'
+#
+# # Place white marbles
+# for (x, y, _) in white_marbles:
+#     board[(x, y)] = 'w'
 
-# Place black marbles
-for (x, y, _) in black_marbles:
-    board[(x, y)] = 'B'
 
-# Place white marbles
-for (x, y, _) in white_marbles:
-    board[(x, y)] = 'W'
 
-# Initial scores [Black,White]
-scores = [0, 0]
+def main():
+    # Initial scores [black,white]
+    scores = [0, 0]
 
-# Current turn
-current_turn = 'Black'
+    # Initialize the board with all positions as 'N' (neutral/empty)
+    board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
-print(board)
+    with open('Test1.input','r') as f:
+        player = f.readline().strip()
+        marbles = f.readline().strip().split(',')
+    print(marbles)
+
+    # Current turn
+    current_turn = player
+
+    #update board with current marbles
+    for marble in marbles:
+        x = int(marble[1]) - 5
+        y = ord(marble[0]) - ord('E')
+        board[(x, y)] = marble[2]
+
+    print(board)
+
+
+if __name__ == '__main__':
+    main()
+
