@@ -28,22 +28,18 @@ def main():
     # Initial scores [black,white]
     scores = [0, 0]
 
-    # Initialize the board with all positions as 'N' (neutral/empty)
-    board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
+    # # Initialize the board with all positions as 'N' (neutral/empty)
+    # board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
     with open('Test1.input','r') as f:
         player = f.readline().strip()
         marbles = f.readline().strip().split(',')
     print(marbles)
 
+    board = {(int(marble[1]),  ord(marble[0]) - ord('E')): marble[2] for marble in marbles}
+
     # Current turn
     current_turn = player
-
-    #update board with current marbles
-    for marble in marbles:
-        x = int(marble[1]) - 5
-        y = ord(marble[0]) - ord('E')
-        board[(x, y)] = marble[2]
 
     print(board)
 
