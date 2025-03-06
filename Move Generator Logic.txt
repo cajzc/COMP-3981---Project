@@ -1,0 +1,31 @@
+1. Each marble:
+(1) Generate 6 coordinates;
+(2) Delete all coordinates contains 4+ or -4-,
+(3) Check the rest coordinated to see if it is empty;
+	a. if empty, legal signal move, add to LEGAL MOVE; (no need to consider enemy marble, only in groups)
+	b. if same marble, go to step 2, group move of 2;
+2. Group marble of 2:
+(1) Generate 8 coordinates;
+(2) Delete all coordinates contains 4+ or -4-,
+(3) Check the 4 side moves, if the 2 coordinate are both empty,
+	a. if empty, legal group 2 move, add to LEGAL MOVE; 
+(4) Check the straight two direction, if the coordinate is empty;
+	a. if empty,  legal group 2 move, add to LEGAL MOVE; 
+	b. if not empty and enemy, check the next coordinate if is empty(out boundary is also empty)
+		c. if empty,  legal group 2 move, add to LEGAL MOVE; 
+		d. if not empty, not legal move.
+	e. if same marble, go to step 3, group move of 3;
+3. Group marble of 3:
+(1) Generate 10 coordinates;
+(2) Delete all coordinates contains 4+ or -4-,
+(3) Check the 4 side moves, if the 3 coordinate are both empty,
+	a. if empty, legal group 3 move, add to LEGAL MOVE; 
+(4) Check the straight two direction, if the coordinate is empty;
+	a. if empty,  legal group 3 move, add to LEGAL MOVE; 
+	b. if not empty and enemy, check the next coordinate if is empty(out boundary is also empty),
+		c. if empty, legal group 3 move, add to LEGAL MOVE; 
+		d. if not empty, check if the next coordinate,
+			e. if same, not legal..
+			f. if enemy, check the next coordinate if is empty(out boundary is also empty)
+				c. if empty,  legal group 3 move, add to LEGAL MOVE; 
+				d. if not empty, not legal move.
