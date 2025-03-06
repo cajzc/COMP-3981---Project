@@ -25,11 +25,16 @@
 def read_input(filename):
     pass
 
+
 def print_board(board):
+    elements = []
     for key, value in board.items():
-        row = chr((key[1]) + 69)
-        column = key[0] + 5
-        print(f'{row}{column}{value}', end=',')
+        row = chr(key[1] + 69)  # Convert y to row letter (A-I)
+        column = key[0] + 5  # Convert x to column number (1-9)
+        elements.append(f"{row}{column}{value}")
+
+    # Join elements with commas (no trailing comma)
+    print(','.join(elements))
 
 
 def main():
