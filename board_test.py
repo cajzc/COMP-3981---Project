@@ -22,6 +22,14 @@
 # for (x, y, _) in white_marbles:
 #     board[(x, y)] = 'w'
 
+def read_input(filename):
+    pass
+
+def print_board(board):
+    for key, value in board.items():
+        row = chr((key[1]) + 69)
+        column = key[0] + 5
+        print(f'{row}{column}{value}', end=' ')
 
 
 def main():
@@ -36,13 +44,13 @@ def main():
         marbles = f.readline().strip().split(',')
     print(marbles)
 
-    board = {(int(marble[1]),  ord(marble[0]) - ord('E')): marble[2] for marble in marbles}
+    board = {(int(marble[1])-5,  ord(marble[0]) - ord('E')): marble[2] for marble in marbles}
 
     # Current turn
     current_turn = player
 
     print(board)
-
+    print_board(board)
 
 if __name__ == '__main__':
     main()
