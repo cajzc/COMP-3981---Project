@@ -32,6 +32,7 @@ def main():
     moves = get_single_moves(player, board)
     for move in moves:
         print(move)
+    print(Board.tostring_board(player,board))
 
 if __name__ == '__main__':
     main()

@@ -35,3 +35,28 @@ class Board:
             current_board[(x, y)] = marble[2]
 
         return player, current_board
+
+    @staticmethod
+    def tostring_board(player, board):
+        """
+        Converts the board state back to the input file format.
+
+        :param player: Current player ('b' or 'w').
+        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
+        :return: String formatted as the input file (player + marbles).
+        """
+        marble_list = []
+        for (x, y), color in board.items():
+            if color == 'N':
+                continue  # Skip empty cells
+            row = chr(y + 69)  # Convert y to row letter (A-I)
+            column = x + 5  # Convert x to column number (1-9)
+            marble_str = f"{row}{column}{color}"
+
+            marble_list.append((color,row,column,marble_str)) # append tuple for sorting
+
+        sorted_marbles = sorted(marble_list, key=lambda item: (item[0],item[1],item[2]))
+
+        marble_strs = [item[3] for item in sorted_marbles]
+
+        return f"{player}\n{','.join(marble_strs)}"
