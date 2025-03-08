@@ -28,8 +28,8 @@ def get_single_moves(player, board):
 
 def main():
 
-    (board, player) = Board.get_input_board_representation("Test1.input")
-    moves = get_single_moves(board, player)
+    (player, board) = Board.get_input_board_representation("Test1.input")
+    moves = get_single_moves(player, board)
     for move in moves:
         print(move)
 
