@@ -73,7 +73,7 @@ def get_inline_moves(player, board):
                     if len(inline_marbles) > len(opponent_marbles) and len(opponent_marbles) <= 2:
                         # ✅ Push is valid if more pushing marbles & <=2 opponent marbles
                         move_str = '-'.join(f"({mx}, {my}, {player})" for mx, my in inline_marbles)
-                        move_str += f"{direction}-{'-'.join(f'({ox}, {oy}, {board[(ox, oy)]})' for ox, oy in opponent_marbles)}"
+                        move_str += f"{direction}p({move_x}, {move_y}, {player}) "
                         moves.append(move_str)
 
     return moves
@@ -134,7 +134,7 @@ def opposite_direction(direction):
 
 
 def main():
-    player, board = Board.get_input_board_representation("Test1.input")
+    player, board = Board.get_input_board_representation("Test2.input")
 
     print("\nSingle Marble Moves:")
     for move in get_single_moves(player, board):
