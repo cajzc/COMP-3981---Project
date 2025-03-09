@@ -9,7 +9,6 @@ class Board:
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
-
     @staticmethod
     def initialize_board():
         """
@@ -20,11 +19,11 @@ class Board:
         return {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
     @staticmethod
-    def get_standard_board():
+    def get_default_board():
         """
         Creates a standard Abalone board with the standard initial marble positions.
         
-        :returns: Dictionary representing the board with initial marble positions
+        :returns: Dictionary representing the standard board with initial marble positions
         """
         # Initialize an empty board
         board = Board.initialize_board()
@@ -46,6 +45,89 @@ class Board:
         Board.place_marbles(white_marbles_initial_pos, board)
 
         return board
+
+    @staticmethod
+    def get_belgian_daisy_board():
+        """
+        Creates a belgian daisy Abalone board with the standard initial marble positions.
+        
+        :returns: Dictionary representing the belgian daisy board with initial marble positions
+        """
+
+        # Initialize an empty board
+        board = Board.initialize_board()
+
+        black_marble_initial_pos = [
+            # Group 1
+            (-4, -4, 'b'), (-3, -4, 'b'),
+            (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'),
+            (-3, -2, 'b'), (-2, -2, 'b'),
+
+            # Group 2
+            (4, 4, 'b'), (3, 4, 'b'),
+            (4, 3, 'b'), (3, 3, 'b'), (2, 3, 'b'),
+            (3, 2, 'b'), (2, 2, 'b'),
+        ]
+
+        white_marbles_initial_pos = [
+            # Group 1
+            (0, -4, 'w'), (-1, -4, 'w'),
+            (1, -3, 'w'), (0, -3, 'w'), (-1, -3, 'w'),
+            (0, -2, 'w'), (1, -2, 'w'),
+
+            # Group 2
+            (0, 4, 'w'), (1, 4, 'w'),
+            (-1, 3, 'w'), (0, 3, 'w'), (1, 3, 'w'),
+            (-1, 2, 'w'), (0, 2, 'w')
+        ]
+
+        Board.place_marbles(black_marble_initial_pos, board)
+        Board.place_marbles(white_marbles_initial_pos, board)
+
+        return board
+
+    @staticmethod
+    def get_german_daisy_board():
+        """
+        Creates a german daisy Abalone board with the standard initial marble positions.
+        
+        :returns: Dictionary representing the german daisy board with initial marble positions
+        """
+
+         # Initialize an empty board
+        board = Board.initialize_board()
+
+        black_marble_initial_pos = [
+            # Group 1
+            (-4, -3, 'b'), (-3, -3, 'b'),
+            (-4, -2, 'b'), (-3, -2, 'b'), (-2, -2, 'b'),
+            (-3, -1, 'b'), (-2, -1, 'b'),
+
+            # Group 2
+            (4, 3, 'b'), (3, 3, 'b'),
+            (4, 2, 'b'), (3, 2, 'b'), (2, 2, 'b'), 
+            (3, 1, 'b'), (2, 1, 'b')
+        ]
+
+        white_marbles_initial_pos = [
+            # Group 1
+            (0, -3, 'w'), (1, -3, 'w'),
+            (0, -2, 'w'), (1, -2, 'w'), (2, -2, 'w'),
+            (1, -1, 'w'), (2, -1, 'w'),
+
+            # Group 2
+            (-1, 3, 'w'), (0, 3, 'w'),
+            (-2, 2, 'w'), (-1, 2, 'w'), (0, 2, 'w'),
+            (-2, 1, 'w'), (-1, 1, 'w')
+        ]
+
+        Board.place_marbles(black_marble_initial_pos, board)
+        Board.place_marbles(white_marbles_initial_pos, board)
+
+        return board
+
+
+
 
     @staticmethod
     def valid_position(x, y):
