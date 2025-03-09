@@ -1,9 +1,5 @@
 
 from board import Board
-import os
-
-# Directory containing the test files
-TEST_FILES_DIR = "../test_files/"
 
 # # Black marbles (14)
 # black_marbles = [
@@ -30,9 +26,6 @@ TEST_FILES_DIR = "../test_files/"
 # for (x, y, _) in white_marbles:
 #     board[(x, y)] = 'w'
 
-def read_input(filename):
-    pass
-
 def validate_pos(x,y):
     return -4 <= x <= 4 and -4 <= y <= 4 and -4 <= (x - y) <= 4
 
@@ -40,23 +33,6 @@ def generate_moves(board, player):
     single_mb_moves = []
     inline_moves = []
     side_moves = []
-
-def load_board_from_file(filename):
-    """
-    Load a board from a specified input file.
-    
-    :param filename: name of the input file (without path)
-    :return: a tuple of (player, board)
-    """
-    file_path = os.path.join(TEST_FILES_DIR, filename)
-    return Board.get_input_board_representation(file_path)
-
-
-def generate_board():
-    """ read a single move from file and generate a new board state"""
-    pass
-
-
 
 def print_board(board):
     elements = []
@@ -76,7 +52,7 @@ def main():
     # # Initialize the board with all positions as 'N' (neutral/empty)
     # board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
-    player, board = load_board_from_file("Test2.input")
+    player, board = Board.get_input_board_representation("Test2.input")
     
     print(validate_pos(4, 5))
     print(validate_pos(-4, -4))

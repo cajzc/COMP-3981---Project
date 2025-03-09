@@ -1,7 +1,12 @@
 """Houses the board representation methods."""
+import os
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
+    # Directory containing the test files
+    TEST_INPUT_FILES_DIR = "../test_files/input/"
+    TEST_OUTPUT_FILES_DIR = "../test_files/output/"
+
 
     @staticmethod
     def initialize_board():
@@ -24,8 +29,10 @@ class Board:
         :returns: tuple containing (player turn, game board representation as dictionary)
         """
         current_board = Board.initialize_board()
+
+        path = Board.TEST_INPUT_FILES_DIR+file_name
         
-        with open(file_name, 'r') as f:
+        with open(path, 'r') as f:
             player = f.readline().strip()
             initial_configuration = f.readline().strip().split(',')
 
@@ -38,6 +45,30 @@ class Board:
             current_board[(x, y)] = marble[2]
 
         return player, current_board
+
+    @staticmethod
+    def write_to_move_file(file_name, moves):
+        """
+        Writes an array of moves to a .move file.
+        :param file_name: the name of the file to write to
+        :param moves: an array of generated moves
+        """
+        path = f"{Board.TEST_OUTPUT_FILES_DIR+file_name}.move"
+        with open(path, "w") as move_file:
+            for move in moves:
+                move_file.write(move + "\n")
+
+    @staticmethod
+    def write_to_board_file(file_name, states):
+        """
+        Writes an array of board configuration to a .board file.
+        :param file_name: the name of the file to write to
+        :param board: an array of board state 
+        """
+        path = f"{Board.TEST_OUTPUT_FILES_DIR+file_name}.board"
+        with open(path, "w") as state_file:
+            for state in states:
+                state_file.write(state + "\n")
 
     @staticmethod
     def tostring_board(board):
@@ -63,3 +94,5 @@ class Board:
 
         # return f"{player}\n{','.join(marble_strs)}"
         return f"{','.join(marble_strs)}"
+
+

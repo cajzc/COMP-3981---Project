@@ -38,16 +38,14 @@ class StateSpace:
 
 def main():
     input_name = "Test1"
-    player, board = Board.get_input_board_representation(f"../test_files/{input_name}.input")
+    player, board = Board.get_input_board_representation(f"{input_name}.input")
 
     # Generate all possible moves
     all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
 
     # Write moves to file
-    with open(f"../test_files/{input_name}.move", "w") as move_file:
-        for move in all_moves:
-            move_file.write(move + "\n")
-
+    Board.write_to_move_file(input_name, all_moves)
+    
     # Apply each move and write new board states
     new_states = []
     for move in all_moves:
@@ -55,10 +53,8 @@ def main():
         apply_move(new_board, move)
         new_states.append(Board.tostring_board(new_board))
 
-    with open(f"../test_files/{input_name}.board", "w") as state_file:
-        for state in new_states:
-            state_file.write(state + "\n")
-
+    Board.write_to_board_file(input_name, new_states)
+   
     print("Moves and new board states have been saved to files.")
 
     # print("\nSingle Marble Moves:")
