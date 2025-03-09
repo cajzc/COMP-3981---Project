@@ -1,13 +1,21 @@
 from board import Board
 from moves import get_single_moves, get_inline_moves, get_side_step_moves, apply_move
 
-class StateSpace:
+class GameState:
+    """Represents the complete game state an Abalone game."""
+
     def __init__(self, player, board):
+        """
+        Initialize a new game state.
+        
+        :param player: First player to move ('b' for black or 'w' for white)
+        :param board: Dictionary representing the board state {(x, y): 'b'/'w'/'N'}
+        """
         self._player = player
         self._board = board
-        self._score = self.get_score(board)
+        self._score = self.get_score()
 
-    def get_score(self, board):
+    def get_score(self):
         """
         Calculates the score for both players based on the number of opponent marbles pushed off the board.
 
