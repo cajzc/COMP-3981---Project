@@ -19,7 +19,6 @@ class GameState:
         """
         Calculates the score for both players based on the number of opponent marbles pushed off the board.
 
-        :param board: Dictionary representing the board state {(x, y): 'b'/'w'/'N'}
         :return: Dictionary with scores {'b': int, 'w': int}
         """
         initial_black_marbles = 14  # Standard Abalone setup
