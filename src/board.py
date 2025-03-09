@@ -40,11 +40,10 @@ class Board:
         return player, current_board
 
     @staticmethod
-    def tostring_board(player, board):
+    def tostring_board(board):
         """
         Converts the board state back to the input file format.
 
-        :param player: Current player ('b' or 'w').
         :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
         :return: String formatted as the input file (player + marbles).
         """
@@ -62,4 +61,5 @@ class Board:
 
         marble_strs = [item[3] for item in sorted_marbles]
 
-        return f"{player}\n{','.join(marble_strs)}"
+        # return f"{player}\n{','.join(marble_strs)}"
+        return f"{','.join(marble_strs)}"

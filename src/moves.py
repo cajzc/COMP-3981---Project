@@ -1,4 +1,4 @@
-from board import Board
+import re
 
 DIRECTIONS = {
     '→': (1, 0),    # +x
@@ -121,6 +121,56 @@ def get_side_step_moves(player, board):
 
     return moves
 
+def apply_move(board, move_str):
+    """
+    Applies a move to the given board and updates it in place.
+
+    :param board: The board dictionary {(x, y): 'b'/'w'/'N'}.
+    :param move_str: Move string in the format "(x1, y1, color)→(x2, y2, color)"
+    :return: None (board is updated in place).
+    """
+    # Extract direction from move_str
+    direction = next((d for d in DIRECTIONS if d in move_str), None)
+    if not direction:
+        raise ValueError(f"Invalid move format: {move_str}")
+
+    dx, dy = DIRECTIONS[direction]
+
+    # Extract moving marbles from move string
+    marble_parts = move_str.split(direction)
+    print(marble_parts[0])
+
+    # Extract (x, y, color) tuples using regex
+    marble_pattern = r"\((-?\d+), (-?\d+), (\w)\)"
+    marbles_str_list = re.findall(marble_pattern, marble_parts[0])
+    marbles = [(int(x), int(y), color) for x, y, color in marbles_str_list]
+    player = marbles[0][1]
+
+    print(marbles)
+
+    # Determine if it's an inline push
+    last_marble = marbles[-1][:2]  # (x, y) only
+    push_pos = (last_marble[0] + dx, last_marble[1] + dy)
+
+    opponent_marbles = []
+    while push_pos in board and board[push_pos] not in ('N', player):
+        opponent_marbles.append(push_pos)
+        push_pos = (push_pos[0] + dx, push_pos[1] + dy)
+
+    # Validate Sumito push
+    if len(marbles) > len(opponent_marbles) and len(opponent_marbles) <= 2:
+        # Move opponent marbles one step further
+        for ox, oy in reversed(opponent_marbles):  # Start from the last in the line
+            new_ox, new_oy = ox + dx, oy + dy
+            if (new_ox, new_oy) in board:  # If still on board, move it
+                board[(new_ox, new_oy)] = board.pop((ox, oy))
+            else:  # If out of board, remove it (pushed off)
+                del board[(ox, oy)]
+
+    # Move the player's marbles
+    for x, y, color in reversed(marbles):
+        new_x, new_y = x + dx, y + dy
+        board[(new_x, new_y)] = board.pop((x, y))
 
 def opposite_direction(direction):
     """Returns the opposite direction symbol."""
@@ -132,26 +182,3 @@ def opposite_direction(direction):
         '↗': '↙',
         '↙': '↗'}
     return opposite_map.get(direction, None)
-
-
-def main():
-    player, board = Board.get_input_board_representation("Test1.input")
-
-    print("\nSingle Marble Moves:")
-    for move in get_single_moves(player, board):
-        print(move)
-
-    print("\nInline Moves:")
-    for move in get_inline_moves(player, board):
-        print(move)
-
-    print("\nSide-Step Moves:")
-    for move in get_side_step_moves(player, board):
-        print(move)
-
-    print("\nBoard Representation:\n")
-    print(Board.tostring_board(player, board))
-
-
-if __name__ == '__main__':
-    main()
