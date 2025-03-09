@@ -178,10 +178,10 @@ def apply_move(board, move_str):
             else:  # If out of board, remove it (pushed off)
                 pass #update score here
 
-    # Move the player's marbles
-    for x, y, color in reversed(marbles):
-        new_x, new_y = x + dx, y + dy
-        board[(new_x, new_y)] = board.pop((x, y))
+    # move one by one and let the previous position be 'N'
+    for x,y,color in reversed(marbles):
+        board[(x, y)] = 'N'
+        board[(x + dx, y + dy)] = color
 
 def opposite_direction(direction):
     """Returns the opposite direction symbol."""
