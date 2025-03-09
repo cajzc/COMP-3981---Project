@@ -48,15 +48,15 @@ class GameState:
             return 'w'
         return None
 
-def main():
-    input_name = "Test2"
-    player, board = Board.get_input_board_representation(f"{input_name}.input")
+def test_state_space(file, board=None, player="w"):
+    if board is None:
+        player, board = Board.get_input_board_representation(f"{file}.input")
 
     # Generate all possible moves
     all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
 
     # Write moves to file
-    Board.write_to_move_file(input_name, all_moves)
+    Board.write_to_move_file(file, all_moves)
     
     # Apply each move and write new board states
     new_states = []
@@ -65,9 +65,32 @@ def main():
         apply_move(new_board, move)
         new_states.append(Board.to_string_board(new_board))
 
-    Board.write_to_board_file(input_name, new_states)
+    # Write resulting board to file
+    Board.write_to_board_file(file, new_states)
    
-    print("Moves and new board states have been saved to files.")
+    print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + file}.move Board saved to {Board.TEST_OUTPUT_FILES_DIR + file}.board")
+
+
+def main():
+    # Input & Output files
+    input_file_one = "Test1"
+    input_file_two = "Test2"
+
+    belgian_output_file_one = "test_belgian_white_first"
+    belgian_output_file_two = "test_belgian_black_first"
+    german_output_file_one = "test_german_white_first"
+    german_output_file_two = "test_german_black_first"
+
+    belgian_daisy_board = Board.get_belgian_daisy_board()
+    german_daisy_board = Board.get_german_daisy_board()
+
+    # Tests
+    test_state_space(input_file_one)
+    test_state_space(input_file_two)
+    test_state_space(belgian_output_file_one, belgian_daisy_board)
+    test_state_space(belgian_output_file_two, belgian_daisy_board, "b")
+    test_state_space(german_output_file_one, german_daisy_board)
+    test_state_space(german_output_file_two, german_daisy_board, "b")
 
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
