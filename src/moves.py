@@ -113,9 +113,10 @@ def get_side_step_moves(player, board):
                             break
 
                     if len(side_moved) == len(aligned_marbles):  # All marbles can move
-                        move_str = ' + '.join(
-                            f"({mx}, {my}, {player}){side_dir}({nx}, {ny}, {player})"
-                            for (mx, my), (nx, ny) in zip(aligned_marbles, side_moved)
+                        move_str = '-'.join(
+                            f"({mx}, {my}, {player})" for mx, my in aligned_marbles
+                        ) + f"{side_dir}s" + '-'.join(
+                            f"({nx}, {ny}, {player})" for (nx, ny) in side_moved
                         )
                         moves.append(move_str)
 
