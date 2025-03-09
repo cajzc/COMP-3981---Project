@@ -1,9 +1,17 @@
+
+from board import Board
+import os
+
+# Directory containing the test files
+TEST_FILES_DIR = "../test_files/"
+
 # # Black marbles (14)
 # black_marbles = [
 #     (-4,-4,'b'), (-3,-4,'b'), (-2,-4,'b'), (-1,-4,'b'), (0,-4,'b'),
 #     (-4,-3,'b'), (-3,-3,'b'), (-2,-3,'b'), (-1,-3,'b'), (0,-3,'b'), (1,-3,'b'),
 #     (-2,-2,'b'), (-2,-1,'b'), (-2,0,'b')
 # ]
+
 #
 # # White marbles (14)
 # white_marbles = [
@@ -33,6 +41,15 @@ def generate_moves(board, player):
     inline_moves = []
     side_moves = []
 
+def load_board_from_file(filename):
+    """
+    Load a board from a specified input file.
+    
+    :param filename: name of the input file (without path)
+    :return: a tuple of (player, board)
+    """
+    file_path = os.path.join(TEST_FILES_DIR, filename)
+    return Board.get_input_board_representation(file_path)
 
 
 def generate_board():
@@ -59,16 +76,11 @@ def main():
     # # Initialize the board with all positions as 'N' (neutral/empty)
     # board = {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
-    with open('Test2.input','r') as f:
-        player = f.readline().strip()
-        marbles = f.readline().strip().split(',')
-    print(marbles)
-
+    player, board = load_board_from_file("Test2.input")
+    
     print(validate_pos(4, 5))
     print(validate_pos(-4, -4))
     print(validate_pos(4, 6))
-
-    board = {(int(marble[1])-5,  ord(marble[0]) - ord('E')): marble[2] for marble in marbles}
 
     # Current turn
     current_turn = player
@@ -78,4 +90,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

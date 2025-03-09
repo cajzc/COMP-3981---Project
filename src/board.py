@@ -27,9 +27,12 @@ class Board:
         
         with open(file_name, 'r') as f:
             player = f.readline().strip()
-            marbles = f.readline().strip().split(',')
+            initial_configuration = f.readline().strip().split(',')
 
-        for marble in marbles:
+        print("Input board configuration:")
+        print(initial_configuration)
+
+        for marble in initial_configuration:
             x = int(marble[1]) - 5
             y = ord(marble[0]) - ord('E')
             current_board[(x, y)] = marble[2]
