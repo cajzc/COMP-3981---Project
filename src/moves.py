@@ -30,6 +30,7 @@ def get_single_moves(player, board):
 def get_inline_moves(player, board):
     """Generate all valid inline moves for 2-3 marbles (excluding illegal Sumito pushes)."""
     moves = []
+    processed_groups = set()  # To track already processed inline marble groups
 
     for (x, y), color in board.items():
         if color != player:
@@ -37,14 +38,21 @@ def get_inline_moves(player, board):
 
         for direction, (dx, dy) in DIRECTIONS.items():
             inline_marbles = [(x, y)]  # Start with the current marble
+            inline_marble_group = {(x, y)}
 
             # Check if 2 or 3 marbles are aligned in the given direction
             for i in range(1, 3):  # Check up to 3 marbles
                 nx, ny = x + dx * i, y + dy * i
                 if (nx, ny) in board and board[(nx, ny)] == player:
                     inline_marbles.append((nx, ny))
+                    inline_marble_group.add((nx, ny))
                 else:
                     break  # Stop if we hit an opponent or empty space
+
+            # Skip already processed aligned marble groups
+            if frozenset(inline_marble_group) in processed_groups:
+                continue
+            processed_groups.add(frozenset(inline_marble_group))
 
             if len(inline_marbles) >= 2:  # Only consider inline moves for 2+ marbles
                 # Check if the move destination is empty or has an opponent marble
@@ -83,6 +91,7 @@ def get_inline_moves(player, board):
 def get_side_step_moves(player, board):
     """Generate all valid side-step moves for 2-3 aligned marbles."""
     moves = []
+    processed_groups = set()  # To keep track of already processed aligned marble groups
 
     for (x, y), color in board.items():
         if color != player:
@@ -90,14 +99,21 @@ def get_side_step_moves(player, board):
 
         for direction, (dx, dy) in DIRECTIONS.items():
             aligned_marbles = [(x, y)]  # Start with the current marble
+            aligned_marble_group = {(x, y)}
 
             # Check if 2 or 3 marbles are aligned (in x, y, or x-y direction)
             for i in range(1, 3):  # Check up to 3 marbles in a row
                 nx, ny = x + dx * i, y + dy * i
                 if (nx, ny) in board and board[(nx, ny)] == player:
                     aligned_marbles.append((nx, ny))
+                    aligned_marble_group.add((nx, ny))
                 else:
                     break
+
+            # Skip already processed aligned marble groups
+            if frozenset(aligned_marble_group) in processed_groups:
+                continue
+            processed_groups.add(frozenset(aligned_marble_group))
 
             if len(aligned_marbles) >= 2:  # Only consider side-step moves for 2+ marbles
                 for side_dir, (sx, sy) in DIRECTIONS.items():  # Try all side-step directions
@@ -139,7 +155,6 @@ def apply_move(board, move_str):
 
     # Extract moving marbles from move string
     marble_parts = move_str.split(direction)
-    print(marble_parts[0]) #for debug
 
     # Extract (x, y, color) tuples using regex
     marble_pattern = r"\((-?\d+), (-?\d+), (\w)\)"
@@ -147,18 +162,14 @@ def apply_move(board, move_str):
     marbles = [(int(x), int(y), color) for x, y, color in marbles_str_list]
     player = marbles[0][1]
 
-    print(marbles) # for debug
-
     # Determine if it's an inline push
     last_marble = marbles[-1][:2]  # (x, y) only
     push_pos = (last_marble[0] + dx, last_marble[1] + dy)
-    print(push_pos) #for debug
 
     opponent_marbles = []
     while push_pos in board and board[push_pos] not in ('N', player):
         opponent_marbles.append(push_pos)
         push_pos = (push_pos[0] + dx, push_pos[1] + dy)
-    print(opponent_marbles)  # for debug
 
     # Validate Sumito push
     if len(marbles) > len(opponent_marbles) and len(opponent_marbles) <= 2:

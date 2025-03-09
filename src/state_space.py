@@ -37,7 +37,7 @@ class StateSpace:
         return None
 
 def main():
-    input_name = "Test1"
+    input_name = "Test2"
     player, board = Board.get_input_board_representation(f"{input_name}.input")
 
     # Generate all possible moves
