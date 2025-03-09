@@ -35,6 +35,11 @@ class GameState:
             'w': white_score}
 
     def check_victory(self):
+        """
+        Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
+        
+        :return: 'b' if black wins, 'w' if white wins, None if no winner 
+        """
         if self._score['b'] >= 6:
             print("Black wins!")
             return 'b'
@@ -58,7 +63,7 @@ def main():
     for move in all_moves:
         new_board = board.copy()
         apply_move(new_board, move)
-        new_states.append(Board.tostring_board(new_board))
+        new_states.append(Board.to_string_board(new_board))
 
     Board.write_to_board_file(input_name, new_states)
    

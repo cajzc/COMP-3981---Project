@@ -21,7 +21,11 @@ class Board:
 
     @staticmethod
     def get_standard_board():
-
+        """
+        Creates a standard Abalone board with the standard initial marble positions.
+        
+        :returns: Dictionary representing the board with initial marble positions
+        """
         # Initialize an empty board
         board = Board.initialize_board()
 
@@ -44,6 +48,25 @@ class Board:
         return board
 
     @staticmethod
+    def valid_position(x, y):
+        """
+        Returns whether a given set of coordinates is a valid position in our game board representation.
+
+        :param x: the x coordinate as an int
+        :param y: the x coordinate as an int
+        :returns: true if valid else false
+
+        >>> valid_position(4, 5)
+        False
+        >>> valid_position(-4, -4)
+        True
+        >>> valid_position(4, 6)
+        False
+        """
+        return -4 <= x <= 4 and -4 <= y <= 4 and -4 <= (x - y) <= 4
+
+
+    @staticmethod
     def place_marbles(coloured_marbles, board):
         """
         Places marbles on the board at specified positions with specified colours.
@@ -51,7 +74,6 @@ class Board:
         :param coloured_marbles: List of tuples (x, y, colour) where x and y are coordinates and colour is 'b', 'w', or 'N'
         :param board: Dictionary representing the board where keys are (x, y) coordinates and values are marble colours
         """
-        
         for (x, y, colour) in coloured_marbles:
             board[(x, y)] = colour
 
@@ -112,7 +134,7 @@ class Board:
                 state_file.write(state + "\n")
 
     @staticmethod
-    def tostring_board(board):
+    def to_string_board(board):
         """
         Converts the board state back to the input file format.
 
