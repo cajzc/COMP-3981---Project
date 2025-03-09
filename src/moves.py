@@ -138,7 +138,7 @@ def apply_move(board, move_str):
 
     # Extract moving marbles from move string
     marble_parts = move_str.split(direction)
-    print(marble_parts[0])
+    print(marble_parts[0]) #for debug
 
     # Extract (x, y, color) tuples using regex
     marble_pattern = r"\((-?\d+), (-?\d+), (\w)\)"
@@ -146,24 +146,26 @@ def apply_move(board, move_str):
     marbles = [(int(x), int(y), color) for x, y, color in marbles_str_list]
     player = marbles[0][1]
 
-    print(marbles)
+    print(marbles) # for debug
 
     # Determine if it's an inline push
     last_marble = marbles[-1][:2]  # (x, y) only
     push_pos = (last_marble[0] + dx, last_marble[1] + dy)
+    print(push_pos) #for debug
 
     opponent_marbles = []
     while push_pos in board and board[push_pos] not in ('N', player):
         opponent_marbles.append(push_pos)
         push_pos = (push_pos[0] + dx, push_pos[1] + dy)
+    print(opponent_marbles)  # for debug
 
     # Validate Sumito push
     if len(marbles) > len(opponent_marbles) and len(opponent_marbles) <= 2:
         # Move opponent marbles one step further
         for ox, oy in reversed(opponent_marbles):  # Start from the last in the line
-            new_ox, new_oy = ox + dx, oy + dy
-            if (new_ox, new_oy) in board:  # If still on board, move it
-                board[(new_ox, new_oy)] = board.pop((ox, oy))
+            if (ox, oy) in board:
+                # If still on board, move it
+                board[(ox, oy)] = 'b' if player == 'w' else 'b'
             else:  # If out of board, remove it (pushed off)
                 del board[(ox, oy)]
 
