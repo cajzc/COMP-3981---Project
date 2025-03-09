@@ -20,6 +20,43 @@ class Board:
         return {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
     @staticmethod
+    def get_standard_board():
+
+        # Initialize an empty board
+        board = Board.initialize_board()
+
+        black_marble_initial_pos = [
+             (-4, -4, 'b'), (-3, -4, 'b'), (-2, -4, 'b'), (-1, -4, 'b'), (0, -4, 'b'), # Row 1
+             (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'), (-1, -3, 'b'), (0, -3, 'b'), (1, -3, 'b'), # Row 2j
+             (-2, -2, 'b'),  (-1, -2, 'b'), (0, -2, 'b') # Row 3
+         ]
+
+        # White marble initial positions
+        white_marbles_initial_pos = [
+            (0,4,'w'), (1,4,'w'), (2,4,'w'), (3,4,'w'), (4,4,'w'), # Row 1
+            (-1,3,'w'), (0,3,'w'), (1,3,'w'), (2,3,'w'), (3,3,'w'), (4,3,'w'), # Row 2
+            (0,2,'w'), (1,2,'w'), (2,2,'w') # Row 3
+        ]
+
+        Board.place_marbles(black_marble_initial_pos, board)
+        Board.place_marbles(white_marbles_initial_pos, board)
+
+        return board
+
+    @staticmethod
+    def place_marbles(coloured_marbles, board):
+        """
+        Places marbles on the board at specified positions with specified colours.
+        
+        :param coloured_marbles: List of tuples (x, y, colour) where x and y are coordinates and colour is 'b', 'w', or 'N'
+        :param board: Dictionary representing the board where keys are (x, y) coordinates and values are marble colours
+        """
+        
+        for (x, y, colour) in coloured_marbles:
+            board[(x, y)] = colour
+
+
+    @staticmethod
     def get_input_board_representation(file_name):
         """
         Given the class example files with the suffix ".input", returns the player turn and converts a given input board position from an example format:
