@@ -3,9 +3,11 @@ import os
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
-    # Directory containing the test files
-    TEST_INPUT_FILES_DIR = "../test_files/input/"
-    TEST_OUTPUT_FILES_DIR = "../test_files/output/"
+
+    # Get the project root directory and test file paths
+    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
+    TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
 
     @staticmethod
@@ -30,7 +32,7 @@ class Board:
         """
         current_board = Board.initialize_board()
 
-        path = Board.TEST_INPUT_FILES_DIR+file_name
+        path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
         
         with open(path, 'r') as f:
             player = f.readline().strip()
@@ -53,7 +55,8 @@ class Board:
         :param file_name: the name of the file to write to
         :param moves: an array of generated moves
         """
-        path = f"{Board.TEST_OUTPUT_FILES_DIR+file_name}.move"
+        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
+
         with open(path, "w") as move_file:
             for move in moves:
                 move_file.write(move + "\n")
@@ -65,7 +68,8 @@ class Board:
         :param file_name: the name of the file to write to
         :param board: an array of board state 
         """
-        path = f"{Board.TEST_OUTPUT_FILES_DIR+file_name}.board"
+        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
+
         with open(path, "w") as state_file:
             for state in states:
                 state_file.write(state + "\n")
