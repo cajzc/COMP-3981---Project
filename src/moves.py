@@ -163,11 +163,12 @@ def apply_move(board, move_str):
     if len(marbles) > len(opponent_marbles) and len(opponent_marbles) <= 2:
         # Move opponent marbles one step further
         for ox, oy in reversed(opponent_marbles):  # Start from the last in the line
-            if (ox, oy) in board:
+            new_ox, new_oy = ox + dx, oy + dy
+            if (new_ox, new_oy) in board:
                 # If still on board, move it
-                board[(ox, oy)] = 'b' if player == 'w' else 'b'
+                board[(new_ox, new_oy)] = 'b' if player == 'w' else 'w'
             else:  # If out of board, remove it (pushed off)
-                del board[(ox, oy)]
+                pass #update score here
 
     # Move the player's marbles
     for x, y, color in reversed(marbles):
