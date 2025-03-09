@@ -103,7 +103,7 @@ class Board:
         """
         Writes an array of board configuration to a .board file.
         :param file_name: the name of the file to write to
-        :param board: an array of board state 
+        :param states: an array of board state
         """
         path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
 
