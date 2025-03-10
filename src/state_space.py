@@ -48,7 +48,14 @@ class GameState:
             return 'w'
         return None
 
-def test_state_space(file, board=None, player="w"):
+def test_state_space(file, board=None, player="b"):
+    """
+    Generates the state space and outputs to a file.
+    
+    :param file: the name of the output and optional .input file
+    :param board: an optional board to preconfigure the state space with
+    :param player: an optional player to initiate first ply, black by default
+    """
     if board is None:
         player, board = Board.get_input_board_representation(f"{file}.input")
 
@@ -76,10 +83,10 @@ def main():
     input_file_one = "Test1"
     input_file_two = "Test2"
 
-    belgian_output_file_one = "test_belgian_white_first"
-    belgian_output_file_two = "test_belgian_black_first"
-    german_output_file_one = "test_german_white_first"
-    german_output_file_two = "test_german_black_first"
+    belgian_output_white = "test_belgian_white_first"
+    belgian_output_black = "test_belgian_black_first"
+    german_output_white = "test_german_white_first"
+    german_output_black = "test_german_black_first"
 
     belgian_daisy_board = Board.get_belgian_daisy_board()
     german_daisy_board = Board.get_german_daisy_board()
@@ -87,10 +94,10 @@ def main():
     # Tests
     test_state_space(input_file_one)
     test_state_space(input_file_two)
-    test_state_space(belgian_output_file_one, belgian_daisy_board)
-    test_state_space(belgian_output_file_two, belgian_daisy_board, "b")
-    test_state_space(german_output_file_one, german_daisy_board)
-    test_state_space(german_output_file_two, german_daisy_board, "b")
+    test_state_space(belgian_output_white, belgian_daisy_board, "w")
+    test_state_space(belgian_output_black, belgian_daisy_board)
+    test_state_space(german_output_white, german_daisy_board, "w")
+    test_state_space(german_output_black, german_daisy_board, "b")
 
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
