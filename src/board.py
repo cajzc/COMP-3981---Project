@@ -179,9 +179,6 @@ class Board:
             player = f.readline().strip()
             initial_configuration = f.readline().strip().split(',')
 
-        print("Input board configuration:")
-        print(initial_configuration)
-
         for marble in initial_configuration:
             x = int(marble[1]) - 5
             y = ord(marble[0]) - ord('E')
@@ -239,5 +236,45 @@ class Board:
 
         # return f"{player}\n{','.join(marble_strs)}"
         return f"{','.join(marble_strs)}"
-
+    
+    @staticmethod
+    def get_input_files_from_user():
+        """
+        Prompts the user to enter filenames ending with '.input' and stores them in a list.
+        
+        The function will continue asking for filenames until the user enters 'q', 'quit', or 'exit'.
+        It validates that each filename ends with '.input' before adding it to the list.
+        
+        returns: a list of valid input filenames entered by the user
+        """
+        input_files = []
+        print("\nInput file(s) selection\n")
+        print("Options:")
+        print("- Enter filenames ending with '.input' (one per line)")
+        print("- Type 'q' to exit file selection menu\n")
+        
+        while True:
+            user_input = input("Enter filename (or 'q' to quit file selection menu): ").strip()
+            
+            if user_input.lower() == "q":
+                break
+            
+            # Validate filename
+            if not user_input.endswith('.input'):
+                print("Error: Filename must end with '.input'")
+                continue
+            
+            # Check if file exists in the input directory
+            file_path = os.path.join(Board.TEST_INPUT_FILES_DIR, user_input)
+            if not os.path.exists(file_path):
+                print(f"Warning: File '{user_input}' not found in {Board.TEST_INPUT_FILES_DIR}")
+                continue_anyway = input("Add anyway? (y/n): ").strip().lower()
+                if continue_anyway != 'y':
+                    continue
+            
+            # Add valid filename to the list
+            input_files.append(user_input)
+            print(f"Added: {user_input}")
+        
+        return input_files
 

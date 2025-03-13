@@ -57,10 +57,11 @@ def test_state_space(file, board=None, player="b"):
     :param player: an optional player to initiate first ply, black by default
     """
     if board is None:
-        player, board = Board.get_input_board_representation(f"{file}.input")
+        player, board = Board.get_input_board_representation(file)
 
     # Generate all possible moves
     all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
+    file = file.strip(".input")
 
     # Write moves to file
     Board.write_to_move_file(file, all_moves)
@@ -75,10 +76,11 @@ def test_state_space(file, board=None, player="b"):
     # Write resulting board to file
     Board.write_to_board_file(file, new_states)
    
-    print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + file}.move Board saved to {Board.TEST_OUTPUT_FILES_DIR + file}.board")
+    print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
 
 
-def main():
+def local_tests():
+    """Tests the state space for development/debugging purposes."""
     # Input & Output files
     input_file_one = "Test1"
     input_file_two = "Test2"
@@ -99,6 +101,17 @@ def main():
     test_state_space(german_output_white, german_daisy_board, "w")
     test_state_space(german_output_black, german_daisy_board, "b")
 
+
+def main():
+    print("Test State Space Generator")
+    print("--------------------------")
+    user_input_files = Board.get_input_files_from_user()
+    if not user_input_files:
+        return
+    print("\nGenerated Boards\n")
+    for file in user_input_files:
+        test_state_space(file)
+    
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
     #     print(move)
