@@ -90,6 +90,7 @@ class Board:
 
         return board
 
+
     @staticmethod
     def get_german_daisy_board():
         """
@@ -129,8 +130,6 @@ class Board:
         Board.place_marbles(white_marbles_initial_pos, board)
 
         return board
-
-
 
 
     @staticmethod
@@ -179,7 +178,7 @@ class Board:
 
         path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
         
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding="utf-8") as f:
             player = f.readline().strip()
             initial_configuration = f.readline().strip().split(',')
 
@@ -199,7 +198,7 @@ class Board:
         """
         path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
 
-        with open(path, "w") as move_file:
+        with open(path, "w", encoding="utf-8") as move_file:
             for move in moves:
                 move_file.write(move + "\n")
 
@@ -212,7 +211,7 @@ class Board:
         """
         path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
 
-        with open(path, "w") as state_file:
+        with open(path, "w", encoding="utf-8") as state_file:
             for state in states:
                 state_file.write(state + "\n")
 
