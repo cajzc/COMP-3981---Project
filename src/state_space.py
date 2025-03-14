@@ -111,6 +111,7 @@ def main():
     print("\nGenerated Boards\n")
     for file in user_input_files:
         test_state_space(file)
+    input("Press any key to exit")
     
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
