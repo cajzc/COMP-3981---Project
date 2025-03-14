@@ -1,10 +1,16 @@
 """Houses the board representation methods."""
 import os
+import sys
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
 
     # Get the project root directory and test file paths
+    # TODO: Check
+    if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
+        PROJECT_ROOT = os.path.dirname(sys.executable)
+    else:  # Running as a regular Python script
+        PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
