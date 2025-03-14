@@ -10,7 +10,6 @@ class Board:
         PROJECT_ROOT = os.path.abspath(sys.argv[0])
     else:  # Running as a regular Python script
         PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
