@@ -6,9 +6,8 @@ class Board:
     """Holds the implementation to parse and output a board's representation."""
 
     # Get the project root directory and test file paths
-    # TODO: Check
     if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
-        PROJECT_ROOT = os.path.dirname(sys.executable)
+        PROJECT_ROOT = os.path.abspath(sys.argv[0])
     else:  # Running as a regular Python script
         PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
