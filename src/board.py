@@ -7,7 +7,7 @@ class Board:
 
     # Get the project root directory and test file paths
     if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
-        PROJECT_ROOT = os.path.abspath(sys.argv[0])
+        PROJECT_ROOT = os.path.dirname(os.path.abspath(sys.executable))
     else:  # Running as a regular Python script
         PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
@@ -214,6 +214,21 @@ class Board:
         with open(path, "w", encoding="utf-8") as state_file:
             for state in states:
                 state_file.write(state + "\n")
+
+    @staticmethod
+    def write_to_input_file(file_name, board, colour):
+        """
+        Writes a board into a new file as the .input format.
+        :param file_name: the name of the file to write to
+        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
+        :param colour: the starting player's colour
+        """
+        path = os.path.join(Board.TEST_INPUT_FILES_DIR, f"{file_name}.input")
+        with open(path, "w", encoding="utf-8") as input_file:
+            input_file.write(colour + "\n")
+            for line in Board.to_string_board(board):
+                input_file.write(line)
+
 
     @staticmethod
     def to_string_board(board):
