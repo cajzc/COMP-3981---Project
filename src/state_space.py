@@ -102,6 +102,7 @@ class GameState:
 
 
 def main():
+    pass
     # belgian_daisy_board = Board.get_belgian_daisy_board()
     # german_daisy_board = Board.get_german_daisy_board()
     # Board.write_to_input_file("belgian_daisy_board_white", belgian_daisy_board, "w")  
@@ -109,7 +110,6 @@ def main():
     # Board.write_to_input_file("german_daisy_board_white", german_daisy_board, "w")  
     # Board.write_to_input_file("german_daisy_board_black", german_daisy_board, "b")  
     
-    Board.options()
 
     # print("Test State Space Generator")
     # print("--------------------------")
