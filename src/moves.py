@@ -156,7 +156,7 @@ def apply_move(board, move_str):
     marble_pattern = r"\((-?\d+), (-?\d+), (\w)\)"
     marbles_str_list = re.findall(marble_pattern, marble_parts[0])
     marbles = [(int(x), int(y), color) for x, y, color in marbles_str_list]
-    player = marbles[0][1]
+    player = marbles[0][2]
 
     # Determine if it's an inline push
     last_marble = marbles[-1][:2]  # (x, y) only

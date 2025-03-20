@@ -110,15 +110,15 @@ def main():
     # Board.write_to_input_file("german_daisy_board_white", german_daisy_board, "w")  
     # Board.write_to_input_file("german_daisy_board_black", german_daisy_board, "b")  
 
-    print("Test State Space Generator")
-    print("--------------------------")
-    user_input_files = Board.get_input_files_from_user()
-    if not user_input_files:
-        return
-    print("\nGenerated Boards\n")
-    for file in user_input_files:
-        test_state_space(file)
-    input("Press any key to exit")
+    # print("Test State Space Generator")
+    # print("--------------------------")
+    # user_input_files = Board.get_input_files_from_user()
+    # if not user_input_files:
+    #     return
+    # print("\nGenerated Boards\n")
+    # for file in user_input_files:
+    #     test_state_space(file)
+    # input("Press any key to exit")
 
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
