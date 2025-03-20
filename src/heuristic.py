@@ -18,11 +18,11 @@ def marbles_coherence(board,player):
     mean_x = sum(x_positions) / len(x_positions)
     mean_y = sum(y_positions) / len(y_positions)
 
-    # Calculate standard deviation for x and y
-    std_x = math.sqrt(sum((x - mean_x) ** 2 for x in x_positions) / len(x_positions))
-    std_y = math.sqrt(sum((y - mean_y) ** 2 for y in y_positions) / len(y_positions))
+    # Calculate deviation for x and y
+    variance_x = sum((x - mean_x) ** 2 for x in x_positions) / len(x_positions)
+    variance_y = sum((y - mean_y) ** 2 for y in y_positions) / len(y_positions)
 
-    return (std_x + std_y) / 2
+    return (variance_x + variance_y) / 2
 
 """3. marbles in danger """
 def marbles_in_danger(board,player):
