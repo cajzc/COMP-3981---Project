@@ -119,7 +119,7 @@ def main():
     for file in user_input_files:
         test_state_space(file)
     input("Press any key to exit")
-    
+
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
     #     print(move)
@@ -136,14 +136,16 @@ def main():
     # print(Board.tostring_board(board))
     #
     #
-    # print("\nBefore Move:")
-    # print(Board.tostring_board(board))
-    #
-    # move = "(0, -1, b)-(1, 0, b)-(2, 1, b)↗p(3, 2, w)-(4, 3, w)"  # Example move
-    # apply_move(board, move)  # Directly modifies board
-    #
-    # print("\nAfter Move:")
-    # print(Board.tostring_board(board))
+    """ add single move debug code"""
+    player, board = Board.get_input_board_representation("Test2.input")
+    print("\nBefore Move:")
+    print(Board.to_string_board(board))
+
+    move = "(-2, -1, w)↙(-3, -2, w)"  # Example move
+    apply_move(board, move)  # Directly modifies board
+
+    print("\nAfter Move:")
+    print(Board.to_string_board(board))
 
 
 if __name__ == '__main__':
