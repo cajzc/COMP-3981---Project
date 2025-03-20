@@ -1,6 +1,8 @@
 """Houses the board representation methods."""
 import os
 import sys
+from typing import Tuple, Set
+from state_space import *
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
@@ -11,6 +13,7 @@ class Board:
     else:  # Running as a regular Python script
         PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
+    VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
     @staticmethod
@@ -254,6 +257,52 @@ class Board:
 
         # return f"{player}\n{','.join(marble_strs)}"
         return f"{','.join(marble_strs)}"
+
+    @staticmethod
+    def boards_equal(file_name) -> Tuple[bool, Set[str]]:
+        """
+        Compares two ".board" files to check if they contain the same boards configurations, regardless of order.
+        
+        :param file_name: the file path of both files to check
+        """
+        output_file = os.path.join(Board.TEST_OUTPUT_FILES_DIR, file_name)
+        valid_output_file = os.path.join(Board.VALID_OUTPUT_FILES_DIR, file_name)
+        with open(output_file, 'r') as output, open(valid_output_file, 'r') as valid_output:
+            output = {line.strip() for line in output.readlines()}
+            valid_output = {line.strip() for line in valid_output.readlines()}
+        
+        differences = output - valid_output
+        return output == valid_output, differences 
+
+    @staticmethod
+    def options():
+        while True:
+            print(
+                "\nAgent debugging screen\n"
+                "----------------------\n"
+                "Options\n"
+                "(1) Generate boards from .input file(s)\n"
+                "(2) Check if .board files are equal\n"
+                "(3) Exit\n"
+            )
+            user_input = input("Enter: ").strip(",.?! ")
+            match user_input:
+                case "1":
+                    Board._handle_input_files()
+                case "2":
+                    file = input("Enter the .board file to compare. (File names to compare should be equal): ")
+                    eq, board = Board.boards_equal(file)
+                    if eq:
+                        print("(SUCCESS) Files contain the same board")
+                    else:
+                        print("(ERROR) Files do not contain the same board!")
+                        print(f"test_output/{file} contains the following lines that valid_output/{file} does not: ", board)
+                case "3":
+                    print("Exiting program...")
+                    break
+                case _:
+                    print("Invalid selection")
+
     
     @staticmethod
     def get_input_files_from_user():
@@ -295,4 +344,45 @@ class Board:
             print(f"Added: {user_input}")
         
         return input_files
+
+    @staticmethod
+    def _handle_input_files():
+        user_input_files = Board.get_input_files_from_user() 
+        if not user_input_files:
+            return
+        print("\nGenerated Boards\n")
+        for file in user_input_files:
+            Board.test_state_space(file)
+
+    @staticmethod
+    def test_state_space(file, board=None, player="b"):
+        """
+        Generates the state space and outputs to a file.
+    
+        :param file: the name of the output and optional .input file
+        :param board: an optional board to preconfigure the state space with
+        :param player: an optional player to initiate first ply, black by default
+        """
+        if board is None:
+            player, board = Board.get_input_board_representation(file)
+
+        # Generate all possible moves
+        all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
+        file = file.strip(".input")
+
+        # Write moves to file
+        Board.write_to_move_file(file, all_moves)
+    
+        # Apply each move and write new board states
+        new_states = []
+        for move in all_moves:
+            new_board = board.copy()
+            apply_move(new_board, move)
+            new_states.append(Board.to_string_board(new_board))
+
+        # Write resulting board to file
+        Board.write_to_board_file(file, new_states)
+   
+        print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
+
 

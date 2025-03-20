@@ -1,4 +1,3 @@
-from board import Board
 from moves import get_single_moves, get_inline_moves, get_side_step_moves, apply_move
 
 class GameState:
@@ -48,58 +47,58 @@ class GameState:
             return 'w'
         return None
 
-def test_state_space(file, board=None, player="b"):
-    """
-    Generates the state space and outputs to a file.
-    
-    :param file: the name of the output and optional .input file
-    :param board: an optional board to preconfigure the state space with
-    :param player: an optional player to initiate first ply, black by default
-    """
-    if board is None:
-        player, board = Board.get_input_board_representation(file)
-
-    # Generate all possible moves
-    all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
-    file = file.strip(".input")
-
-    # Write moves to file
-    Board.write_to_move_file(file, all_moves)
-    
-    # Apply each move and write new board states
-    new_states = []
-    for move in all_moves:
-        new_board = board.copy()
-        apply_move(new_board, move)
-        new_states.append(Board.to_string_board(new_board))
-
-    # Write resulting board to file
-    Board.write_to_board_file(file, new_states)
-   
-    print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
-
-
-def local_tests():
-    """Tests the state space for development/debugging purposes."""
-    # Input & Output files
-    input_file_one = "Test1"
-    input_file_two = "Test2"
-
-    belgian_output_white = "test_belgian_white_first"
-    belgian_output_black = "test_belgian_black_first"
-    german_output_white = "test_german_white_first"
-    german_output_black = "test_german_black_first"
-
-    belgian_daisy_board = Board.get_belgian_daisy_board()
-    german_daisy_board = Board.get_german_daisy_board()
-
-    # Tests
-    test_state_space(input_file_one)
-    test_state_space(input_file_two)
-    test_state_space(belgian_output_white, belgian_daisy_board, "w")
-    test_state_space(belgian_output_black, belgian_daisy_board)
-    test_state_space(german_output_white, german_daisy_board, "w")
-    test_state_space(german_output_black, german_daisy_board, "b")
+# def test_state_space(file, board=None, player="b"):
+#     """
+#     Generates the state space and outputs to a file.
+#
+#     :param file: the name of the output and optional .input file
+#     :param board: an optional board to preconfigure the state space with
+#     :param player: an optional player to initiate first ply, black by default
+#     """
+#     if board is None:
+#         player, board = Board.get_input_board_representation(file)
+#
+#     # Generate all possible moves
+#     all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
+#     file = file.strip(".input")
+#
+#     # Write moves to file
+#     Board.write_to_move_file(file, all_moves)
+#
+#     # Apply each move and write new board states
+#     new_states = []
+#     for move in all_moves:
+#         new_board = board.copy()
+#         apply_move(new_board, move)
+#         new_states.append(Board.to_string_board(new_board))
+#
+#     # Write resulting board to file
+#     Board.write_to_board_file(file, new_states)
+#
+#     print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
+#
+#
+# def local_tests():
+#     """Tests the state space for development/debugging purposes."""
+#     # Input & Output files
+#     input_file_one = "Test1"
+#     input_file_two = "Test2"
+#
+#     belgian_output_white = "test_belgian_white_first"
+#     belgian_output_black = "test_belgian_black_first"
+#     german_output_white = "test_german_white_first"
+#     german_output_black = "test_german_black_first"
+#
+#     belgian_daisy_board = Board.get_belgian_daisy_board()
+#     german_daisy_board = Board.get_german_daisy_board()
+#
+#     # Tests
+#     test_state_space(input_file_one)
+#     test_state_space(input_file_two)
+#     test_state_space(belgian_output_white, belgian_daisy_board, "w")
+#     test_state_space(belgian_output_black, belgian_daisy_board)
+#     test_state_space(german_output_white, german_daisy_board, "w")
+#     test_state_space(german_output_black, german_daisy_board, "b")
 
 
 def main():
@@ -109,6 +108,8 @@ def main():
     # Board.write_to_input_file("belgian_daisy_board_black", belgian_daisy_board, "b")  
     # Board.write_to_input_file("german_daisy_board_white", german_daisy_board, "w")  
     # Board.write_to_input_file("german_daisy_board_black", german_daisy_board, "b")  
+    
+    Board.options()
 
     # print("Test State Space Generator")
     # print("--------------------------")
@@ -119,7 +120,7 @@ def main():
     # for file in user_input_files:
     #     test_state_space(file)
     # input("Press any key to exit")
-
+    #
     # print("\nSingle Marble Moves:")
     # for move in get_single_moves(player, board):
     #     print(move)
@@ -136,16 +137,16 @@ def main():
     # print(Board.tostring_board(board))
     #
     #
-    """ add single move debug code"""
-    player, board = Board.get_input_board_representation("Test2.input")
-    print("\nBefore Move:")
-    print(Board.to_string_board(board))
-
-    move = "(-2, -1, w)↙(-3, -2, w)"  # Example move
-    apply_move(board, move)  # Directly modifies board
-
-    print("\nAfter Move:")
-    print(Board.to_string_board(board))
+    # """ add single move debug code"""
+    # player, board = Board.get_input_board_representation("Test2.input")
+    # print("\nBefore Move:")
+    # print(Board.to_string_board(board))
+    #
+    # move = "(-2, -1, w)↙(-3, -2, w)"  # Example move
+    # apply_move(board, move)  # Directly modifies board
+    #
+    # print("\nAfter Move:")
+    # print(Board.to_string_board(board))
 
 
 if __name__ == '__main__':
