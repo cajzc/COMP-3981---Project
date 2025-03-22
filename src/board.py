@@ -16,6 +16,14 @@ class Board:
     VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
+    # helper method to convert our x,y coordinates to qrs notation
+    @staticmethod
+    def old_to_new(x,y):
+        q = x
+        r = y -x
+        s = -y
+        return (q,r,s)
+
     @staticmethod
     def initialize_board():
         """
