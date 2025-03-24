@@ -25,6 +25,40 @@ class Board:
         return (q,r,s)
 
     @staticmethod
+    def convert_legacy_board_to_new(board):
+        """
+        Converts a board from the 'Legacy' (old) represesentation to the new board representation. Adds the new s coordinate.
+
+        i.e.,
+
+        Legacy:
+        {(qi, ri): c, ... , (qn, rn): c}
+
+        New:
+        [(qi, ri, si): c, ... , (qn, rn, sn): c]
+
+        :param board: the board in the Legacy format.
+        """
+        return {(x, y, Board.old_to_new(x, y), c) for x, y, c in board.items()}
+
+    @staticmethod 
+    def get_default_board():
+        """Returns a Default abalone board."""
+        return Board.convert_legacy_board_to_new(Board.get_default_board_legacy())
+
+    @staticmethod 
+    def get_belgian_board():
+        """Returns a Belgian Daisy abalone board."""
+        return Board.convert_legacy_board_to_new(Board.get_belgian_daisy_board_legacy())
+
+    @staticmethod 
+    def get_german_board():
+        """Returns a German Daisy abalone board."""
+        return Board.convert_legacy_board_to_new(Board.get_german_daisy_board_legacy())
+
+
+
+    @staticmethod
     def initialize_board():
         """
         Initialize the board with all positions as 'N' (neutral/empty)
@@ -34,8 +68,12 @@ class Board:
         return {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
     @staticmethod
-    def get_default_board():
+    def get_default_board_legacy():
         """
+        --------
+        'Legacy' board representation.
+        --------
+
         Creates a standard Abalone board with the standard initial marble positions.
         
         :returns: Dictionary representing the standard board with initial marble positions
@@ -62,8 +100,12 @@ class Board:
         return board
 
     @staticmethod
-    def get_belgian_daisy_board():
+    def get_belgian_daisy_board_legacy():
         """
+        --------
+        'Legacy' board representation.
+        --------
+
         Creates a belgian daisy Abalone board with the standard initial marble positions.
         
         :returns: Dictionary representing the belgian daisy board with initial marble positions
@@ -103,8 +145,13 @@ class Board:
 
 
     @staticmethod
-    def get_german_daisy_board():
+    def get_german_daisy_board_legacy():
         """
+        --------
+        'Legacy' board representation.
+        --------
+
+
         Creates a german daisy Abalone board with the standard initial marble positions.
         
         :returns: Dictionary representing the german daisy board with initial marble positions
@@ -434,13 +481,13 @@ class Board:
             output_file = ""
 
             if board_config == "1":
-                board_config = Board.get_default_board()
+                board_config = Board.get_default_board_legacy()
                 output_file = "default_board"
             elif board_config == "2":
-                board_config = Board.get_belgian_daisy_board()
+                board_config = Board.get_belgian_daisy_board_legacy()
                 output_file = "belgian_board"
             elif board_config == "3":
-                board_config = Board.get_german_daisy_board()
+                board_config = Board.get_german_daisy_board_legacy()
                 output_file = "german_board"
 
             output_file += "_" + colour
