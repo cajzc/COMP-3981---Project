@@ -80,7 +80,7 @@ class Board:
         """
 
         # -----------------------------
-        # Black marbles (two 'daisies' near bottom-left and bottom-right)
+        # Black marbles (two 'daisies' at the bottom left and top right)
         # -----------------------------
         black_marble_initial_pos = [
             # Bottom-left daisy (rows A to C):
@@ -101,7 +101,7 @@ class Board:
         ]
 
         # -----------------------------
-        # White marbles (two 'daisies' near top-left and top-right)
+        # White marbles (two 'daisies' at the bottom right and top left)
         # -----------------------------
         white_marbles_initial_pos = [
             # Bottom-right daisy (rows A to C):
@@ -136,34 +136,34 @@ class Board:
         """
 
         # -----------------------------
-        # Black marbles (two arcs near bottom-left and bottom-right)
+        # Black marbles (two arcs near the bottom-left and top-right)
         # -----------------------------
         black_marble_initial_pos = [
             # Bottom-left arc
-            # e.g. Row B, Row C, Row D, etc. (example set; adjust as needed)
-            (-4, +3, +1), (-3, +3, 0),
-            (-4, +2, +2), (-3, +2, +1), (-2, +2, 0),
-            (-3, +1, +2), (-2, +1, +1),
+            (-4, 3, 1), (-3, 3, 0),
+            (-4, 2, 2), (-3, 2, 1), (-2, 2, 0),
+            (-3, 1, 2), (-2, 1, 1),
 
-            # Bottom-right arc
-            (4, +3, -7), (3, +3, -6),
-            (4, +2, -6), (3, +2, -5), (2, +2, -4),
-            (3, +1, -4), (2, +1, -3),
+
+            # Top-right arc
+            (3, -3, 0), (4, -3, -1),
+            (2, -2, 0), (3, -2, -1), (4, -2, 0),
+            (2, -1, -1), (3, -1, -2)
         ]
 
         # -----------------------------
-        # White marbles (two arcs near top-left and top-right)
+        # White marbles (two arcs near the top-left and bottom-right)
         # -----------------------------
         white_marbles_initial_pos = [
-            # Top-left arc
-            (0, -3, +3), (1, -4, +3),
-            (0, -2, +2), (1, -3, +2), (2, -4, +2),
-            (1, -2, +1), (2, -3, +1),
+            # Bottom-right arc
+            (1, 1, -2), (2, 1, -3),
+            (0, 2, -2), (1, 2, -3), (2, 2, -4),
+            (0, 3, -3), (1, 3, -4),
 
-            # Top-right arc
-            (-1, 3, -2), (0, 4, -4),
-            (-2, 2, 0), (-1, 3, -2), (0, 4, -4),
-            (-2, 1, +1), (-1, 2, -1),
+            # Top-left arc
+            (-1, -3, 4), (0, -3, 3),
+            (-2, -2, 4), (-1, -2, 3), (0, -2, 2),
+            (-2, -1, 3), (-1, -1, 2)
         ]
 
         # Clear and place on board
