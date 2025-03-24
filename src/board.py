@@ -39,7 +39,7 @@ class Board:
 
         :param board: the board in the Legacy format.
         """
-        return {(x, y, Board.old_to_new(x, y), c) for (x, y), c in board.items()}
+        return {Board.old_to_new(x, y): c for (x, y), c in board.items()}
 
     @staticmethod 
     def get_default_board():
@@ -462,7 +462,7 @@ class Board:
         Where a user can select the player colour that has the first move.
         """
         while True:
-            print("IMPORTANT: This only works once the state space generator is updated with the new board configuration") # FIXME:
+            print("\nIMPORTANT: This only works once the state space generator is updated with the new board configuration") # FIXME:
             board_config=input(
                 "\nSelect a board configuration:\n"
                 "(1) Default Abalone Board\n"
