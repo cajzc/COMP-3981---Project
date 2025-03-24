@@ -1,31 +1,129 @@
 import re
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 DIRECTIONS = {
-    '→': (1, 0),    # +x
-    '←': (-1, 0),   # -x
-    '↖': (0, 1),    # +y
-    '↘': (0, -1),   # -y
-    '↗': (1, 1),    # +x+y
-    '↙': (-1, -1)   # -x-y
+    '→':  (1,  0, -1),  # East
+    '↗':  (1, -1,  0),  # Northeast
+    '↖':  (0, -1,  1),  # Northwest
+    '←':  (-1, 0,  1),  # West
+    '↙':  (-1, 1,  0),  # Southwest
+    '↘':  (0,  1, -1),  # Southeast
 }
 
-def get_single_moves(player, board):
-    """Generate all valid single marble moves"""
+# get to a single neighbor position align one direction
+def neighbor(pos, direction):
+    q, r, s = pos
+    dq, dr, ds = DIRECTIONS[direction]
+    return q + dq, r + dr, s + ds
+
+
+@dataclass
+class Move:
+    """
+    Represents a move in (q,r,s) coordinates with a known direction arrow
+    (e.g. '→','↗','↖','←','↙','↘') and a move_type to differentiate
+    single/inline/side-step/push, etc.
+    """
+    player: str  # 'b' or 'w'
+    direction: str | None = None  # arrow symbol from DIRECTIONS (e.g. '→')
+    move_type: str = "single"  # 'single','inline','side_step','push'
+
+    moved_marbles: List[Tuple[int, int, int, str]] = field(default_factory=list)
+    dest_positions: List[Tuple[int, int, int, str]] = field(default_factory=list)
+
+    push: bool = False
+    pushed_off: bool = False
+    pushed_marbles: List[Tuple[int, int, int, str]] = field(default_factory=list)
+    pushed_dest_positions: List[Tuple[int, int, int, str]] = field(default_factory=list)
+
+    def __str__(self) -> str:
+        """
+        Builds notation showing the arrow (self.direction) and a suffix
+        for move_type ('s','i','p', etc.), while matching the number of marbles.
+
+        Expected outputs:
+
+          - Single (direction='→'):
+              "b: (0,0,0,b)→(1,0,-1,b)"
+
+          - Side-step (direction='→'), 2 marbles:
+              "w: (0,1,-1,w)-(0,2,-2,w)→s(1,1,-2,w)-(1,2,-3,w)"
+              (The marbles, originally aligned along ↘, side-step east by adding (1,0,-1).)
+
+          - Inline (direction='↗'), 2 marbles:
+              "b: (0,0,0,b)-(1,-1,0,b)↗i(1,-1,0,b)-(2,-2,0,b)"
+
+          - Push (direction='→'):
+              # Example 1: Two marbles pushing one opponent marble:
+              "b: (0,0,0,b)-(1,0,-1,b)→p(2,0,-2,w)"
+
+              # Example 2: Three marbles pushing two opponent marbles:
+              "b: (0,0,0,b)-(1,0,-1,b)-(2,0,-2,b)→p(3,0,-3,w)-(4,0,-4,w)"
+        """
+
+        def marble_str(q, r, s, c):
+            return f"({q},{r},{s},{c})"
+
+        # 1) Base arrow from self.direction (using DIRECTIONS) or "??" if invalid.
+        arrow = self.direction if (self.direction in DIRECTIONS) else "??"
+
+        # 2) Append suffix for move_type:
+        #    "single" => no suffix,
+        #    "inline" => "i",
+        #    "side_step" => "s",
+        #    "push" => "p",
+        #    Otherwise, add "?".
+        match self.move_type:
+            case "inline":
+                arrow += "i"
+            case "side_step":
+                arrow += "s"
+            case "push":
+                arrow += "p"
+            case "single":
+                pass
+            case _:
+                arrow += "?"
+
+        # 3) Build the "moved" chain.
+        moved_chain = "-".join(marble_str(*m) for m in self.moved_marbles)
+
+        # 4) Build the "destination" chain.
+        dest_chain = "-".join(marble_str(*pos) for pos in self.dest_positions)
+
+        # 5) If push, simply join the pushed marbles.
+        if self.push or self.move_type == "push":
+            opp_chain = "-".join(marble_str(*pos) for pos in self.pushed_marbles)
+            return f"{moved_chain}{arrow}{opp_chain}"
+
+        # 6) Otherwise, show moved -> destination.
+        return f"{moved_chain}{arrow}{dest_chain}"
+
+def get_single_moves(player: str, board_obj) -> List[Move]:
+    """
+    Generates all valid single-marble moves for the given player,
+    using board_obj.marble_positions for occupied cells and
+    board_obj.empty_positions for empties.
+
+    A move is valid if, for a marble at (q,r,s) belonging to player,
+    one of the six neighbors (computed via DIRECTIONS) is in board_obj.empty_positions.
+    """
     moves = []
-    current_color = player
-
-    for (x,y),color in board.items():
-        if color != current_color:
+    for (q, r, s), color in board_obj.marble_positions.items():
+        if color != player:
             continue
-
-        for direction,(dx,dy) in DIRECTIONS.items():
-            new_x, new_y = x + dx, y + dy
-            if (new_x, new_y) in board and board[(new_x, new_y)] == 'N':
-                # Format: (x1,y1,color)→(x2,y2,color)
-                move_str = f"({x}, {y}, {current_color}){direction}({new_x}, {new_y}, {current_color})"
-                moves.append(move_str)
+        for dir_symbol, (dq, dr, ds) in DIRECTIONS.items():
+            new_pos = (q + dq, r + dr, s + ds)
+            if new_pos in board_obj.empty_positions:
+                move_obj = Move(
+                    player=player,
+                    direction=dir_symbol,
+                    moved_marbles=[(q, r, s, color)],
+                    dest_positions=[(new_pos[0], new_pos[1], new_pos[2], color)]
+                )
+                moves.append(move_obj)
     return moves
-
 
 def get_inline_moves(player, board):
     """Generate all valid inline moves for 2-3 marbles (excluding illegal Sumito pushes)."""
