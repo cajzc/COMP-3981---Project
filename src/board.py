@@ -4,6 +4,21 @@ import sys
 from typing import Tuple, Set
 from state_space import *
 
+
+def convert_marble_notation(notation: str) -> Tuple[int, int, int, str]:
+    """
+    Converts a marble notation (e.g., "C5b") to cube coordinates (q, r, s, color).
+    Convention: Row A = r=+4, B=+3, ... I=-4; Column 5 = q=0.
+    s is computed as -q - r.
+    """
+    row_letter = notation[0]
+    col_str = notation[1:-1]
+    color = notation[-1]
+    r = 4 - (ord(row_letter.upper()) - ord('A'))
+    q = int(col_str) - 5
+    s = -q - r
+    return (q, r, s, color)
+
 class Board:
     """Holds the implementation to parse and output a board's representation."""
 
@@ -184,28 +199,28 @@ class Board:
             self.marble_positions[(q, r, s)] = colour
             self.empty_positions.discard((q, r, s))
 
-    def get_input_board_representation(self, file_name):
+    def get_input_board_representation(self, file_name: str) -> Tuple[str, dict]:
         """
-        Reads an input board configuration from a file and converts it into the team's board format.
-
-        :param file_name: the name of the input file
-        :returns: tuple containing (player turn, game board representation as dictionary)
+        Reads an input file. First line is the player's turn.
+        Second line is a comma-separated list of marble notations (e.g., "C5b").
+        Converts them into cube coordinates and returns (player, marble_positions dictionary).
         """
-        self.reset_board()
-        path = os.path.join(self.TEST_INPUT_FILES_DIR, file_name)
-
-        with open(path, 'r', encoding="utf-8") as f:
+        path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
+        with open(path, "r", encoding="utf-8") as f:
             player = f.readline().strip()
             marbles = f.readline().strip().split(',')
+        for notation in marbles:
+            notation = notation.strip()
+            if not notation:
+                continue  # Skip empty tokens
+            q, r, s, color = convert_marble_notation(notation)
+            # Only add if not already present.
+            self.marble_positions[(q, r, s)] = color
+            if (q, r, s) in self.empty_positions:
+                self.empty_positions.remove((q, r, s))
+        return (player, self.marble_positions)
 
-        for marble in marbles:
-            q = int(marble[1]) - 5
-            r = ord('E') - ord(marble[0])
-            s = -q-r
-            self.marble_positions[(q, r, s)] = marble[2]
-            self.empty_positions.discard((q, r, s))
 
-        return player
 
     @staticmethod
     def write_to_move_file(file_name, moves):
@@ -221,17 +236,12 @@ class Board:
                 move_file.write(str(move) + "\n")
 
     @staticmethod
-    def write_to_board_file(file_name, states):
-        """
-        Writes an array of board configuration to a .board file.
-        :param file_name: the name of the file to write to
-        :param states: an array of board state
-        """
+    def write_to_board_file(file_name: str, states: List[str]):
         path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
-
         with open(path, "w", encoding="utf-8") as state_file:
             for state in states:
                 state_file.write(state + "\n")
+
 
     @staticmethod
     def write_to_input_file(file_name, board, colour):
@@ -467,22 +477,67 @@ def local_tests():
     Board.test_state_space(german_output_white, german_daisy_board, "w")
     Board.test_state_space(german_output_black, german_daisy_board, "b")
 
+
+# def main():
+#     board = Board()
+#     board.get_input_board_representation("Test2.input")
+#     move_str = "(1,-1,0,b)-(2,-1,-1,b)-(3,-1,-2,b)→i(2,-1,-1,b)-(3,-1,-2,b)-(4,-1,-3,b)"
+#     try:
+#         move_obj = parse_move_str(move_str)
+#         print("Parsed Move Object:")
+#         print(move_obj)
+#
+#     except Exception as e:
+#         print("Error:", e)
+
+
 def main():
-    board = Board()
-    player = board.get_input_board_representation("Test1.input")
-    print(player)
-    print(board.marble_positions)
-    print(board.to_string_board())
-    singe_moves = get_single_moves(player,board)
-    inline_moves = get_inline_moves(player,board)
-    side_step_moves = get_side_step_moves(player,board)
-    moves = singe_moves + inline_moves + side_step_moves
-    for move in moves:
+    # Read initial board from Test2.input.
+    board_obj = Board()
+    player, _ = board_obj.get_input_board_representation("Test1.input")
+    print("Player:", player)
+    print("Initial board representation:")
+    print(board_obj.to_string_board())
+
+    # Generate moves.
+    single_moves = get_single_moves(player, board_obj)
+    inline_moves = get_inline_moves(player, board_obj)
+    side_step_moves = get_side_step_moves(player, board_obj)
+    all_moves = single_moves + inline_moves + side_step_moves
+    print("Generated Moves:")
+    for move in all_moves:
         print(move)
-    Board.write_to_move_file("test1.txt", moves)
+
+    # Write moves to "Test2.move".
+    Board.write_to_move_file("Test1", all_moves)
 
 
-if __name__ == "__main__":
+
+    # Read move file and apply each move.
+    move_file_path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, "Test1.move")
+    board_states = []
+    with open(move_file_path, "r", encoding="utf-8") as f:
+        move_lines = f.read().strip().splitlines()
+
+    for move_line in move_lines:
+        # Create a fresh board from Test2.input.
+        board_obj2 = Board()
+        player2, _ = board_obj2.get_input_board_representation("Test1.input")
+        apply_move(board_obj2, move_line)
+        # Recompute empty_positions after each move.
+        board_obj2.empty_positions = {
+            (q, r, s)
+            for q in range(-4, 5)
+            for r in range(-4, 5)
+            for s in range(-4, 5)
+            if q + r + s == 0 and (q, r, s) not in board_obj2.marble_positions.keys()
+        }
+        # Convert current board state to string and save it.
+        state_str = board_obj2.to_string_board()
+        board_states.append(state_str)
+
+    Board.write_to_board_file("Test1", board_states)
+
+
+if __name__ == '__main__':
     main()
-
-

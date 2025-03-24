@@ -1,5 +1,8 @@
+import re
+
 from moves import Move, DIRECTIONS
 from typing import List, Tuple
+from board import Board
 
 
 def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str) -> List[
@@ -159,7 +162,6 @@ def get_side_step_directions(inline_direction: str) -> List[str]:
     }
     return side_map.get(inline_direction, [])
 
-
 def get_side_step_moves(player: str, board_obj) -> List[Move]:
     """
     Generate all valid side-step moves for groups of 2–3 aligned marbles.
@@ -191,6 +193,138 @@ def get_side_step_moves(player: str, board_obj) -> List[Move]:
                 )
                 moves.append(move_obj)
     return moves
+
+
+def parse_move_str(move_str: str) -> Move:
+    """
+    Parses a move string and returns a Move object.
+
+    Expected example:
+      (1,-2,1,b)-(1,-1,0,b)-(1,0,-1,b)↘p(1,1,-2,w)
+
+    The parser looks for the first direction symbol in the string, then splits
+    the string into two parts. The left part contains the player's moved marbles;
+    the right part (after a possible prefix "p", "s", or "i") contains destination info.
+
+    For push moves (prefix "p"), the pushed marbles are extracted.
+
+    Conversion: The coordinates are assumed to be given in cube form (q, r, s).
+    """
+    # Extract the direction symbol.
+    direction = next((d for d in DIRECTIONS if d in move_str), None)
+    if not direction:
+        raise ValueError(f"Invalid move format: {move_str}")
+
+    # Split the move string on the direction symbol.
+    parts = move_str.split(direction)
+    if len(parts) < 2:
+        raise ValueError(f"Invalid move format; missing destination part: {move_str}")
+
+    # Pattern to match a marble: (number,number,number,color)
+    marble_pattern = r"\((-?\d+),\s*(-?\d+),\s*(-?\d+),\s*([bw])\)"
+
+    # Extract the moved marbles.
+    moved_matches = re.findall(marble_pattern, parts[0])
+    if not moved_matches:
+        raise ValueError(f"No moved marbles found in move string: {move_str}")
+    moved = [(int(x), int(y), int(z), c) for x, y, z, c in moved_matches]
+
+    # Process destination part.
+    dest_part = parts[1]
+    if dest_part.startswith("p"):
+        move_type = "push"
+        dest_part = dest_part[1:]
+        pushed_matches = re.findall(marble_pattern, dest_part)
+        if not pushed_matches:
+            raise ValueError(f"No pushed marbles found in move string: {move_str}")
+        pushed = [(int(x), int(y), int(z), c) for x, y, z, c in pushed_matches]
+        return Move(
+            player=moved[0][3],
+            direction=direction,
+            move_type=move_type,
+            moved_marbles=moved,
+            dest_positions=[],  # not used for push moves
+            push=True,
+            pushed_marbles=pushed,
+            pushed_dest_positions=[]
+        )
+    elif dest_part.startswith("s"):
+        move_type = "side_step"
+        dest_part = dest_part[1:]
+    elif dest_part.startswith("i"):
+        move_type = "inline"
+        dest_part = dest_part[1:]
+    else:
+        move_type = "single"
+
+    dest_matches = re.findall(marble_pattern, dest_part)
+    if not dest_matches:
+        raise ValueError(f"No destination marbles found in move string: {move_str}")
+    dest = [(int(x), int(y), int(z), moved[0][3]) for x, y, z, _ in dest_matches]
+
+    return Move(
+        player=moved[0][3],
+        direction=direction,
+        move_type=move_type,
+        moved_marbles=moved,
+        dest_positions=dest,
+        push=False
+    )
+
+
+def apply_move_obj(board_obj: Board, move: Move) -> None:
+    """
+    Applies the given Move object to the Board object in place.
+
+    For push moves:
+      - For each pushed opponent marble, its original cell is removed from
+        marble_positions and marked empty.
+      - Then, each opponent marble is moved to its destination (if that cell is empty)
+        and that destination cell is removed from empty_positions.
+
+    For the player's marbles:
+      - Their original positions are deleted and marked empty.
+      - Then, they are placed at their destination positions (removing those cells from empty_positions).
+
+    Finally, empty_positions is recomputed.
+    """
+    dq, dr, ds = DIRECTIONS[move.direction]
+
+    if move.push:
+        # Process pushed opponent marbles.
+        # First, remove each opponent marble from its original position and mark that cell empty.
+        for (oq, or_, os, opp_color) in reversed(move.pushed_marbles):
+            if (oq, or_, os) in board_obj.marble_positions:
+                del board_obj.marble_positions[(oq, or_, os)]
+                board_obj.empty_positions.add((oq, or_, os))
+        # Now update pushed opponent marbles to their destination positions.
+        for (oq, or_, os, opp_color) in move.pushed_marbles:
+            new_pos = (oq + dq, or_ + dr, os + ds)
+            if new_pos in board_obj.empty_positions:
+                board_obj.marble_positions[new_pos] = opp_color
+                board_obj.empty_positions.remove(new_pos)
+            else:
+                # Marble pushed off the board; update score if needed.
+                pass
+
+    # Process player's marbles: first remove originals.
+    for (q, r, s, col) in reversed(move.moved_marbles):
+        if (q, r, s) in board_obj.marble_positions:
+            del board_obj.marble_positions[(q, r, s)]
+            board_obj.empty_positions.add((q, r, s))
+    # Now update them to their destination positions.
+    for (q, r, s, col) in move.moved_marbles:
+        new_pos = (q + dq, r + dr, s + ds)
+        board_obj.marble_positions[new_pos] = col
+        if new_pos in board_obj.empty_positions:
+            board_obj.empty_positions.remove(new_pos)
+
+def apply_move(board_obj: Board, move_str: str) -> None:
+    """
+    Parses move_str into a Move object and applies it to the Board object.
+    """
+    move = parse_move_str(move_str)
+    apply_move_obj(board_obj, move)
 
 class GameState:
     """Represents the complete game state an Abalone game."""
