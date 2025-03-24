@@ -39,7 +39,7 @@ class Board:
 
         :param board: the board in the Legacy format.
         """
-        return {(x, y, Board.old_to_new(x, y), c) for x, y, c in board.items()}
+        return {(x, y, Board.old_to_new(x, y), c) for (x, y), c in board.items()}
 
     @staticmethod 
     def get_default_board():
@@ -462,6 +462,7 @@ class Board:
         Where a user can select the player colour that has the first move.
         """
         while True:
+            print("IMPORTANT: This only works once the state space generator is updated with the new board configuration") # FIXME:
             board_config=input(
                 "\nSelect a board configuration:\n"
                 "(1) Default Abalone Board\n"
@@ -481,14 +482,17 @@ class Board:
             output_file = ""
 
             if board_config == "1":
-                board_config = Board.get_default_board_legacy()
+                board_config = Board.get_default_board()
+                print("Default board", board_config)
                 output_file = "default_board"
             elif board_config == "2":
-                board_config = Board.get_belgian_daisy_board_legacy()
+                board_config = Board.get_belgian_board()
                 output_file = "belgian_board"
+                print("Belgian board", board_config)
             elif board_config == "3":
-                board_config = Board.get_german_daisy_board_legacy()
+                board_config = Board.get_german_board()
                 output_file = "german_board"
+                print("German board", board_config)
 
             output_file += "_" + colour
 
