@@ -1,35 +1,12 @@
 """Houses the board representation methods."""
 import os
 import sys
-from typing import Tuple, Set
-from state_space import *
+from typing import Tuple, Set, List
 
 
-def convert_marble_notation(notation: str) -> Tuple[int, int, int, str]:
-    """
-    Converts a marble notation (e.g., "C5b") to cube coordinates (q, r, s, color).
-    Convention: Row A = r=+4, B=+3, ... I=-4; Column 5 = q=0.
-    s is computed as -q - r.
-    """
-    row_letter = notation[0]
-    col_str = notation[1:-1]
-    color = notation[-1]
-    r = 4 - (ord(row_letter.upper()) - ord('A'))
-    q = int(col_str) - 5
-    s = -q - r
-    return (q, r, s, color)
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
-
-    # Get the project root directory and test file paths
-    if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
-        PROJECT_ROOT = os.path.dirname(os.path.abspath(sys.executable))
-    else:  # Running as a regular Python script
-        PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
-    VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
-    TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
     def __init__(self):
         self.marble_positions = {} # (q,r,s):color only store marbles in the dict saving space
@@ -37,6 +14,7 @@ class Board:
                                            for r in range(-4,5)
                                            for s in range(-4,5)
                                            if q+r+s == 0)
+
 
     def reset_board(self):
         """
@@ -49,6 +27,7 @@ class Board:
             for s in range(-4, 5)
             if q + r + s == 0
         )
+
 
     def set_default_board(self):
         """
@@ -87,6 +66,7 @@ class Board:
 
         # Remove these positions from empty_positions
         self.empty_positions -= set(black_marble_initial_pos + white_marble_initial_pos)
+
 
     def set_belgian_daisy_board(self):
         """
@@ -144,6 +124,7 @@ class Board:
             self.marble_positions[pos] = 'white'
         self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
+
     def set_german_daisy_board(self):
         """
         Places the German Daisy layout with Black on bottom daisies,
@@ -189,6 +170,7 @@ class Board:
             self.marble_positions[pos] = 'white'
         self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
+
     def place_marbles(self, coloured_marbles):
         """
         Places marbles on the board at specified positions with specified colours.
@@ -199,64 +181,26 @@ class Board:
             self.marble_positions[(q, r, s)] = colour
             self.empty_positions.discard((q, r, s))
 
-    def get_input_board_representation(self, file_name: str) -> Tuple[str, dict]:
+
+    def get_input_board_representation(self, player: str, marble_moves: List[str]) -> Tuple[str, dict]:
         """
-        Reads an input file. First line is the player's turn.
-        Second line is a comma-separated list of marble notations (e.g., "C5b").
-        Converts them into cube coordinates and returns (player, marble_positions dictionary).
+        Converts an input with a player move and marble moves to cube coordinates. Returns and sets the board positions.
+
+        :param player: the letter of the player's turn
+        :param marble_moves: a comma-separated list of marble notations (e.g., "C5b")
+        :return: a converted .input move representation into cube coordinates and returns (player, marble_positions dictionary)
         """
-        self.reset_board()
-        path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
-        with open(path, "r", encoding="utf-8") as f:
-            player = f.readline().strip()
-            marbles = f.readline().strip().split(',')
-        for notation in marbles:
+        for notation in marble_moves:
             notation = notation.strip()
             if not notation:
                 continue  # Skip empty tokens
-            q, r, s, color = convert_marble_notation(notation)
+            q, r, s, color = Board.convert_marble_notation(notation)
             # Only add if not already present.
             self.marble_positions[(q, r, s)] = color
             if (q, r, s) in self.empty_positions:
                 self.empty_positions.remove((q, r, s))
         return (player, self.marble_positions)
 
-
-
-    @staticmethod
-    def write_to_move_file(file_name, moves):
-        """
-        Writes an array of moves to a .move file.
-        :param file_name: the name of the file to write to
-        :param moves: an array of generated moves
-        """
-        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
-
-        with open(path, "w", encoding="utf-8") as move_file:
-            for move in moves:
-                move_file.write(str(move) + "\n")
-
-    @staticmethod
-    def write_to_board_file(file_name: str, states: List[str]):
-        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
-        with open(path, "w", encoding="utf-8") as state_file:
-            for state in states:
-                state_file.write(state + "\n")
-
-
-    @staticmethod
-    def write_to_input_file(file_name, board, colour):
-        """
-        Writes a board into a new file as the .input format.
-        :param file_name: the name of the file to write to
-        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
-        :param colour: the starting player's colour
-        """
-        path = os.path.join(Board.TEST_INPUT_FILES_DIR, f"{file_name}.input")
-        with open(path, "w", encoding="utf-8") as input_file:
-            input_file.write(colour + "\n")
-            for line in Board.to_string_board(board):
-                input_file.write(line)
 
     def to_string_board(self):
         """
@@ -285,260 +229,18 @@ class Board:
         return ",".join(item[3] for item in sorted_marbles)
 
     @staticmethod
-    def boards_equal(file_name) -> Tuple[bool, Set[str]]:
+    def convert_marble_notation(notation: str) -> Tuple[int, int, int, str]:
         """
-        Compares two ".board" files to check if they contain the same boards configurations, regardless of order.
-        
-        :param file_name: the file path of both files to check
+        Converts a marble notation (e.g., "C5b") to cube coordinates (q, r, s, color).
+        Convention: Row A = r=+4, B=+3, ... I=-4; Column 5 = q=0.
+        s is computed as -q - r.
         """
-        output_file = os.path.join(Board.TEST_OUTPUT_FILES_DIR, file_name)
-        valid_output_file = os.path.join(Board.VALID_OUTPUT_FILES_DIR, file_name)
-        with open(output_file, 'r') as output, open(valid_output_file, 'r') as valid_output:
-            output = {line.strip() for line in output.readlines()}
-            valid_output = {line.strip() for line in valid_output.readlines()}
-        
-        differences = output - valid_output
-        return output == valid_output, differences 
-
-    @staticmethod
-    def options():
-        """Displays the menu for Board debugging."""
-        while True:
-            print(
-                "\nAgent debugging screen\n"
-                "----------------------\n"
-                "Options\n"
-                "(1) Generate boards from .input file(s)\n"
-                "(2) Check if .board files are equal\n"
-                "(3) Exit\n"
-            )
-            user_input = input("Enter: ").strip(",.?! ")
-            match user_input:
-                case "1":
-                    Board._handle_input_files()
-                case "2":
-                    Board._handle_board_files()
-                case "3":
-                    print("Exiting program...")
-                    break
-                case _:
-                    print("Invalid selection")
-
-    
-    @staticmethod
-    def get_input_files_from_user():
-        """
-        Prompts the user to enter filenames ending with '.input' and stores them in a list.
-        
-        The function will continue asking for filenames until the user enters 'q', 'quit', or 'exit'.
-        It validates that each filename ends with '.input' before adding it to the list.
-        
-        returns: a list of valid input filenames entered by the user
-        """
-        input_files = []
-        print("\nInput file(s) selection\n")
-        print("Options:")
-        print("- Enter filenames ending with '.input' (one per line)")
-        print("- Type 'q' to exit file selection menu\n")
-        
-        while True:
-            user_input = input("Enter filename (or 'q' to quit file selection menu): ").strip()
-            
-            if user_input.lower() == "q":
-                break
-            
-            if not Board._validate_file(user_input, "input", Board.TEST_INPUT_FILES_DIR): 
-                continue
-
-            # Add valid filename to the list
-            input_files.append(user_input)
-            print(f"Added: {user_input}")
-        
-        return input_files
-
-    @staticmethod
-    def _validate_file(file_name, file_extension, directory, second_dir = None):
-        """
-        Performs file validations.
-
-        :param file_name: the name of the file
-        :param file_extension: the extension of the file. With a ".input" file, an example param would be "input"
-        :param directory: the directory of the file
-        :return: True if validated else False
-        """
-        # Validate filename
-        if not file_name.endswith(f'.{file_extension}'):
-            print(f"Error: Filename must end with '.{file_extension}'")
-            return False
-        
-        if second_dir:
-            return Board._file_exists(directory, file_name) and Board._file_exists(second_dir, file_name) 
-
-        return Board._file_exists(directory, file_name) 
-
-        
-
-    @staticmethod
-    def _file_exists(directory, file_name):
-        """
-        Checks if a file exists given a directory.
-
-        :param directory: the name of the directory
-        :param file: the name of the file
-        :return: whether the file exists or not
-        """
-        # Check if file exists in the input directory
-        file_path = os.path.join(directory, file_name)
-        if not os.path.exists(file_path):
-            print(f"(Warning) File '{file_name}' not found in {directory}")
-            return False 
-
-        return True
+        row_letter = notation[0]
+        col_str = notation[1:-1]
+        color = notation[-1]
+        r = 4 - (ord(row_letter.upper()) - ord('A'))
+        q = int(col_str) - 5
+        s = -q - r
+        return (q, r, s, color)
 
 
-    @staticmethod
-    def _handle_input_files():
-        """Displays the menu to get input file(s) and generates them."""
-        user_input_files = Board.get_input_files_from_user() 
-        if not user_input_files:
-            return
-        print("\nGenerated Boards\n")
-        for file in user_input_files:
-            Board.test_state_space(file)
-
-    @staticmethod
-    def _handle_board_files():
-        """Handles a user input for comparing an outputted .board file with the valid .board file, displaying a response if equal or not."""
-        while True:
-            user_input = input("Enter the .board file to compare. (File names to compare should be equal) (Enter q to quit): ")
-            if user_input == "q":
-                break
-            if not Board._validate_file(user_input, "board", Board.TEST_OUTPUT_FILES_DIR, Board.VALID_OUTPUT_FILES_DIR): 
-                continue
-
-            eq, board = Board.boards_equal(user_input)
-
-            if eq:
-                print("(SUCCESS) Files contain the same board")
-            else:
-                print("(ERROR) Files do not contain the same board!")
-                print(f"test_output/{user_input} contains the following lines that valid_output/{user_input} does not: ", board)
-
-
-    @staticmethod
-    def test_state_space(file, board=None, player="b"):
-        """
-        Generates the state space and outputs to a file.
-    
-        :param file: the name of the output and optional .input file
-        :param board: an optional board to preconfigure the state space with
-        :param player: an optional player to initiate first ply, black by default
-        """
-        if board is None:
-            player, board = Board.get_input_board_representation(file)
-
-        # Generate all possible moves
-        all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
-        file = file.strip(".input")
-
-        # Write moves to file
-        Board.write_to_move_file(file, all_moves)
-    
-        # Apply each move and write new board states
-        new_states = []
-        for move in all_moves:
-            new_board = board.copy()
-            apply_move(new_board, move)
-            new_states.append(Board.to_string_board(new_board))
-
-        # Write resulting board to file
-        Board.write_to_board_file(file, new_states)
-   
-        print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
-
-def local_tests():
-    """Tests the state space for development/debugging purposes."""
-    # Input & Output files
-    input_file_one = "Test1"
-    input_file_two = "Test2"
-
-    belgian_output_white = "test_belgian_white_first"
-    belgian_output_black = "test_belgian_black_first"
-    german_output_white = "test_german_white_first"
-    german_output_black = "test_german_black_first"
-
-    belgian_daisy_board = Board.get_belgian_daisy_board()
-    german_daisy_board = Board.get_german_daisy_board()
-
-    # Tests
-    Board.test_state_space(input_file_one)
-    Board.test_state_space(input_file_two)
-    Board.test_state_space(belgian_output_white, belgian_daisy_board, "w")
-    Board.test_state_space(belgian_output_black, belgian_daisy_board)
-    Board.test_state_space(german_output_white, german_daisy_board, "w")
-    Board.test_state_space(german_output_black, german_daisy_board, "b")
-
-
-# def main():
-#     board = Board()
-#     board.get_input_board_representation("Test2.input")
-#     move_str = "(1,-1,0,b)-(2,-1,-1,b)-(3,-1,-2,b)→i(2,-1,-1,b)-(3,-1,-2,b)-(4,-1,-3,b)"
-#     try:
-#         move_obj = parse_move_str(move_str)
-#         print("Parsed Move Object:")
-#         print(move_obj)
-#
-#     except Exception as e:
-#         print("Error:", e)
-
-
-def main():
-    # Read initial board from Test2.input.
-    board_obj = Board()
-    player, _ = board_obj.get_input_board_representation("Test1.input")
-    print("Player:", player)
-    print("Initial board representation:")
-    print(board_obj.to_string_board())
-
-    # Generate moves.
-    single_moves = get_single_moves(player, board_obj)
-    inline_moves = get_inline_moves(player, board_obj)
-    side_step_moves = get_side_step_moves(player, board_obj)
-    all_moves = single_moves + inline_moves + side_step_moves
-    print("Generated Moves:")
-    for move in all_moves:
-        print(move)
-
-    # Write moves to "Test2.move".
-    Board.write_to_move_file("Test1", all_moves)
-
-
-
-    # Read move file and apply each move.
-    move_file_path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, "Test1.move")
-    board_states = []
-    with open(move_file_path, "r", encoding="utf-8") as f:
-        move_lines = f.read().strip().splitlines()
-        board_obj2 = Board()
-
-    for move_line in move_lines:
-        # Create a fresh board from Test2.input.
-        player2, _ = board_obj2.get_input_board_representation("Test1.input")
-        apply_move(board_obj2, move_line)
-        # Recompute empty_positions after each move.
-        board_obj2.empty_positions = {
-            (q, r, s)
-            for q in range(-4, 5)
-            for r in range(-4, 5)
-            for s in range(-4, 5)
-            if q + r + s == 0 and (q, r, s) not in board_obj2.marble_positions.keys()
-        }
-        # Convert current board state to string and save it.
-        state_str = board_obj2.to_string_board()
-        board_states.append(state_str)
-
-    Board.write_to_board_file("Test1", board_states)
-
-
-if __name__ == '__main__':
-    main()

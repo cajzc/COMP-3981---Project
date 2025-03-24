@@ -1,9 +1,9 @@
-import board
+from debug_menu import DebugMenu
 
 def main():
     # TODO: Feel free to remove the below
     """Runs the debugging operation."""
-    board.Board.options()
+    DebugMenu.options()
 
 if __name__ == '__main__':
     main()
