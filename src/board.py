@@ -16,189 +16,197 @@ class Board:
     VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
-    # helper method to convert our x,y coordinates to qrs notation
-    @staticmethod
-    def old_to_new(x,y):
-        q = x
-        r = y -x
-        s = -y
-        return (q,r,s)
+    def __init__(self):
+        self.marble_positions = {} # (q,r,s):color only store marbles in the dict saving space
+        self.empty_positions = set((q,r,s) for q in range(-4,5)
+                                           for r in range(-4,5)
+                                           for s in range(-4,5)
+                                           if q+r+s == 0)
 
-    @staticmethod
-    def initialize_board():
+    def reset_board(self):
         """
-        Initialize the board with all positions as 'N' (neutral/empty)
-        
-        :returns: the game board representation as dictionary, where keys represent tuples of positions and values represent the value in the position
+        Resets the board by clearing all marble positions and regenerating empty positions.
         """
-        return {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
+        self.marble_positions.clear()
+        self.empty_positions = set(
+            (q, r, s) for q in range(-4, 5)
+            for r in range(-4, 5)
+            for s in range(-4, 5)
+            if q + r + s == 0
+        )
 
-    @staticmethod
-    def get_default_board():
+    def set_default_board(self):
         """
-        Creates a standard Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the standard board with initial marble positions
+        Creates a standard Abalone board with black marbles on the bottom
+        (rows A–C) and white marbles on top (rows G–I).
         """
-        # Initialize an empty board
-        board = Board.initialize_board()
-
+        # Black marble initial positions (bottom 3 rows)
         black_marble_initial_pos = [
-             (-4, -4, 'b'), (-3, -4, 'b'), (-2, -4, 'b'), (-1, -4, 'b'), (0, -4, 'b'), # Row 1
-             (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'), (-1, -3, 'b'), (0, -3, 'b'), (1, -3, 'b'), # Row 2j
-             (-2, -2, 'b'),  (-1, -2, 'b'), (0, -2, 'b') # Row 3
-         ]
-
-        # White marble initial positions
-        white_marbles_initial_pos = [
-            (0,4,'w'), (1,4,'w'), (2,4,'w'), (3,4,'w'), (4,4,'w'), # Row 1
-            (-1,3,'w'), (0,3,'w'), (1,3,'w'), (2,3,'w'), (3,3,'w'), (4,3,'w'), # Row 2
-            (0,2,'w'), (1,2,'w'), (2,2,'w') # Row 3
+            # Row A (r=+4), cols 1..5 => q=-4..0, s=-q-r
+            (-4, 4, 0), (-3, 4, -1), (-2, 4, -2), (-1, 4, -3), (0, 4, -4),
+            # Row B (r=+3), cols 1..6 => q=-4..1
+            (-4, 3, 1), (-3, 3, 0), (-2, 3, -1), (-1, 3, -2), (0, 3, -3), (1, 3, -4),
+            # Row C (r=+2), cols 4..6 => q=-1..1
+            (-1, 2, -1), (0, 2, -2), (1, 2, -3)
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
+        # White marble initial positions (top 3 rows)
+        white_marble_initial_pos = [
+            # Row G (r=-2), cols 4..6 => q=-1..1
+            (-1, -2, 3), (0, -2, 2), (1, -2, 1),
+            # Row H (r=-3), cols 4..9 => q=-1..4
+            (-1, -3, 4), (0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0), (4, -3, -1),
+            # Row I (r=-4), cols 5..9 => q=0..4
+            (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
+        ]
 
-        return board
+        self.reset_board()
 
-    @staticmethod
-    def get_belgian_daisy_board():
+        # Place black marbles
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = 'black'
+
+        # Place white marbles
+        for pos in white_marble_initial_pos:
+            self.marble_positions[pos] = 'white'
+
+        # Remove these positions from empty_positions
+        self.empty_positions -= set(black_marble_initial_pos + white_marble_initial_pos)
+
+    def set_belgian_daisy_board(self):
         """
-        Creates a belgian daisy Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the belgian daisy board with initial marble positions
+        Places the Belgian Daisy layout with Black marbles on rows near A
+        and White marbles on rows near I, using (q,r,s) with row A=+4, row I=-4.
         """
 
-        # Initialize an empty board
-        board = Board.initialize_board()
-
+        # -----------------------------
+        # Black marbles (two 'daisies' near bottom-left and bottom-right)
+        # -----------------------------
         black_marble_initial_pos = [
-            # Group 1
-            (-4, -4, 'b'), (-3, -4, 'b'),
-            (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'),
-            (-3, -2, 'b'), (-2, -2, 'b'),
+            # Bottom-left daisy (rows A/B):
+            # Row A (r=+4), columns 1..2 => q=-4..-3
+            (-4, +4, 0), (-3, +4, -1),
+            # Row B (r=+3), columns 1..3 => q=-4..-2
+            (-4, +3, +1), (-3, +3, 0), (-2, +3, -1),
+            # Row C (r=+2), columns 1..2 => q=-4..-3 or partially offset
+            # For Belgian Daisy, they're a bit more inside:
+            (-3, +2, +1), (-2, +2, 0),
 
-            # Group 2
-            (4, 4, 'b'), (3, 4, 'b'),
-            (4, 3, 'b'), (3, 3, 'b'), (2, 3, 'b'),
-            (3, 2, 'b'), (2, 2, 'b'),
+            # Bottom-right daisy (rows A/B), mirrored horizontally:
+            # Row A (r=+4), columns 8..9 => q=+3..+4
+            (3, +4, -7), (4, +4, -8),  # but s must be -q-r, so check carefully
+            # Row B (r=+3), columns 7..9 => q=+2..+4
+            (2, +3, -5), (3, +3, -6), (4, +3, -7),
+            # Row C (r=+2), columns 8..9 => q=+3..+4
+            (3, +2, -5), (4, +2, -6),
         ]
 
+        # -----------------------------
+        # White marbles (two 'daisies' near top-left and top-right)
+        # -----------------------------
         white_marbles_initial_pos = [
-            # Group 1
-            (0, -4, 'w'), (-1, -4, 'w'),
-            (1, -3, 'w'), (0, -3, 'w'), (-1, -3, 'w'),
-            (0, -2, 'w'), (1, -2, 'w'),
+            # Top-left daisy (rows G/H/I):
+            # Row I (r=-4), columns 1..2 => q=-4..-3
+            (-4, -4, +8), (-3, -4, +7),
+            # Row H (r=-3), columns 1..3 => q=-4..-2
+            (-4, -3, +7), (-3, -3, +6), (-2, -3, +5),
+            # Row G (r=-2), columns 1..2 => q=-4..-3
+            (-3, -2, +5), (-2, -2, +4),
 
-            # Group 2
-            (0, 4, 'w'), (1, 4, 'w'),
-            (-1, 3, 'w'), (0, 3, 'w'), (1, 3, 'w'),
-            (-1, 2, 'w'), (0, 2, 'w')
+            # Top-right daisy (rows G/H/I):
+            # Row I (r=-4), columns 8..9 => q=+3..+4
+            (3, -4, +1), (4, -4, 0),
+            # Row H (r=-3), columns 7..9 => q=+2..+4
+            (2, -3, +1), (3, -3, 0), (4, -3, -1),
+            # Row G (r=-2), columns 8..9 => q=+3..+4
+            (3, -2, -1), (4, -2, -2),
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
+        # Clear and place on board
+        self.reset_board()
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = 'black'
+        for pos in white_marbles_initial_pos:
+            self.marble_positions[pos] = 'white'
+        self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
-        return board
-
-
-    @staticmethod
-    def get_german_daisy_board():
+    def set_german_daisy_board(self):
         """
-        Creates a german daisy Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the german daisy board with initial marble positions
+        Places the German Daisy layout with Black on bottom daisies,
+        White on top daisies, under the same row A=+4 -> row I=-4 orientation.
         """
 
-         # Initialize an empty board
-        board = Board.initialize_board()
-
+        # -----------------------------
+        # Black marbles (two arcs near bottom-left and bottom-right)
+        # -----------------------------
         black_marble_initial_pos = [
-            # Group 1
-            (-4, -3, 'b'), (-3, -3, 'b'),
-            (-4, -2, 'b'), (-3, -2, 'b'), (-2, -2, 'b'),
-            (-3, -1, 'b'), (-2, -1, 'b'),
+            # Bottom-left arc
+            # e.g. Row B, Row C, Row D, etc. (example set; adjust as needed)
+            (-4, +3, +1), (-3, +3, 0),
+            (-4, +2, +2), (-3, +2, +1), (-2, +2, 0),
+            (-3, +1, +2), (-2, +1, +1),
 
-            # Group 2
-            (4, 3, 'b'), (3, 3, 'b'),
-            (4, 2, 'b'), (3, 2, 'b'), (2, 2, 'b'), 
-            (3, 1, 'b'), (2, 1, 'b')
+            # Bottom-right arc
+            (4, +3, -7), (3, +3, -6),
+            (4, +2, -6), (3, +2, -5), (2, +2, -4),
+            (3, +1, -4), (2, +1, -3),
         ]
 
+        # -----------------------------
+        # White marbles (two arcs near top-left and top-right)
+        # -----------------------------
         white_marbles_initial_pos = [
-            # Group 1
-            (0, -3, 'w'), (1, -3, 'w'),
-            (0, -2, 'w'), (1, -2, 'w'), (2, -2, 'w'),
-            (1, -1, 'w'), (2, -1, 'w'),
+            # Top-left arc
+            (0, -3, +3), (1, -4, +3),
+            (0, -2, +2), (1, -3, +2), (2, -4, +2),
+            (1, -2, +1), (2, -3, +1),
 
-            # Group 2
-            (-1, 3, 'w'), (0, 3, 'w'),
-            (-2, 2, 'w'), (-1, 2, 'w'), (0, 2, 'w'),
-            (-2, 1, 'w'), (-1, 1, 'w')
+            # Top-right arc
+            (-1, 3, -2), (0, 4, -4),
+            (-2, 2, 0), (-1, 3, -2), (0, 4, -4),
+            (-2, 1, +1), (-1, 2, -1),
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
+        # Clear and place on board
+        self.reset_board()
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = 'black'
+        for pos in white_marbles_initial_pos:
+            self.marble_positions[pos] = 'white'
+        self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
-        return board
-
-
-    @staticmethod
-    def valid_position(x, y):
-        """
-        Returns whether a given set of coordinates is a valid position in our game board representation.
-
-        :param x: the x coordinate as an int
-        :param y: the x coordinate as an int
-        :returns: true if valid else false
-
-        >>> valid_position(4, 5)
-        False
-        >>> valid_position(-4, -4)
-        True
-        >>> valid_position(4, 6)
-        False
-        """
-        return -4 <= x <= 4 and -4 <= y <= 4 and -4 <= (x - y) <= 4
-
-
-    @staticmethod
-    def place_marbles(coloured_marbles, board):
+    def place_marbles(self, coloured_marbles):
         """
         Places marbles on the board at specified positions with specified colours.
-        
-        :param coloured_marbles: List of tuples (x, y, colour) where x and y are coordinates and colour is 'b', 'w', or 'N'
-        :param board: Dictionary representing the board where keys are (x, y) coordinates and values are marble colours
+
+        :param coloured_marbles: List of tuples (q, r, s, colour) where q, r, s are coordinates and colour is 'b', 'w'
         """
-        for (x, y, colour) in coloured_marbles:
-            board[(x, y)] = colour
+        for (q, r, s, colour) in coloured_marbles:
+            self.marble_positions[(q, r, s)] = colour
+            self.empty_positions.discard((q, r, s))
 
-
-    @staticmethod
-    def get_input_board_representation(file_name):
+    def get_input_board_representation(self, file_name):
         """
-        Given the class example files with the suffix ".input", returns the player turn and converts a given input board position from an example format:
-
-        Into the team's specific game board format, i.e:
-        {(-4, -4): 'N', ..., (-2, -2): 'W', ..., (4, 4): 'N'}
+        Reads an input board configuration from a file and converts it into the team's board format.
 
         :param file_name: the name of the input file
         :returns: tuple containing (player turn, game board representation as dictionary)
         """
-        current_board = Board.initialize_board()
+        self.reset_board()
+        path = os.path.join(self.TEST_INPUT_FILES_DIR, file_name)
 
-        path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
-        
         with open(path, 'r', encoding="utf-8") as f:
             player = f.readline().strip()
-            initial_configuration = f.readline().strip().split(',')
+            marbles = f.readline().strip().split(',')
 
-        for marble in initial_configuration:
-            x = int(marble[1]) - 5
-            y = ord(marble[0]) - ord('E')
-            current_board[(x, y)] = marble[2]
+        for marble in marbles:
+            q = int(marble[1]) - 5
+            r = ord('E') - ord(marble[0])
+            s = -q-r
+            self.marble_positions[(q, r, s)] = marble[2]
+            self.empty_positions.discard((q, r, s))
 
-        return player, current_board
+        return player
 
     @staticmethod
     def write_to_move_file(file_name, moves):
@@ -241,30 +249,56 @@ class Board:
                 input_file.write(line)
 
 
-    @staticmethod
-    def to_string_board(board):
-        """
-        Converts the board state back to the input file format.
+    # @staticmethod
+    # def to_string_board(board):
+    #     """
+    #     Converts the board state back to the input file format.
+    #
+    #     :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
+    #     :return: String formatted as the input file (player + marbles).
+    #     """
+    #     marble_list = []
+    #     for (x, y), color in board.items():
+    #         if color == 'N':
+    #             continue  # Skip empty cells
+    #         row = chr(y + 69)  # Convert y to row letter (A-I)
+    #         column = x + 5  # Convert x to column number (1-9)
+    #         marble_str = f"{row}{column}{color}"
+    #
+    #         marble_list.append((color,row,column,marble_str)) # append tuple for sorting
+    #
+    #     sorted_marbles = sorted(marble_list, key=lambda item: (item[0],item[1],item[2]))
+    #
+    #     marble_strs = [item[3] for item in sorted_marbles]
+    #
+    #     # return f"{player}\n{','.join(marble_strs)}"
+    #     return f"{','.join(marble_strs)}"
 
-        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
-        :return: String formatted as the input file (player + marbles).
+    def to_string_board(self):
+        """
+        Converts the board's marble_positions (q,r,s -> 'b'/'w') into a
+        comma-separated string like 'A1b,A2b,...'.
+        Uses the row mapping: r=+4 -> 'A' down to r=-4 -> 'I',
+        and the column mapping: q=-4 -> col=1 up to q=+4 -> col=9.
         """
         marble_list = []
-        for (x, y), color in board.items():
-            if color == 'N':
-                continue  # Skip empty cells
-            row = chr(y + 69)  # Convert y to row letter (A-I)
-            column = x + 5  # Convert x to column number (1-9)
-            marble_str = f"{row}{column}{color}"
+        for (q, r, s), color in self.marble_positions.items():
+            # Convert r to row letter: A=+4, B=+3, ... I=-4
+            row_letter = chr(ord('A') + (4 - r))
+            # Convert q to column (1..9)
+            col_number = q + 5
 
-            marble_list.append((color,row,column,marble_str)) # append tuple for sorting
+            # Build something like "A2b" or "C3w"
+            notation = f"{row_letter}{col_number}{color}"
 
-        sorted_marbles = sorted(marble_list, key=lambda item: (item[0],item[1],item[2]))
+            # Keep a tuple for sorting: (color, row_letter, col_number, "A2b")
+            marble_list.append((color, row_letter, col_number, notation))
 
-        marble_strs = [item[3] for item in sorted_marbles]
+        # Sort by color first, then row letter, then column
+        sorted_marbles = sorted(marble_list, key=lambda item: (item[0], item[1], item[2]))
 
-        # return f"{player}\n{','.join(marble_strs)}"
-        return f"{','.join(marble_strs)}"
+        # Return just the comma-separated notation pieces
+        return ",".join(item[3] for item in sorted_marbles)
 
     @staticmethod
     def boards_equal(file_name) -> Tuple[bool, Set[str]]:
@@ -459,4 +493,15 @@ def local_tests():
     Board.test_state_space(belgian_output_black, belgian_daisy_board)
     Board.test_state_space(german_output_white, german_daisy_board, "w")
     Board.test_state_space(german_output_black, german_daisy_board, "b")
+
+def main():
+    board = Board()
+    player = board.get_input_board_representation("Test1.input")
+    print(player)
+    print(board.marble_positions)
+    print(board.to_string_board())
+
+if __name__ == "__main__":
+    main()
+
 
