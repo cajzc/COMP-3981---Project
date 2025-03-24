@@ -83,43 +83,42 @@ class Board:
         # Black marbles (two 'daisies' near bottom-left and bottom-right)
         # -----------------------------
         black_marble_initial_pos = [
-            # Bottom-left daisy (rows A/B):
-            # Row A (r=+4), columns 1..2 => q=-4..-3
-            (-4, +4, 0), (-3, +4, -1),
-            # Row B (r=+3), columns 1..3 => q=-4..-2
-            (-4, +3, +1), (-3, +3, 0), (-2, +3, -1),
-            # Row C (r=+2), columns 1..2 => q=-4..-3 or partially offset
-            # For Belgian Daisy, they're a bit more inside:
+            # Bottom-left daisy (rows A to C):
+            # Row A 
+            (-4, 4, 0), (-3, 4, -1),
+            # Row B 
+            (-4, 3, 1), (-3, 3, 0), (-2, 3, -1),
+            # Row C 
             (-3, +2, +1), (-2, +2, 0),
 
-            # Bottom-right daisy (rows A/B), mirrored horizontally:
-            # Row A (r=+4), columns 8..9 => q=+3..+4
-            (3, +4, -7), (4, +4, -8),  # but s must be -q-r, so check carefully
-            # Row B (r=+3), columns 7..9 => q=+2..+4
-            (2, +3, -5), (3, +3, -6), (4, +3, -7),
-            # Row C (r=+2), columns 8..9 => q=+3..+4
-            (3, +2, -5), (4, +2, -6),
+            # Top-right daisy (rows I to G):
+            # Row I 
+            (3, -4, 1), (4, -4, 0),
+            # Row H 
+            (2, -3, 1), (3, -3, 0), (4, -3, -1),
+            # Row G 
+            (2, -2, 0), (3, -2, -1)
         ]
 
         # -----------------------------
         # White marbles (two 'daisies' near top-left and top-right)
         # -----------------------------
         white_marbles_initial_pos = [
-            # Top-left daisy (rows G/H/I):
-            # Row I (r=-4), columns 1..2 => q=-4..-3
-            (-4, -4, +8), (-3, -4, +7),
-            # Row H (r=-3), columns 1..3 => q=-4..-2
-            (-4, -3, +7), (-3, -3, +6), (-2, -3, +5),
-            # Row G (r=-2), columns 1..2 => q=-4..-3
-            (-3, -2, +5), (-2, -2, +4),
+            # Bottom-right daisy (rows A to C):
+            # Row A 
+            (-1, 4, -3), (0, 4, -4),
+            # Row B 
+            (-1, 3, -2), (0, 3, -3), (1, 3, -4),
+            # Row C 
+            (0, 2, -2), (1, 2, -3),
 
-            # Top-right daisy (rows G/H/I):
-            # Row I (r=-4), columns 8..9 => q=+3..+4
-            (3, -4, +1), (4, -4, 0),
-            # Row H (r=-3), columns 7..9 => q=+2..+4
-            (2, -3, +1), (3, -3, 0), (4, -3, -1),
-            # Row G (r=-2), columns 8..9 => q=+3..+4
-            (3, -2, -1), (4, -2, -2),
+            # Top-left daisy (rows I to G):
+            # Row I 
+            (0, -4, 4), (1, -4, 3),
+            # Row H 
+            (-1, -3, 4), (0, -3, 3), (1, -3, 2),
+            # Row G 
+            (-1, -2, 3), (0, -2, 2)
         ]
 
         # Clear and place on board
