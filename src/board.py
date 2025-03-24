@@ -498,25 +498,3 @@ class Board:
    
         print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
 
-def local_tests():
-    """Tests the state space for development/debugging purposes."""
-    # Input & Output files
-    input_file_one = "Test1"
-    input_file_two = "Test2"
-
-    belgian_output_white = "test_belgian_white_first"
-    belgian_output_black = "test_belgian_black_first"
-    german_output_white = "test_german_white_first"
-    german_output_black = "test_german_black_first"
-
-    belgian_daisy_board = Board.get_belgian_daisy_board()
-    german_daisy_board = Board.get_german_daisy_board()
-
-    # Tests
-    Board.test_state_space(input_file_one)
-    Board.test_state_space(input_file_two)
-    Board.test_state_space(belgian_output_white, belgian_daisy_board, "w")
-    Board.test_state_space(belgian_output_black, belgian_daisy_board)
-    Board.test_state_space(german_output_white, german_daisy_board, "w")
-    Board.test_state_space(german_output_black, german_daisy_board, "b")
-
