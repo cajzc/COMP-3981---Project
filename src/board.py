@@ -290,14 +290,14 @@ class Board:
                 "\nAgent debugging screen\n"
                 "----------------------\n"
                 "Options\n"
-                "(1) Generate boards from .input file(s)\n"
+                "(1) Generate boards\n"
                 "(2) Check if .board files are equal\n"
                 "(3) Exit\n"
             )
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
                 case "1":
-                    Board._handle_input_files()
+                    Board._handle_state_space_generator()
                 case "2":
                     Board._handle_board_files()
                 case "3":
@@ -379,14 +379,74 @@ class Board:
 
 
     @staticmethod
-    def _handle_input_files():
-        """Displays the menu to get input file(s) and generates them."""
-        user_input_files = Board.get_input_files_from_user() 
-        if not user_input_files:
+    def _handle_state_space_generator():
+        """Displays the menu to generate a set of moves based on a board configuration or an input file."""
+        while True:
+            print(
+                "\nGenerate moves based on:\n"
+                "(1) Input files\n"
+                "(2) Pre-computed board configurations\n"
+                "(3) Return\n"
+            )
+            user_input=input("Enter: ")
+            if user_input == "1":
+                user_input_files = Board.get_input_files_from_user() 
+                if not user_input_files:
+                    return
+                print("\nGenerated Boards\n")
+                for file in user_input_files:
+                    Board.test_state_space(file)
+            elif user_input == "2":
+                Board._handle_precomputed_board()
+            elif user_input == "3":
+                return
+            else:
+                print("Invalid selection")
+
+    @staticmethod
+    def _handle_precomputed_board():
+        """
+        Displays the options for default board configurations, allowing a user to generate boards based on one of the three configurations:
+
+        1. Default Abalone Board
+        2. Belgian Daisy Board
+        3. German Daisy Board
+        
+        Where a user can select the player colour that has the first move.
+        """
+        while True:
+            board_config=input(
+                "\nSelect a board configuration:\n"
+                "(1) Default Abalone Board\n"
+                "(2) Belgian Daisy Board\n"
+                "(3) German Daisy Board\n"
+            )
+            if board_config not in ["1", "2", "3"]:
+                print("\nInvalid selection")
+                continue
+
+            colour=input("\nSelect a colour to start (W) or (B): ").lower()
+
+            if colour not in ["w", "b"]:
+                print("\nInvalid selection")
+                continue
+
+            output_file = ""
+
+            if board_config == "1":
+                board_config = Board.get_default_board()
+                output_file = "default_board"
+            elif board_config == "2":
+                board_config = Board.get_belgian_daisy_board()
+                output_file = "belgian_board"
+            elif board_config == "3":
+                board_config = Board.get_german_daisy_board()
+                output_file = "german_board"
+
+            output_file += "_" + colour
+
+            Board.test_state_space(output_file, board_config, colour)
             return
-        print("\nGenerated Boards\n")
-        for file in user_input_files:
-            Board.test_state_space(file)
 
     @staticmethod
     def _handle_board_files():
