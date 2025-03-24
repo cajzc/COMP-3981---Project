@@ -3,6 +3,7 @@ import re
 from moves import Move, DIRECTIONS
 from typing import List, Tuple
 from board import Board
+import copy
 
 
 def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str) -> List[
@@ -372,3 +373,22 @@ class GameState:
             print("White wins!")
             return 'w'
         return None
+
+    def __deep_copy__(self, memo):
+        """
+        Creates and returns a deepcopy for a GameState.
+
+        :return: a new GameState object
+        """
+        # Deep copy mutable attributes
+        new_board = copy.deepcopy(self._board, memo)
+        
+        # Create the new GameState object
+        new_game_state = GameState(self._player, new_board)
+
+        # Set the address of memo to prevent recursive copies
+        memo[id(self)] = new_game_state
+
+        return new_game_state
+
+
