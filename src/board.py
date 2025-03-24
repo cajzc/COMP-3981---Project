@@ -1,9 +1,15 @@
 """Houses the board representation methods."""
 import os
 import sys
+from enum import Enum, auto
 from typing import Tuple, Set, List
 
 
+class BoardConfiguration(Enum):
+    """Represents initial board configurations as an enum."""
+    DEFAULT = auto()
+    BELGIAN = auto()
+    GERMAN = auto()
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
