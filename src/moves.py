@@ -100,30 +100,6 @@ class Move:
         # 6) Otherwise, show moved -> destination.
         return f"{moved_chain}{arrow}{dest_chain}"
 
-def get_single_moves(player: str, board_obj) -> List[Move]:
-    """
-    Generates all valid single-marble moves for the given player,
-    using board_obj.marble_positions for occupied cells and
-    board_obj.empty_positions for empties.
-
-    A move is valid if, for a marble at (q,r,s) belonging to player,
-    one of the six neighbors (computed via DIRECTIONS) is in board_obj.empty_positions.
-    """
-    moves = []
-    for (q, r, s), color in board_obj.marble_positions.items():
-        if color != player:
-            continue
-        for dir_symbol, (dq, dr, ds) in DIRECTIONS.items():
-            new_pos = (q + dq, r + dr, s + ds)
-            if new_pos in board_obj.empty_positions:
-                move_obj = Move(
-                    player=player,
-                    direction=dir_symbol,
-                    moved_marbles=[(q, r, s, color)],
-                    dest_positions=[(new_pos[0], new_pos[1], new_pos[2], color)]
-                )
-                moves.append(move_obj)
-    return moves
 
 def get_inline_moves(player, board):
     """Generate all valid inline moves for 2-3 marbles (excluding illegal Sumito pushes)."""

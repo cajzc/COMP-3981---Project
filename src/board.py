@@ -218,7 +218,7 @@ class Board:
 
         with open(path, "w", encoding="utf-8") as move_file:
             for move in moves:
-                move_file.write(move + "\n")
+                move_file.write(str(move) + "\n")
 
     @staticmethod
     def write_to_board_file(file_name, states):
@@ -246,32 +246,6 @@ class Board:
             input_file.write(colour + "\n")
             for line in Board.to_string_board(board):
                 input_file.write(line)
-
-
-    # @staticmethod
-    # def to_string_board(board):
-    #     """
-    #     Converts the board state back to the input file format.
-    #
-    #     :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
-    #     :return: String formatted as the input file (player + marbles).
-    #     """
-    #     marble_list = []
-    #     for (x, y), color in board.items():
-    #         if color == 'N':
-    #             continue  # Skip empty cells
-    #         row = chr(y + 69)  # Convert y to row letter (A-I)
-    #         column = x + 5  # Convert x to column number (1-9)
-    #         marble_str = f"{row}{column}{color}"
-    #
-    #         marble_list.append((color,row,column,marble_str)) # append tuple for sorting
-    #
-    #     sorted_marbles = sorted(marble_list, key=lambda item: (item[0],item[1],item[2]))
-    #
-    #     marble_strs = [item[3] for item in sorted_marbles]
-    #
-    #     # return f"{player}\n{','.join(marble_strs)}"
-    #     return f"{','.join(marble_strs)}"
 
     def to_string_board(self):
         """
@@ -495,10 +469,18 @@ def local_tests():
 
 def main():
     board = Board()
-    player = board.get_input_board_representation("Test1.input")
+    player = board.get_input_board_representation("Test2.input")
     print(player)
     print(board.marble_positions)
     print(board.to_string_board())
+    singe_moves = get_single_moves(player,board)
+    inline_moves = get_inline_moves(player,board)
+    side_step_moves = get_side_step_moves(player,board)
+    moves = singe_moves + inline_moves + side_step_moves
+    for move in moves:
+        print(move)
+    Board.write_to_move_file("test2.txt", moves)
+
 
 if __name__ == "__main__":
     main()

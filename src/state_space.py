@@ -1,10 +1,168 @@
-from moves import get_single_moves, get_inline_moves, get_side_step_moves, apply_move
+from moves import Move, DIRECTIONS
+from typing import List, Tuple
 
 
+def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str, max_group_size: int = 3) -> List[Tuple[int, int, int, str]]:
+    """
+    Starting from start_pos, collect a contiguous group of friendly marbles in the given direction.
+    Returns a list of tuples (q, r, s, player) up to max_group_size.
+    """
+    group = [(start_pos[0], start_pos[1], start_pos[2], player)]
+    dq, dr, ds = DIRECTIONS[direction]
+    current = start_pos
+    for _ in range(1, max_group_size):
+        current = (current[0] + dq, current[1] + dr, current[2] + ds)
+        if current in board_obj.marble_positions and board_obj.marble_positions[current] == player:
+            group.append((current[0], current[1], current[2], player))
+        else:
+            break
+    return group
+
+def get_moveable_groups(player: str, board_obj, max_group_size: int = 3) -> List[Tuple[str, List[Tuple[int, int, int, str]]]]:
+    """
+    For each marble belonging to player and for each direction, return a group of contiguous friendly marbles.
+    Returns a list of tuples: (direction, group) where group is a list of (q, r, s, player).
+    Only groups of size >= 2 are returned.
+    Duplicate groups are filtered out using a canonical representation.
+    """
+    groups = []
+    seen = set()
+    for pos, color in board_obj.marble_positions.items():
+        if color != player:
+            continue
+        for direction in DIRECTIONS:
+            group = get_marble_group(pos, direction, board_obj, player, max_group_size)
+            if len(group) < 2:
+                continue
+            canonical = (direction, tuple(sorted((q, r, s) for (q, r, s, _) in group)))
+            if canonical not in seen:
+                seen.add(canonical)
+                groups.append((direction, group))
+    return groups
 
 
+def get_single_moves(player: str, board_obj) -> List[Move]:
+    """
+    Generates all valid single-marble moves for the given player,
+    using board_obj.marble_positions for occupied cells and
+    board_obj.empty_positions for empties.
 
+    A move is valid if, for a marble at (q,r,s) belonging to player,
+    one of the six neighbors (computed via DIRECTIONS) is in board_obj.empty_positions.
+    """
+    moves = []
+    for (q, r, s), color in board_obj.marble_positions.items():
+        if color != player:
+            continue
+        for dir_symbol, (dq, dr, ds) in DIRECTIONS.items():
+            new_pos = (q + dq, r + dr, s + ds)
+            if new_pos in board_obj.empty_positions:
+                move_obj = Move(
+                    player=player,
+                    direction=dir_symbol,
+                    moved_marbles=[(q, r, s, color)],
+                    dest_positions=[(new_pos[0], new_pos[1], new_pos[2], color)]
+                )
+                moves.append(move_obj)
+    return moves
 
+def get_inline_moves(player: str, board_obj) -> List[Move]:
+    """
+    Generate all valid inline moves (including push moves) for 2–3 aligned marbles.
+    For a given movable group, if the cell immediately ahead of the group is empty, it's an inline move.
+    If it's occupied by an opponent, check if a push is possible.
+    """
+    moves = []
+    opponent = 'b' if player == 'w' else 'w'
+    groups = get_moveable_groups(player, board_obj, max_group_size=3)
+    for direction, group in groups:
+        dq, dr, ds = DIRECTIONS[direction]
+        # Destination: one step ahead of the last marble in the group.
+        last = group[-1]
+        dest = (last[0] + dq, last[1] + dr, last[2] + ds)
+        # CASE 1: Destination is empty.
+        if dest in board_obj.empty_positions:
+            dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+            move_obj = Move(
+                player=player,
+                direction=direction,
+                move_type="inline",
+                moved_marbles=group,
+                dest_positions=dest_positions,
+                push=False
+            )
+            moves.append(move_obj)
+        # CASE 2: Destination is occupied by an opponent => potential push.
+        elif dest in board_obj.marble_positions and board_obj.marble_positions[dest] == opponent:
+            opponent_positions = [dest]
+            no_adjacent = True
+            # Check further along the same direction for additional opponent marbles (max 2).
+            for i in range(1, 3):
+                next_dest = (dest[0] + dq * i, dest[1] + dr * i, dest[2] + ds * i)
+                if next_dest in board_obj.marble_positions and board_obj.marble_positions[next_dest] == opponent:
+                    opponent_positions.append(next_dest)
+                elif next_dest in board_obj.marble_positions and board_obj.marble_positions[next_dest] == player:
+                    no_adjacent = False
+                    break
+                else:
+                    break
+            if len(group) > len(opponent_positions) and len(opponent_positions) <= 2 and no_adjacent:
+                dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+                move_obj = Move(
+                    player=player,
+                    direction=direction,
+                    move_type="push",
+                    moved_marbles=group,
+                    dest_positions=dest_positions,
+                    push=True,
+                    pushed_marbles=[(op[0], op[1], op[2], opponent) for op in opponent_positions]
+                )
+                moves.append(move_obj)
+    return moves
+
+def get_side_step_directions(inline_direction: str) -> List[str]:
+    """
+    Return candidate side-step directions (perpendicular to inline_direction).
+    For simplicity, here we use a fixed mapping.
+    """
+    side_map = {
+        '→':  ['↗', '↘'],
+        '←':  ['↖', '↙'],
+        '↗':  ['→', '↖'],
+        '↖':  ['↗', '←'],
+        '↘':  ['↙', '→'],
+        '↙':  ['←', '↘']
+    }
+    return side_map.get(inline_direction, [])
+
+def get_side_step_moves(player: str, board_obj) -> List[Move]:
+    """
+    Generate all valid side-step moves for movable groups.
+    For each group (obtained via get_moveable_groups), try each candidate side-step direction.
+    A side-step is legal if all destination positions (obtained by adding the side-step vector)
+    are empty.
+    """
+    moves = []
+    groups = get_moveable_groups(player, board_obj, max_group_size=3)
+    for inline_direction, group in groups:
+        if len(group) < 2:
+            continue
+        candidates = get_side_step_directions(inline_direction)
+        for side_direction in candidates:
+            dq, dr, ds = DIRECTIONS[side_direction]
+            dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+            # Check if all destination positions are empty.
+            if all(pos in board_obj.empty_positions for pos in [(p[0], p[1], p[2]) for p in dest_positions]):
+                move_obj = Move(
+                    player=player,
+                    direction=side_direction,
+                    move_type="side_step",
+                    moved_marbles=group,
+                    dest_positions=dest_positions,
+                    push=False
+                )
+                moves.append(move_obj)
+    return moves
 
 class GameState:
     """Represents the complete game state an Abalone game."""
@@ -52,108 +210,3 @@ class GameState:
             print("White wins!")
             return 'w'
         return None
-
-# def test_state_space(file, board=None, player="b"):
-#     """
-#     Generates the state space and outputs to a file.
-#
-#     :param file: the name of the output and optional .input file
-#     :param board: an optional board to preconfigure the state space with
-#     :param player: an optional player to initiate first ply, black by default
-#     """
-#     if board is None:
-#         player, board = Board.get_input_board_representation(file)
-#
-#     # Generate all possible moves
-#     all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
-#     file = file.strip(".input")
-#
-#     # Write moves to file
-#     Board.write_to_move_file(file, all_moves)
-#
-#     # Apply each move and write new board states
-#     new_states = []
-#     for move in all_moves:
-#         new_board = board.copy()
-#         apply_move(new_board, move)
-#         new_states.append(Board.to_string_board(new_board))
-#
-#     # Write resulting board to file
-#     Board.write_to_board_file(file, new_states)
-#
-#     print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
-#
-#
-# def local_tests():
-#     """Tests the state space for development/debugging purposes."""
-#     # Input & Output files
-#     input_file_one = "Test1"
-#     input_file_two = "Test2"
-#
-#     belgian_output_white = "test_belgian_white_first"
-#     belgian_output_black = "test_belgian_black_first"
-#     german_output_white = "test_german_white_first"
-#     german_output_black = "test_german_black_first"
-#
-#     belgian_daisy_board = Board.get_belgian_daisy_board()
-#     german_daisy_board = Board.get_german_daisy_board()
-#
-#     # Tests
-#     test_state_space(input_file_one)
-#     test_state_space(input_file_two)
-#     test_state_space(belgian_output_white, belgian_daisy_board, "w")
-#     test_state_space(belgian_output_black, belgian_daisy_board)
-#     test_state_space(german_output_white, german_daisy_board, "w")
-#     test_state_space(german_output_black, german_daisy_board, "b")
-
-
-def main():
-    pass
-    # belgian_daisy_board = Board.get_belgian_daisy_board()
-    # german_daisy_board = Board.get_german_daisy_board()
-    # Board.write_to_input_file("belgian_daisy_board_white", belgian_daisy_board, "w")  
-    # Board.write_to_input_file("belgian_daisy_board_black", belgian_daisy_board, "b")  
-    # Board.write_to_input_file("german_daisy_board_white", german_daisy_board, "w")  
-    # Board.write_to_input_file("german_daisy_board_black", german_daisy_board, "b")  
-    
-
-    # print("Test State Space Generator")
-    # print("--------------------------")
-    # user_input_files = Board.get_input_files_from_user()
-    # if not user_input_files:
-    #     return
-    # print("\nGenerated Boards\n")
-    # for file in user_input_files:
-    #     test_state_space(file)
-    # input("Press any key to exit")
-    #
-    # print("\nSingle Marble Moves:")
-    # for move in get_single_moves(player, board):
-    #     print(move)
-    #
-    # print("\nInline Moves:")
-    # for move in get_inline_moves(player, board):
-    #     print(move)
-    #
-    # print("\nSide-Step Moves:")
-    # for move in get_side_step_moves(player, board):
-    #     print(move)
-    #
-    # print("\nBoard Representation:\n")
-    # print(Board.tostring_board(board))
-    #
-    #
-    # """ add single move debug code"""
-    # player, board = Board.get_input_board_representation("Test2.input")
-    # print("\nBefore Move:")
-    # print(Board.to_string_board(board))
-    #
-    # move = "(-2, -1, w)↙(-3, -2, w)"  # Example move
-    # apply_move(board, move)  # Directly modifies board
-    #
-    # print("\nAfter Move:")
-    # print(Board.to_string_board(board))
-
-
-if __name__ == '__main__':
-    main()
