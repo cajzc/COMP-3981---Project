@@ -2,15 +2,17 @@ from moves import Move, DIRECTIONS
 from typing import List, Tuple
 
 
-def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str, max_group_size: int = 3) -> List[Tuple[int, int, int, str]]:
+def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str) -> List[
+    Tuple[int, int, int, str]]:
     """
-    Starting from start_pos, collect a contiguous group of friendly marbles in the given direction.
-    Returns a list of tuples (q, r, s, player) up to max_group_size.
+    Starting from start_pos, collect a contiguous group of friendly marbles
+    in the given direction. Returns a list of tuples (q, r, s, player).
+    (It can return up to 3 marbles if available.)
     """
     group = [(start_pos[0], start_pos[1], start_pos[2], player)]
     dq, dr, ds = DIRECTIONS[direction]
     current = start_pos
-    for _ in range(1, max_group_size):
+    for _ in range(1, 3):
         current = (current[0] + dq, current[1] + dr, current[2] + ds)
         if current in board_obj.marble_positions and board_obj.marble_positions[current] == player:
             group.append((current[0], current[1], current[2], player))
@@ -18,12 +20,23 @@ def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj,
             break
     return group
 
-def get_moveable_groups(player: str, board_obj, max_group_size: int = 3) -> List[Tuple[str, List[Tuple[int, int, int, str]]]]:
+
+def get_moveable_groups(player: str, board_obj) -> List[Tuple[str, List[Tuple[int, int, int, str]]]]:
     """
-    For each marble belonging to player and for each direction, return a group of contiguous friendly marbles.
-    Returns a list of tuples: (direction, group) where group is a list of (q, r, s, player).
-    Only groups of size >= 2 are returned.
+    For each marble belonging to the player and for each direction,
+    return one or more candidate groups of contiguous friendly marbles.
+
+    If get_marble_group returns 3 marbles, then this function produces candidate
+    groups for moving 2 marbles as well:
+      - For a group of 2, the candidate group is [m1, m2].
+      - For a group of 3, candidate groups are:
+            full group: [m1, m2, m3],
+            subgroup1: [m1, m2],
+            subgroup2: [m2, m3].
+
+    Only candidate groups of size >= 2 are returned.
     Duplicate groups are filtered out using a canonical representation.
+    Returns a list of tuples: (direction, group)
     """
     groups = []
     seen = set()
@@ -31,15 +44,26 @@ def get_moveable_groups(player: str, board_obj, max_group_size: int = 3) -> List
         if color != player:
             continue
         for direction in DIRECTIONS:
-            group = get_marble_group(pos, direction, board_obj, player, max_group_size)
-            if len(group) < 2:
+            full_group = get_marble_group(pos, direction, board_obj, player)
+            if len(full_group) < 2:
                 continue
-            canonical = (direction, tuple(sorted((q, r, s) for (q, r, s, _) in group)))
-            if canonical not in seen:
-                seen.add(canonical)
-                groups.append((direction, group))
+            # Generate candidate groups.
+            candidate_groups = []
+            if len(full_group) == 2:
+                candidate_groups.append(full_group)
+            elif len(full_group) == 3:
+                candidate_groups.append(full_group)  # Full group of 3
+                candidate_groups.append(full_group[:2])  # First two
+                candidate_groups.append(full_group[1:])  # Last two
+            else:
+                candidate_groups.append(full_group)
+            for group in candidate_groups:
+                # Create a canonical representation: (direction, sorted tuple of positions)
+                canonical = (direction, tuple(sorted((q, r, s) for (q, r, s, _) in group)))
+                if canonical not in seen:
+                    seen.add(canonical)
+                    groups.append((direction, group))
     return groups
-
 
 def get_single_moves(player: str, board_obj) -> List[Move]:
     """
@@ -74,7 +98,7 @@ def get_inline_moves(player: str, board_obj) -> List[Move]:
     """
     moves = []
     opponent = 'b' if player == 'w' else 'w'
-    groups = get_moveable_groups(player, board_obj, max_group_size=3)
+    groups = get_moveable_groups(player, board_obj)
     for direction, group in groups:
         dq, dr, ds = DIRECTIONS[direction]
         # Destination: one step ahead of the last marble in the group.
@@ -135,24 +159,28 @@ def get_side_step_directions(inline_direction: str) -> List[str]:
     }
     return side_map.get(inline_direction, [])
 
+
 def get_side_step_moves(player: str, board_obj) -> List[Move]:
     """
-    Generate all valid side-step moves for movable groups.
-    For each group (obtained via get_moveable_groups), try each candidate side-step direction.
-    A side-step is legal if all destination positions (obtained by adding the side-step vector)
-    are empty.
+    Generate all valid side-step moves for groups of 2–3 aligned marbles.
+    Uses helper functions get_moveable_groups and get_side_step_directions.
+    For each moveable group (i.e. a contiguous group in an inline direction),
+    try each candidate side-step direction; if all destination positions are empty,
+    create a Move of move_type "side_step".
     """
     moves = []
-    groups = get_moveable_groups(player, board_obj, max_group_size=3)
+    groups = get_moveable_groups(player, board_obj)
+
     for inline_direction, group in groups:
-        if len(group) < 2:
-            continue
-        candidates = get_side_step_directions(inline_direction)
-        for side_direction in candidates:
+        # For side-step, try each candidate side-step direction that is perpendicular
+        for side_direction in get_side_step_directions(inline_direction):
             dq, dr, ds = DIRECTIONS[side_direction]
-            dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
-            # Check if all destination positions are empty.
-            if all(pos in board_obj.empty_positions for pos in [(p[0], p[1], p[2]) for p in dest_positions]):
+            dest_positions = [
+                (m[0] + dq, m[1] + dr, m[2] + ds, player)
+                for m in group
+            ]
+            # Check that all destination positions are empty.
+            if all((pos[0], pos[1], pos[2]) in board_obj.empty_positions for pos in dest_positions):
                 move_obj = Move(
                     player=player,
                     direction=side_direction,

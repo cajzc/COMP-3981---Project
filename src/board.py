@@ -469,7 +469,7 @@ def local_tests():
 
 def main():
     board = Board()
-    player = board.get_input_board_representation("Test2.input")
+    player = board.get_input_board_representation("Test1.input")
     print(player)
     print(board.marble_positions)
     print(board.to_string_board())
@@ -479,7 +479,7 @@ def main():
     moves = singe_moves + inline_moves + side_step_moves
     for move in moves:
         print(move)
-    Board.write_to_move_file("test2.txt", moves)
+    Board.write_to_move_file("test1.txt", moves)
 
 
 if __name__ == "__main__":
