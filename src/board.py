@@ -205,6 +205,7 @@ class Board:
         Second line is a comma-separated list of marble notations (e.g., "C5b").
         Converts them into cube coordinates and returns (player, marble_positions dictionary).
         """
+        self.reset_board()
         path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
         with open(path, "r", encoding="utf-8") as f:
             player = f.readline().strip()
@@ -518,10 +519,10 @@ def main():
     board_states = []
     with open(move_file_path, "r", encoding="utf-8") as f:
         move_lines = f.read().strip().splitlines()
+        board_obj2 = Board()
 
     for move_line in move_lines:
         # Create a fresh board from Test2.input.
-        board_obj2 = Board()
         player2, _ = board_obj2.get_input_board_representation("Test1.input")
         apply_move(board_obj2, move_line)
         # Recompute empty_positions after each move.
