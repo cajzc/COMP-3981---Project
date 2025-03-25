@@ -3,6 +3,8 @@ from typing import Dict, Tuple, Set
 from src.moves import DIRECTIONS
 from state_space import GameState
 from enums import Marble
+from board import Board
+from itertools import combinations
 
 def heuristic(game_state: GameState) -> float:
     return 0
@@ -39,8 +41,48 @@ def marbles_coherence(board_obj, player: str) -> float:
     variance_r = sum((r - mean_r) ** 2 for q, r in positions) / len(positions)
     return (variance_q + variance_r) / 2
 
-def triangle_formulation():
-    pass
+
+def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
+    """
+    Determines the euclidean distance between points on a hexagonal grid. Each point is represented as a tuple.
+
+    :param pos1: the first position
+    :param pos2: the second position
+    :return: the euclidean distance betwen the two points
+    """
+    return math.sqrt((pos2[0]-pos1[1]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
+
+
+def triangle_formulation(board_obj: Board, player: str):
+    """
+    A triangle formulation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
+    When marbles are in a triangle formulation, it requires the opponent to make an additional few moves to push the player
+    marbles off the map.
+
+    Triangle definition:
+    pos1, pos2, pos3. Each pos contains coordinates (q, r, s).
+    q1 + 2 == (q2, q3)
+    r3 - 2 == (r1, r2)
+    s2 - 2 == (s1, s3)
+    """
+    max_score = 10.0
+    min_score = 0.0
+
+    positions = [(q, r, s) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    if not positions or len(positions) < 3:
+        return 0.0
+
+    scores = []
+    for c in combinations(positions, 3):
+        d1 = euclidean_distance(c[0], c[1])
+        d2 = euclidean_distance(c[0], c[2])
+        d3 = euclidean_distance(c[1], c[2])
+
+        score = min(max_score, max_score - abs(d1-d2)+abs(d1-d3)+abs(d2-d3))
+        score = max(min_score, score)
+        scores.append(score)
+
+    return sum(scores)/len(scores)
 
 
 def marbles_in_danger(board_obj, player: str) -> int:
