@@ -3,28 +3,40 @@ from typing import Dict, Tuple, Set
 from src.moves import DIRECTIONS
 from state_space import GameState
 from enums import Marble
-from board import Board
 from itertools import combinations
 
 def heuristic(game_state: GameState) -> float:
     return 0
 
+def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
+    """
+    Implemtation for a heuristic function that uses the following evaluation functions:
+    - Distance to centre
+    - Marble coherence
+    - Triangular formation
+
+    :param wdc: weight for the distance to centre evaluation
+    :param wmc: weight for the marble coherence evaluation
+    :param wt: weight for the distance to triangle formation
+    """
+    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wt*triangle_formation(game_state)
+
 """1. distance to center """
-def distance_to_center(board_obj, player: str) -> float:
+def distance_to_center(game_state: GameState) -> float:
     """
     Calculate the average Euclidean distance from the center (0,0,0) for the player's marbles.
 
     In cube coordinates, one common conversion to Euclidean distance is:
         distance = sqrt(q^2 + r^2 + s^2) / sqrt(2)
     """
-    positions = [(q, r, s) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
     if not positions:
         return 0.0
     distances = [math.sqrt(q * q + r * r + s * s) / math.sqrt(2) for (q, r, s) in positions]
     return sum(distances) / len(distances)
 
 """ 2. coherence, marbles stick together """
-def marbles_coherence(board_obj, player: str) -> float:
+def marbles_coherence(game_state: GameState) -> float:
     """
     Measure the spatial clustering (coherence) of the player's marbles.
 
@@ -32,7 +44,7 @@ def marbles_coherence(board_obj, player: str) -> float:
     (since s = -q - r) and compute the average variance in q and r.
     Lower variance indicates tighter clustering.
     """
-    positions = [(q, r) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    positions = [(q, r) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
     if not positions:
         return 0.0
     mean_q = sum(q for q, r in positions) / len(positions)
@@ -53,10 +65,10 @@ def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     return math.sqrt((pos2[0]-pos1[1]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
 
 
-def triangle_formulation(board_obj: Board, player: str):
+def triangle_formation(game_state: GameState):
     """
-    A triangle formulation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
-    When marbles are in a triangle formulation, it requires the opponent to make an additional few moves to push the player
+    A triangle formation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
+    When marbles are in a triangle formation, it requires the opponent to make an additional few moves to push the player
     marbles off the map.
 
     Triangle definition:
@@ -68,11 +80,13 @@ def triangle_formulation(board_obj: Board, player: str):
     max_score = 10.0
     min_score = 0.0
 
-    positions = [(q, r, s) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
     if not positions or len(positions) < 3:
         return 0.0
 
     scores = []
+
+    # Lots of iterations
     for c in combinations(positions, 3):
         d1 = euclidean_distance(c[0], c[1])
         d2 = euclidean_distance(c[0], c[2])

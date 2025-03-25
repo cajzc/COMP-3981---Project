@@ -4,7 +4,7 @@ from typing import List
 from moves import Move
 from board import Board
 import time, copy, math
-from heuristic import heuristic
+from heuristic import heuristic, c_heuristic
 from enums import Marble
 from board import Board
 
@@ -34,7 +34,8 @@ class MinimaxAgent:
             'coherence': -0.3,  # Negative weight (lower variance = better)
             'danger': -1.0,  # Penalty for endangered marbles
             'opponent_break': 0.8,  # Reward for disrupting opponent
-            'score': 2.0  # Direct score difference multiplier
+            'score': 2.0,  # Direct score difference multiplier
+            'triangle_formation': 1.0  # Multiplier for obtaining a triangle formation
         }
         self.game_state = GameState(player_turn, board)
         self.time_limit = time_limit
@@ -52,7 +53,7 @@ class MinimaxAgent:
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(generate_move(Marble.BLACK.value, self.game_state.board))
                 if move_to_make is None:
-                    print("(ERROR) Generated move is None")
+                    print("(ERROR) Generated move is None. Exiting program...")
                     return
 
                 print("Generated move: ", move_to_make)
@@ -123,7 +124,7 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
         if game_state.terminal_test() or depth == 0:
-            return heuristic(game_state)
+            return c_heuristic(game_state)
 
         v = -math.inf
 
@@ -148,7 +149,7 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
         if game_state.terminal_test() or depth == 0:
-            return heuristic(game_state)
+            return c_heuristic(game_state)
         
         v = math.inf
 
