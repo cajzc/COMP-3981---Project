@@ -6,6 +6,7 @@ from board import Board
 import time, copy, math
 from heuristic import heuristic
 from enums import Marble
+from board import Board
 
 class MinimaxAgent:
     """
@@ -41,13 +42,36 @@ class MinimaxAgent:
         self.current_move = True if player_turn == Marble.BLACK.value else False
 
     def run_game(self):
+        """
+        Starts the game of Abalone with the model against an opponent.
+        """
+        # NOTE: We should be checking for time constraints
         while self.game_state.terminal_test():
+            # Player turn
             if self.current_move:
+                # Get the next move 
                 move_to_make = self.iterative_deepening_search(generate_move(Marble.BLACK.value, self.game_state.board))
                 if move_to_make is None:
                     print("(ERROR) Generated move is None")
                     return
+
+                print("Generated move: ", move_to_make)
+
+                # Apply the move to the game state
                 self.game_state.apply_move(move_to_make)
+            # Opponent turn
+            else:
+                opponent_move = input("Enter the opponent's move: ")
+                # NOTE: Do some error handling here
+                opponent_move = Board.convert_marble_notation(opponent_move)
+                self.game_state.apply_move(opponent_move)
+
+            # Alternate move
+            self.current_move = not self.current_move
+        
+        # NOTE: We should be checking for time constraints
+        print("Game over")
+        print(self.game_state.check_win(), "won")
                 
 
     def iterative_deepening_search(self, moves: List[Move]) -> Move | None:
