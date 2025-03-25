@@ -360,7 +360,7 @@ class GameState:
             'b': black_score,
             'w': white_score}
 
-    def check_victory(self):
+    def terminal_test(self):
         """
         Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
         
