@@ -95,7 +95,13 @@ class MinimaxAgent:
                 apply_move_obj(board, move)
                 result_game_state = GameState(self.game_state.player, board)
 
-                score = self.mini_max(result_game_state, depth)
+                score = self.mini_max(
+                    result_game_state, 
+                    depth, 
+                    self.weights["center_distance"], 
+                    self.weights["coherence"], 
+                    self.weights["triangle_formation"]
+                )
                 if score > best_score:
                     best_score = score
                     best_move = move
@@ -103,28 +109,30 @@ class MinimaxAgent:
         return best_move
 
 
-    def mini_max(self, game_state: GameState, depth: int):
+    def mini_max(self, game_state: GameState, depth: int, *args):
         """
         Minimax algorithm.
 
         :param game_state: the game state to run the algorithm on
         :param depth: the depth to run the search
+        :param args: the weights
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.max_value(game_state, depth) 
+        return self.max_value(game_state, depth, args) 
 
 
-    def max_value(self, game_state: GameState, depth: int) -> float:
+    def max_value(self, game_state: GameState, depth: int, *args) -> float:
         """
         A minimax algorithm that determines the best move to take for the current player.
         
         :param game_state: the game state to run the algorithm on
         :param depth: the depth to run the search
+        :param args: the weights
         :return: the utility value of a given game state
         """
         if game_state.terminal_test() or depth == 0:
-            return c_heuristic(game_state)
+            return c_heuristic(game_state, *args)
 
         v = -math.inf
 
@@ -140,16 +148,17 @@ class MinimaxAgent:
 
         return v
 
-    def min_value(self, game_state: GameState, depth: int) -> float:
+    def min_value(self, game_state: GameState, depth: int, *args) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
         :param game_state: the game state to run the algorithm on
         :param depth: the depth to run the search
+        :param args: the weights
         :return: the utility value of a given game state
         """
         if game_state.terminal_test() or depth == 0:
-            return c_heuristic(game_state)
+            return c_heuristic(game_state, *args)
         
         v = math.inf
 
