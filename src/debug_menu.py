@@ -2,8 +2,9 @@
 
 import os, sys
 from typing import List, Set, Tuple, Dict
-from board import Board
+from board import Board, BoardConfiguration
 import state_space 
+from minmax_agent import MinimaxAgent
 
 
 class DebugMenu:
@@ -31,21 +32,59 @@ class DebugMenu:
                 "\nAgent debugging screen\n"
                 "----------------------\n"
                 "Options\n"
-                "(1) Generate boards from .input file(s)\n"
-                "(2) Check if .board files are equal\n"
-                "(3) Exit\n"
+                "(1) Run model\n"
+                "(2) Generate boards from .input file(s)\n"
+                "(3) Check if .board files are equal\n"
+                "(4) Exit\n"
             )
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
                 case "1":
-                    DebugMenu._handle_input_files()
+                    DebugMenu._run_model()
                 case "2":
-                    DebugMenu._handle_board_files()
+                    DebugMenu._handle_input_files()
                 case "3":
+                    DebugMenu._handle_board_files()
+                case "4":
                     print("Exiting program...")
                     break
                 case _:
                     print("Invalid selection")
+
+    @staticmethod
+    def _run_model():
+        while True:
+            print(
+                "Enter the board configuration\n"
+                "(1) Default\n"
+                "(2) Belgian Daisy\n"
+                "(3) German Daisy\n"
+            )
+
+            user_input = input("Enter: ").strip(",.?! ")
+
+            match user_input:
+                case "1":
+                    board = Board.create_board(BoardConfiguration.DEFAULT)
+                case "2":
+                    board = Board.create_board(BoardConfiguration.BELGIAN)
+                case "3":
+                    board = Board.create_board(BoardConfiguration.GERMAN)
+                case _:
+                    print("Invalid selection")
+                    continue
+
+            player = input("Enter the player turn ('b' or 'w')")
+            if player not in ["b", "w"]:
+                print("Invalid selection")
+                continue
+
+            break
+            
+
+        agent = MinimaxAgent(board, player)
+
+        agent.run_game()
 
 
     @staticmethod
