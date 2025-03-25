@@ -1,7 +1,7 @@
 import re
 
 from moves import Move, DIRECTIONS
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from board import Board
 import copy
 from enums import Marble
@@ -393,13 +393,16 @@ class GameState:
             return 'w'
         return None
 
-    def apply_move(self, move: Move):
+    def apply_move(self, move: Union[Move, Tuple[int, int, int, str]]):
         """
         Applies a move to the GameState, updating the board and player turn.
 
         :param move: the Move object to apply
         """
-        apply_move_obj(self.board, move)
+        if isinstance(move, Move):
+            apply_move_obj(self.board, move)
+        elif isinstance(move, Tuple):
+            pass
         self.player = Marble.BLACK.value if self.player == "w" else "b"
 
     def __deep_copy__(self, memo):
