@@ -21,37 +21,36 @@ def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
     """
     return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wt*triangle_formation(game_state)
 
-"""1. distance to center """
 def distance_to_center(game_state: GameState) -> float:
     """
-    Calculate the average Euclidean distance from the center (0,0,0) for the player's marbles.
+    Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
 
-    In cube coordinates, one common conversion to Euclidean distance is:
-        distance = sqrt(q^2 + r^2 + s^2) / sqrt(2)
+    The hex grid distance for a position (q, r, s) from center is ( |q| + |r| + |s| ) / 2.
     """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color ==
+                 game_state.player]
     if not positions:
         return 0.0
-    distances = [math.sqrt(q * q + r * r + s * s) / math.sqrt(2) for (q, r, s) in positions]
+    distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
-""" 2. coherence, marbles stick together """
 def marbles_coherence(game_state: GameState) -> float:
     """
-    Measure the spatial clustering (coherence) of the player's marbles.
+    Measure the spatial clustering of the player's marbles by calculating the sum of variance in q and r coordinates plus their covariance.
 
-    We project cube coordinates (q, r, s) to axial coordinates (q, r)
-    (since s = -q - r) and compute the average variance in q and r.
-    Lower variance indicates tighter clustering.
+    This provides a measure of how spread out the marbles are from their mean position.
     """
     positions = [(q, r) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
     if not positions:
         return 0.0
-    mean_q = sum(q for q, r in positions) / len(positions)
-    mean_r = sum(r for q, r in positions) / len(positions)
-    variance_q = sum((q - mean_q) ** 2 for q, r in positions) / len(positions)
-    variance_r = sum((r - mean_r) ** 2 for q, r in positions) / len(positions)
-    return (variance_q + variance_r) / 2
+    q_values = [q for q, r in positions]
+    r_values = [r for q, r in positions]
+    mean_q = sum(q_values) / len(positions)
+    mean_r = sum(r_values) / len(positions)
+    variance_q = sum((q - mean_q)**2 for q in q_values) / len(positions)
+    variance_r = sum((r - mean_r)**2 for r in r_values) / len(positions)
+    covariance_qr = sum((q - mean_q)*(r - mean_r) for q, r in zip(q_values, r_values)) / len(positions)
+    return variance_q + variance_r + covariance_qr
 
 
 def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
