@@ -42,37 +42,48 @@ class MinimaxAgent:
 
 
     def iterative_deepening_search(self, current_player: str, moves: List[Move]):
-        # NOTE: Use time module: limit 5s or given
         best_move = None
-        best_score = 0
+        best_score = -math.inf
 
         # Iterative search
-        for iter in range(1, self.depth + 1):
+        for depth in range(1, self.depth + 1): # NOTE: Use time module: limit 5s or given
             # Visit every node (move)
             for move in moves:
+                board = Board()
+                apply_move_obj(board, move)
+                # Create the resulting game state
+                result_game_state = GameState(self.game_state.player, board)
+
                 result_game_state = copy.deepcopy(self.game_state)
-                self.mini_max(result_game_state)
+                score = self.mini_max(result_game_state, depth)
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+
+        return best_move
 
 
-    def mini_max(self, game_state: GameState):
+    def mini_max(self, game_state: GameState, depth: int):
         """
         Minimax algorithm.
 
         :param game_state: the game state to run the algorithm on
+        :param depth: the depth to run the search
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.max_value(game_state) 
+        return self.max_value(game_state, depth) 
 
 
-    def max_value(self, game_state: GameState) -> float:
+    def max_value(self, game_state: GameState, depth: int) -> float:
         """
         A minimax algorithm that determines the best move to take for the current player.
         
         :param game_state: the game state to run the algorithm on
+        :param depth: the depth to run the search
         :return: the utility value of a given game state
         """
-        if game_state.terminal_test() or self.depth == 0:
+        if game_state.terminal_test() or depth == 0:
             return heuristic(game_state)
 
         v = -math.inf
@@ -85,18 +96,19 @@ class MinimaxAgent:
             # Create the resulting game state
             result_game_state = GameState(game_state.player, board)
             
-            v = max(v, self.min_value(result_game_state))
+            v = max(v, self.min_value(result_game_state, depth-1))
 
         return v
 
-    def min_value(self, game_state: GameState) -> float:
+    def min_value(self, game_state: GameState, depth: int) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
         :param game_state: the game state to run the algorithm on
+        :param depth: the depth to run the search
         :return: the utility value of a given game state
         """
-        if game_state.terminal_test() or self.depth == 0:
+        if game_state.terminal_test() or depth == 0:
             return heuristic(game_state)
         
         v = math.inf
@@ -109,7 +121,7 @@ class MinimaxAgent:
             # Create the resulting game state
             result_game_state = GameState(game_state.player, board)
 
-            v = min(v, self.max_value(game_state))
+            v = min(v, self.max_value(result_game_state, depth-1))
 
         return v
 
