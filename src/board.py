@@ -250,4 +250,24 @@ class Board:
         s = -q - r
         return (q, r, s, color)
 
+    @staticmethod
+    def create_board(board_configuration: BoardConfiguration) -> 'Board':
+        """
+        Instantiates and returns a new board object setup with the given board configuration enum.
+
+        :param board_configuration: the configuration of the board of which to return
+        :return: the setup Board
+        """
+        board = Board()
+
+        match board_configuration:
+            case BoardConfiguration.DEFAULT:
+                board.set_default_board()
+            case BoardConfiguration.BELGIAN:
+                board.set_belgian_daisy_board()
+            case BoardConfiguration.GERMAN:
+                board.set_german_daisy_board()
+
+        return board
+
 
