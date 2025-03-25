@@ -3,14 +3,9 @@ from state_space import GameState, apply_move_obj, generate_move
 from typing import List
 from moves import Move
 from board import Board
-import time, copy, math, enum
+import time, copy, math
 from heuristic import heuristic
-
-class Marble(enum.Enum):
-    """Represents the possible marble colours."""
-    BLACK = "b"
-    WHITE = "w"
-
+from enums import Marble
 
 class MinimaxAgent:
     """
@@ -43,11 +38,17 @@ class MinimaxAgent:
         self.game_state = GameState(player_turn, board)
         self.time_limit = time_limit
         self.board = board
-        self.current_move = False
+        self.current_move = True if player_turn == Marble.BLACK.value else False
 
     def run_game(self):
         while self.game_state.terminal_test():
-            pass
+            if self.current_move:
+                move_to_make = self.iterative_deepening_search(generate_move(Marble.BLACK.value, self.game_state.board))
+                if move_to_make is None:
+                    print("(ERROR) Generated move is None")
+                    return
+                self.game_state.apply_move(move_to_make)
+                
 
     def iterative_deepening_search(self, moves: List[Move]) -> Move | None:
         """
