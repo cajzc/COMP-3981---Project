@@ -49,12 +49,12 @@ class MinimaxAgent:
         for depth in range(1, self.depth + 1): # NOTE: Use time module: limit 5s or given
             # Visit every node (move)
             for move in moves:
+
+                # Create the resulting game state
                 board = Board()
                 apply_move_obj(board, move)
-                # Create the resulting game state
                 result_game_state = GameState(self.game_state.player, board)
 
-                result_game_state = copy.deepcopy(self.game_state)
                 score = self.mini_max(result_game_state, depth)
                 if score > best_score:
                     best_score = score
