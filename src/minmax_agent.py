@@ -3,10 +3,14 @@ from state_space import GameState, apply_move_obj, generate_move
 from typing import List
 from moves import Move
 from board import Board
-import time
-import copy
+import time, copy, math, enum
 from heuristic import heuristic
-import math
+
+class Marble(enum.Enum):
+    """Represents the possible marble colours."""
+    BLACK = "b"
+    WHITE = "w"
+
 
 class MinimaxAgent:
     """
@@ -39,9 +43,19 @@ class MinimaxAgent:
         self.game_state = GameState(player_turn, board)
         self.time_limit = time_limit
         self.board = board
+        self.current_move = False
 
+    def run_game(self):
+        while self.game_state.terminal_test():
+            pass
 
-    def iterative_deepening_search(self, current_player: str, moves: List[Move]):
+    def iterative_deepening_search(self, moves: List[Move]) -> Move | None:
+        """
+        Runs an iterative deepening search using the mini-max algorithm with a heuristic function to determine the best move to take
+        for the agent, returning the best move for the agent to take.
+
+        :return: the move for the agent to take as a Move object
+        """
         best_move = None
         best_score = -math.inf
 
