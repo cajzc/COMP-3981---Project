@@ -347,9 +347,9 @@ class GameState:
         :param player: First player to move ('b' for black or 'w' for white)
         :param board: Dictionary representing the board state {(x, y): 'b'/'w'/'N'}
         """
-        self._player = player
-        self._board = board
-        self._score = self.get_score()
+        self.player = player
+        self.board = board
+        self.score = self.get_score()
 
     def get_score(self):
         """
@@ -360,8 +360,8 @@ class GameState:
         initial_black_marbles = 14  # Standard Abalone setup
         initial_white_marbles = 14
 
-        current_black_marbles = sum(1 for v in self._board.values() if v == 'b')
-        current_white_marbles = sum(1 for v in self._board.values() if v == 'w')
+        current_black_marbles = sum(1 for v in self.board.values() if v == 'b')
+        current_white_marbles = sum(1 for v in self.board.values() if v == 'w')
 
         black_score = initial_white_marbles - current_white_marbles  # Black's score = White marbles pushed off
         white_score = initial_black_marbles - current_black_marbles  # White's score = Black marbles pushed off
@@ -376,10 +376,10 @@ class GameState:
         
         :return: 'b' if black wins, 'w' if white wins, None if no winner 
         """
-        if self._score['b'] >= 6:
+        if self.score['b'] >= 6:
             print("Black wins!")
             return 'b'
-        elif self._score['w'] >= 6:
+        elif self.score['w'] >= 6:
             print("White wins!")
             return 'w'
         return None
@@ -391,10 +391,10 @@ class GameState:
         :return: a new GameState object
         """
         # Deep copy mutable attributes
-        new_board = copy.deepcopy(self._board, memo)
+        new_board = copy.deepcopy(self.board, memo)
         
         # Create the new GameState object
-        new_game_state = GameState(self._player, new_board)
+        new_game_state = GameState(self.player, new_board)
 
         # Set the address of memo to prevent recursive copies
         memo[id(self)] = new_game_state
