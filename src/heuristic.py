@@ -29,8 +29,6 @@ def distance_to_center(game_state: GameState) -> float:
     """
     positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color ==
                  game_state.player]
-    if not positions:
-        return 0.0
     distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
@@ -41,8 +39,6 @@ def marbles_coherence(game_state: GameState) -> float:
     This provides a measure of how spread out the marbles are from their mean position.
     """
     positions = [(q, r) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
-    if not positions:
-        return 0.0
     q_values = [q for q, r in positions]
     r_values = [r for q, r in positions]
     mean_q = sum(q_values) / len(positions)
