@@ -4,6 +4,7 @@ from moves import Move, DIRECTIONS
 from typing import List, Tuple
 from board import Board
 import copy
+from enums import Marble
 
 
 def generate_move(player: str, board: Board) -> List[Move]:
@@ -370,7 +371,15 @@ class GameState:
             'b': black_score,
             'w': white_score}
 
-    def terminal_test(self):
+    def terminal_test(self) -> bool:
+        """
+        Determines whether the terminal state has been reached: either player has won.
+
+        :return: True if reached else False
+        """
+        return True if self.check_win is not None else False
+
+    def check_win(self):
         """
         Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
         
@@ -383,6 +392,15 @@ class GameState:
             print("White wins!")
             return 'w'
         return None
+
+    def apply_move(self, move: Move):
+        """
+        Applies a move to the GameState, updating the board and player turn.
+
+        :param move: the Move object to apply
+        """
+        apply_move_obj(self.board, move)
+        self.player = Marble.BLACK.value if self.player == "w" else "b"
 
     def __deep_copy__(self, memo):
         """
