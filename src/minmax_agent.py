@@ -1,5 +1,5 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import GameState, generate_move
+from state_space import GameState, apply_move_obj, generate_move
 from typing import List
 from moves import Move
 from board import Board
@@ -40,6 +40,7 @@ class MinimaxAgent:
         self.time_limit = time_limit
         self.board = board
 
+
     def iterative_deepening_search(self, current_player: str, moves: List[Move]):
         # NOTE: Use time module: limit 5s or given
         best_move = None
@@ -49,8 +50,8 @@ class MinimaxAgent:
         for iter in range(1, self.depth + 1):
             # Visit every node (move)
             for move in moves:
-                new_game_state = copy.deepcopy(self.game_state)
-                self.mini_max(new_game_state)
+                result_game_state = copy.deepcopy(self.game_state)
+                self.mini_max(result_game_state)
 
 
     def mini_max(self, game_state: GameState):
@@ -60,6 +61,7 @@ class MinimaxAgent:
         :param game_state: the game state to run the algorithm on
         :return: the move for the player to take as str
         """
+        # Assuming the player (not opponent) has the first move
         return self.max_value(game_state) 
 
 
@@ -76,7 +78,14 @@ class MinimaxAgent:
         v = -math.inf
 
         for move in generate_move(game_state.player, game_state.board):
-            v = max(v, self.min_value(game_state))
+            # Create the resulting board with the generated move
+            board = Board()
+            apply_move_obj(board, move)
+
+            # Create the resulting game state
+            result_game_state = GameState(game_state.player, board)
+            
+            v = max(v, self.min_value(result_game_state))
 
         return v
 
@@ -93,6 +102,13 @@ class MinimaxAgent:
         v = math.inf
 
         for move in generate_move(game_state.player, game_state.board):
+            # Create the resulting board with the generated move
+            board = Board()
+            apply_move_obj(board, move)
+
+            # Create the resulting game state
+            result_game_state = GameState(game_state.player, board)
+
             v = min(v, self.max_value(game_state))
 
         return v
