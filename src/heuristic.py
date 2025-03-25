@@ -1,115 +1,100 @@
 import math
-
+from typing import Dict, Tuple, Set
+from src.moves import DIRECTIONS
 from state_space import GameState
 
 def heuristic(game_state: GameState) -> float:
     return 0
 
 """1. distance to center """
-def distance_to_center(board,player):
+def distance_to_center(board_obj, player: str) -> float:
     """
-    Calculate the average Euclidean distance of a player's marbles to the board center.
+    Calculate the average Euclidean distance from the center (0,0,0) for the player's marbles.
 
-    Args:
-        board (dict): The game board represented as a dictionary of positions.
-        player (str): The player ('b' for black, 'w' for white).
-
-    Returns:
-        float: The average distance to the center for the player's marbles.
+    In cube coordinates, one common conversion to Euclidean distance is:
+        distance = sqrt(q^2 + r^2 + s^2) / sqrt(2)
     """
-    xy_player = [(x, y) for (x, y), color in board.items() if color == player]
-
-    avg_x = sum(x for x, y in xy_player) / len(xy_player)
-    avg_y = sum(y for x, y in xy_player) / len(xy_player)
-
-    return math.sqrt(avg_x ** 2 + avg_y ** 2)
+    positions = [(q, r, s) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    if not positions:
+        return 0.0
+    distances = [math.sqrt(q * q + r * r + s * s) / math.sqrt(2) for (q, r, s) in positions]
+    return sum(distances) / len(distances)
 
 """ 2. coherence, marbles stick together """
-def marbles_coherence(board,player):
+def marbles_coherence(board_obj, player: str) -> float:
     """
-    Measure the spatial coherence (clustering) of a player's marbles using variance.
+    Measure the spatial clustering (coherence) of the player's marbles.
 
-    Args:
-        board (dict): The game board represented as a dictionary of positions.
-        player (str): The player ('b' or 'w').
-
-    Returns:
-        float: The average variance of marble positions (lower values indicate tighter clusters).
+    We project cube coordinates (q, r, s) to axial coordinates (q, r)
+    (since s = -q - r) and compute the average variance in q and r.
+    Lower variance indicates tighter clustering.
     """
-    marbles = [(x, y) for (x, y), color in board.items() if color == player]
-    x_positions = [x for x, y in marbles]
-    y_positions = [y for x, y in marbles]
+    positions = [(q, r) for (q, r, s), color in board_obj.marble_positions.items() if color == player]
+    if not positions:
+        return 0.0
+    mean_q = sum(q for q, r in positions) / len(positions)
+    mean_r = sum(r for q, r in positions) / len(positions)
+    variance_q = sum((q - mean_q) ** 2 for q, r in positions) / len(positions)
+    variance_r = sum((r - mean_r) ** 2 for q, r in positions) / len(positions)
+    return (variance_q + variance_r) / 2
 
-    mean_x = sum(x_positions) / len(x_positions)
-    mean_y = sum(y_positions) / len(y_positions)
 
-    # Calculate variance for x and y coordinates
-    variance_x = sum((x - mean_x) ** 2 for x in x_positions) / len(x_positions)
-    variance_y = sum((y - mean_y) ** 2 for y in y_positions) / len(y_positions)
-
-    return (variance_x + variance_y) / 2
-
-def marbles_in_danger(board, player):
+def marbles_in_danger(board_obj, player: str) -> int:
     """
-    Count the number of the player's marbles in danger (surrounded by opponent marbles).
+    Count the number of the player's marbles that are in danger.
 
-    Args:
-        board (dict): The game board.
-        player (str): The player ('b' or 'w').
-
-    Returns:
-        int: Number of marbles at risk of being pushed off the board.
+    A marble is considered in danger if:
+      - It has at least 2 of its 6 neighbors occupied by opponent marbles, OR
+      - It is on the edge of the board (i.e. any coordinate |q|, |r|, or |s| equals 4)
+        and has at least 1 adjacent opponent marble.
     """
     danger_count = 0
     opponent = 'w' if player == 'b' else 'b'
 
-    for (x, y), color in board.items():
-        if color == player:
-            # Check adjacent positions for opponent marbles
-            opponent_neighbors = 0
-            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1)]:
-                if board.get((x + dx, y + dy)) == opponent:
-                    opponent_neighbors += 1
-            # A marble is considered in danger if surrounded by ≥2 opponent marbles
-            if opponent_neighbors >= 2:
-                danger_count += 1
+    for (q, r, s), color in board_obj.marble_positions.items():
+        if color != player:
+            continue
+
+        # Count opponent neighbors.
+        opponent_neighbors = 0
+        for (dq, dr, ds) in DIRECTIONS.values():
+            neighbor_pos = (q + dq, r + dr, s + ds)
+            if board_obj.marble_positions.get(neighbor_pos) == opponent:
+                opponent_neighbors += 1
+
+        # Check if this marble is on the edge.
+        on_edge = abs(q) == 4 or abs(r) == 4 or abs(s) == 4
+
+        # Count as "in danger" if:
+        # - It has 2 or more opponent neighbors, OR
+        # - It is on the edge and has at least 1 opponent neighbor.
+        if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
+            danger_count += 1
+
     return danger_count
 
-def break_opponent_formation(board, player):
-    """
-    Estimate the disruption to the opponent's formation caused by the player.
-
-    Args:
-        board (dict): The game board.
-        player (str): The player ('b' or 'w').
-
-    Returns:
-        float: A score representing the opponent's loss of coherence due to the player's moves.
-    """
-    opponent = 'w' if player == 'b' else 'b'
-    original_coherence = marbles_coherence(board, opponent)
-
-    # Simplified metric: Assume each active marble reduces opponent's coherence
-    # (This can be refined based on specific attack patterns)
-    disrupted_coherence = sum(
-        1 for (x, y), color in board.items()
-        if color == player and (x, y) in opponent_territory(board, opponent)
-    )
-
-    return original_coherence - disrupted_coherence
-
-
-def opponent_territory(board, opponent):
-    """
-    Identify positions considered the opponent's territory (advanced positions).
-
-    Args:
-        board (dict): The game board.
-        opponent (str): The opponent's identifier.
-
-    Returns:
-        set: Coordinates (x, y) in the opponent's territory.
-    """
-    # Example: Define territory as positions where the opponent has ≥3 marbles
-    opponent_marbles = [(x, y) for (x, y), color in board.items() if color == opponent]
-    return {(x, y) for x, y in opponent_marbles if x + y > 1}  # Adjust based on strategy
+"""keep heuristic simple and get deeper search"""
+# def opponent_territory(board_obj, opponent: str) -> Set[Tuple[int, int]]:
+#     """
+#     Identify positions in the opponent's territory.
+#
+#     For this example, we convert cube coordinates to axial (q, r)
+#     and define territory arbitrarily as positions where q > 0.
+#     Adjust this rule according to your strategy.
+#     """
+#     opp_positions = [(q, r) for (q, r, s), color in board_obj.marble_positions.items() if color == opponent]
+#     return {(q, r) for (q, r) in opp_positions if q > 0}
+#
+# def break_opponent_formation(board_obj, player: str) -> float:
+#     """
+#     Estimate the disruption to the opponent's formation caused by the player's moves.
+#
+#     This function calculates the opponent's coherence and then subtracts a disruption
+#     factor based on how many of the player's marbles are present in the opponent's territory.
+#     """
+#     opponent = 'w' if player == 'b' else 'b'
+#     opp_coherence = marbles_coherence(board_obj, opponent)
+#     territory = opponent_territory(board_obj, opponent)
+#     disruption = sum(1 for (q, r, s), color in board_obj.marble_positions.items()
+#                      if color == player and (q, r) in territory)
+#     return opp_coherence - disruption
