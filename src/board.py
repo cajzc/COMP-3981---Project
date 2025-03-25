@@ -3,6 +3,7 @@ import os
 import sys
 from enum import Enum, auto
 from typing import Tuple, Set, List
+from enums import Marble
 
 
 class BoardConfiguration(Enum):
@@ -64,11 +65,11 @@ class Board:
 
         # Place black marbles
         for pos in black_marble_initial_pos:
-            self.marble_positions[pos] = 'black'
+            self.marble_positions[pos] = Marble.BLACK.value
 
         # Place white marbles
         for pos in white_marble_initial_pos:
-            self.marble_positions[pos] = 'white'
+            self.marble_positions[pos] = Marble.WHITE.value
 
         # Remove these positions from empty_positions
         self.empty_positions -= set(black_marble_initial_pos + white_marble_initial_pos)
@@ -125,9 +126,9 @@ class Board:
         # Clear and place on board
         self.reset_board()
         for pos in black_marble_initial_pos:
-            self.marble_positions[pos] = 'black'
+            self.marble_positions[pos] = Marble.BLACK.value
         for pos in white_marbles_initial_pos:
-            self.marble_positions[pos] = 'white'
+            self.marble_positions[pos] = Marble.WHITE.value
         self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
 
@@ -171,9 +172,9 @@ class Board:
         # Clear and place on board
         self.reset_board()
         for pos in black_marble_initial_pos:
-            self.marble_positions[pos] = 'black'
+            self.marble_positions[pos] = Marble.BLACK.value
         for pos in white_marbles_initial_pos:
-            self.marble_positions[pos] = 'white'
+            self.marble_positions[pos] = Marble.WHITE.value
         self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
 

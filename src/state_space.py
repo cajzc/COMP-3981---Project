@@ -112,7 +112,7 @@ def get_inline_moves(player: str, board_obj) -> List[Move]:
     If it's occupied by an opponent, check if a push is possible.
     """
     moves = []
-    opponent = 'b' if player == 'w' else 'w'
+    opponent = Marble.BLACK.value if player == Marble.WHITE.value else Marble.WHITE.value
     groups = get_moveable_groups(player, board_obj)
     for direction, group in groups:
         dq, dr, ds = DIRECTIONS[direction]
@@ -361,15 +361,16 @@ class GameState:
         initial_black_marbles = 14  # Standard Abalone setup
         initial_white_marbles = 14
 
-        current_black_marbles = sum(1 for v in self.board.values() if v == 'b')
-        current_white_marbles = sum(1 for v in self.board.values() if v == 'w')
+        current_black_marbles = sum(1 for v in self.board.values() if v == Marble.BLACK.value)
+        current_white_marbles = sum(1 for v in self.board.values() if v == Marble.WHITE.value)
 
         black_score = initial_white_marbles - current_white_marbles  # Black's score = White marbles pushed off
         white_score = initial_black_marbles - current_black_marbles  # White's score = Black marbles pushed off
 
         return {
-            'b': black_score,
-            'w': white_score}
+            Marble.BLACK.value: black_score,
+            Marble.WHITE.value: white_score
+        }
 
     def terminal_test(self) -> bool:
         """
@@ -385,12 +386,12 @@ class GameState:
         
         :return: 'b' if black wins, 'w' if white wins, None if no winner 
         """
-        if self.score['b'] >= 6:
+        if self.score[Marble.BLACK.value] >= 6:
             print("Black wins!")
-            return 'b'
-        elif self.score['w'] >= 6:
+            return Marble.BLACK.value
+        elif self.score[Marble.WHITE.value] >= 6:
             print("White wins!")
-            return 'w'
+            return Marble.WHITE.value
         return None
 
     def apply_move(self, move: Union[Move, Tuple[int, int, int, str]]):
@@ -403,7 +404,7 @@ class GameState:
             apply_move_obj(self.board, move)
         elif isinstance(move, Tuple):
             pass
-        self.player = Marble.BLACK.value if self.player == "w" else "b"
+        self.player = Marble.BLACK.value if self.player == Marble.WHITE.value else Marble.BLACK.value
 
     def __deep_copy__(self, memo):
         """

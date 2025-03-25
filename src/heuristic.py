@@ -2,6 +2,7 @@ import math
 from typing import Dict, Tuple, Set
 from src.moves import DIRECTIONS
 from state_space import GameState
+from enums import Marble
 
 def heuristic(game_state: GameState) -> float:
     return 0
@@ -38,6 +39,9 @@ def marbles_coherence(board_obj, player: str) -> float:
     variance_r = sum((r - mean_r) ** 2 for q, r in positions) / len(positions)
     return (variance_q + variance_r) / 2
 
+def triangle_formulation():
+    pass
+
 
 def marbles_in_danger(board_obj, player: str) -> int:
     """
@@ -49,7 +53,7 @@ def marbles_in_danger(board_obj, player: str) -> int:
         and has at least 1 adjacent opponent marble.
     """
     danger_count = 0
-    opponent = 'w' if player == 'b' else 'b'
+    opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
 
     for (q, r, s), color in board_obj.marble_positions.items():
         if color != player:
