@@ -1,5 +1,10 @@
 import math
 
+from state_space import GameState
+
+def heuristic(game_state: GameState) -> float:
+    return 0
+
 """1. distance to center """
 def distance_to_center(board,player):
     """
