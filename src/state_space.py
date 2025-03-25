@@ -6,6 +6,16 @@ from board import Board
 import copy
 
 
+def generate_move(player: str, board: Board) -> List[Move]:
+    """
+    Generates all possible legal moves given the player whose turn it is an a board configuration.
+
+    :param player: the player who has the current turn
+    :param board: the board configuration as a Board object
+    :return: a list of Move objects
+    """
+    return get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
+
 def get_marble_group(start_pos: Tuple[int, int, int], direction: str, board_obj, player: str) -> List[
     Tuple[int, int, int, str]]:
     """
