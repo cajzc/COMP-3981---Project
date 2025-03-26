@@ -54,6 +54,23 @@ class DebugMenu:
 
     @staticmethod
     def _run_model():
+        board = DebugMenu._get_board_configuration()
+        player_colour = DebugMenu._get_player_colour()
+        weights = DebugMenu._get_weights()
+        time_limit = DebugMenu._get_time_limit()
+        depth = DebugMenu._get_depth()
+
+        agent = MinimaxAgent(board, player_colour, time_limit=time_limit, depth=depth, weights=weights)
+
+        agent.run_game()
+    
+    @staticmethod
+    def _get_board_configuration() -> Board:
+        """
+        Prompts the user to select the board configuration, returning their selected board configuration.
+
+        :return: a Board object
+        """
         while True:
             print(
                 "Enter the board configuration\n"
@@ -66,25 +83,105 @@ class DebugMenu:
 
             match user_input:
                 case "1":
-                    board = Board.create_board(BoardConfiguration.DEFAULT)
+                    return Board.create_board(BoardConfiguration.DEFAULT)
                 case "2":
-                    board = Board.create_board(BoardConfiguration.BELGIAN)
+                    return Board.create_board(BoardConfiguration.BELGIAN)
                 case "3":
-                    board = Board.create_board(BoardConfiguration.GERMAN)
+                    return Board.create_board(BoardConfiguration.GERMAN)
                 case _:
-                    print("Invalid selection")
+                    print("Invalid selection. Please try again.")
                     continue
 
-            player = input("Enter the player turn ('b' or 'w'): ")
-            if player not in ["b", "w"]:
-                print("Invalid selection")
+    @staticmethod
+    def _get_player_colour() -> Marble:
+        """
+        Prompts the user to select the player turn ('b' or 'w'), returning the colour they select as an enum.
+
+        :return: a Marble object
+        """
+        while True:
+            player = input("Enter the player turn ('b' for black or 'w' for white, default 'b'): ").strip().lower()
+            print("Note only select 'b' as of the development state") # TODO:
+            if not player:  # No input, use default value 'b'
+                return Marble("b")
+            elif player in ["b", "w"]:
+                return Marble(player)
+            else:
+                print("Invalid selection. Please enter 'b' for black or 'w' for white.")
                 continue
 
-            break
-            
-        agent = MinimaxAgent(board, Marble(player))
+    @staticmethod
+    def _get_weights() -> dict:
+        """
+        Prompts the user to input custom weights, or use defaults if no input is provided.
 
-        agent.run_game()
+        :return: a dictionary of weights
+        """
+
+        default_weights = {
+            'center_distance': -0.5,
+            'coherence': -0.3,
+            'danger': -1.0,
+            'opponent_break': 0.8,
+            'score': 2.0,
+            'triangle_formation': 1.0
+        }
+
+        weights = {}
+
+        print("Enter weights for the following parameters (press Enter to use default values)")
+        for key, default_value in default_weights.items():
+            user_input_weight = input(f"{key} (default {default_value}): ").strip()
+            if not user_input_weight:  # No input, use default value
+                weights[key] = default_value
+            else:
+                try:
+                    weights[key] = float(user_input_weight)
+                except ValueError:
+                    print(f"Invalid input for {key}, using default value of {default_value}.")
+                    weights[key] = default_value
+
+        return weights
+
+    @staticmethod
+    def _get_time_limit() -> int:
+        """
+        Prompts the user to input the time limit.
+
+        :return: the time limit as an int
+        """
+        while True:
+            user_input = input(f"Enter the time limit in seconds (default 5): ").strip()
+            if not user_input:  # No input, use default value
+                return 5
+            try:
+                time_limit = int(user_input)
+                if time_limit > 0:
+                    return time_limit
+                else:
+                    print("Time limit must be a positive integer. Please try again.")
+            except ValueError:
+                print("Invalid input. Please enter a valid number for the time limit.")
+
+    @staticmethod
+    def _get_depth() -> int:
+        """
+        Prompts the user to input the depth.
+
+        :return: the depth of the search
+        """
+        while True:
+            user_input = input(f"Enter the search depth (default 3): ").strip()
+            if not user_input:  # No input, use default value
+                return 3
+            try:
+                depth = int(user_input)
+                if depth > 0:
+                    return depth
+                else:
+                    print("Depth must be a positive integer. Please try again.")
+            except ValueError:
+                print("Invalid input. Please enter a valid number for the depth.")
 
 
     @staticmethod
