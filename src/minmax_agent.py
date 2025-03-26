@@ -76,14 +76,14 @@ class MinimaxAgent:
         """Gets the opponents move from user input. Handles errors appropriately, reprompting the opponent."""
         while True:
             opponent_move = input("Enter the opponent's move: ")
-            opponent_move = Board.convert_marble_notation(opponent_move)
             try:
-                self.game_state.apply_move(opponent_move)
+                opponent_move = Board.convert_marble_notation(opponent_move)
             except ValueError:
                 print("Invalid move entered")
             except Exception as e:
                 print("Unknown error parsing opponent move:", e)
             else:
+                self.game_state.apply_move(opponent_move)
                 break
 
 
@@ -143,6 +143,7 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
+        print("received weights", args)
         if game_state.terminal_test() or depth == 0:
             return c_heuristic(game_state, *args)
 
