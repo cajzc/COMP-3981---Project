@@ -380,7 +380,7 @@ class GameState:
 
         :return: True if reached else False
         """
-        return True if self.check_win is not None else False
+        return self.check_win() is not None
 
     def check_win(self):
         """
@@ -389,10 +389,8 @@ class GameState:
         :return: 'b' if black wins, 'w' if white wins, None if no winner 
         """
         if self.score[Marble.BLACK.value] >= 6:
-            print("Black wins!")
             return Marble.BLACK.value
         elif self.score[Marble.WHITE.value] >= 6:
-            print("White wins!")
             return Marble.WHITE.value
         return None
 
@@ -426,6 +424,6 @@ class GameState:
         return new_game_state
 
     def __str__(self):
-        return f"Game over: {self.terminal_test}\n" \
-            f"Score: {self.score}"
+        return f"Game status: {"over" if self.terminal_test() else "in progress"}\n" \
+                f"Score: {self.score}"
 
