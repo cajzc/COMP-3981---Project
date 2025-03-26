@@ -49,11 +49,12 @@ class MinimaxAgent:
         Starts the game of Abalone with the model against an opponent.
         """
         # NOTE: We should be checking for time constraints
-        while self.game_state.terminal_test():
+        while not self.game_state.terminal_test():
             # Player turn
             if self.current_move:
+                print("player turn")
                 # Get the next move 
-                move_to_make = self.iterative_deepening_search(generate_move(Marble.BLACK.value, self.game_state.board))
+                move_to_make = self.iterative_deepening_search(generate_move(self.player_colour, self.game_state.board))
                 if move_to_make is None:
                     print("(ERROR) Generated move is None. Exiting program...")
                     return
@@ -64,12 +65,14 @@ class MinimaxAgent:
 
             # Opponent turn
             else:
+                print("opponent turn")
                 applied_move = self.apply_opponent_move_random()
                 if not applied_move:
                     break
-                
+
             # Alternate move
             self.current_move = not self.current_move
+            print(self.game_state)
         
         # NOTE: We should be checking for time constraints
         print("Game over")
@@ -103,7 +106,6 @@ class MinimaxAgent:
         if len(possible_opponent_moves) == 0:
             return None
         r = random.randint(0, len(possible_opponent_moves) - 1)
-        print(f"r is {r} len is {len(possible_opponent_moves)}")
         opponent_move = possible_opponent_moves[r]
         return opponent_move
 
