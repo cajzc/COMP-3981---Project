@@ -1,12 +1,13 @@
 """ this agent will use all the modules to generate a best move"""
 from state_space import GameState, apply_move_obj, generate_move
-from typing import List
+from typing import List, Tuple
 from moves import Move
 from board import Board
 import time, copy, math
 from heuristic import heuristic, c_heuristic
 from enums import Marble
 from board import Board
+import random
 
 class MinimaxAgent:
     """
@@ -58,12 +59,12 @@ class MinimaxAgent:
                     return
 
                 print("Generated move: ", move_to_make)
-
                 # Apply the move to the game state
                 self.game_state.apply_move(move_to_make)
+
             # Opponent turn
             else:
-                self._get_opponent_move()
+                self.apply_opponent_move_random()
                 
             # Alternate move
             self.current_move = not self.current_move
@@ -73,20 +74,47 @@ class MinimaxAgent:
         print(self.game_state.check_win(), "won")
 
                 
-    def _get_opponent_move(self):
-        """Gets the opponents move from user input. Handles errors appropriately, reprompting the opponent."""
+    
+    def apply_opponent_move_random(self):
+        """Applies a randomly generated opponent move to the game state."""
+        move = self._get_opponent_move_random()
+        self.game_state.apply_move(move)
+
+    def apply_opponent_move_input(self):
+        """Applies the move to the game state. This assumes the opponents move is a valid one."""
+        move = self._get_opponent_move_input()
+        self.game_state.apply_move(move)
+    
+    def _get_opponent_move_random(self) -> Move:
+        """
+        Generates all possible moves for the opponent, returning a randomly selected one.
+
+        :return: a randomly selected move for the opponent
+        """
+        possible_opponent_moves = generate_move(self.opponent_colour, self.game_state.board)
+        r = random.randint(0, len(possible_opponent_moves))
+        opponent_move = possible_opponent_moves[r]
+        return opponent_move
+
+    # FIXME: This should return a Move object
+    def _get_opponent_move_input(self) -> Tuple[int, int, int, str]:
+        """
+        Gets the opponents move from user input. Handles errors appropriately, reprompting the opponent. 
+
+        :return: the user inputted move as a tuple in notation (q, r, s, colour)
+        """
         while True:
             opponent_move = input("Enter the opponent move position: ")
             try:
                 opponent_move = f"{opponent_move}{self.opponent_colour}"
                 opponent_move = Board.convert_marble_notation(opponent_move)
+                # Convert the tuple into a Move object
             except ValueError:
                 print("Invalid move entered")
             except Exception as e:
                 print("Unknown error parsing opponent move:", e)
             else:
-                self.game_state.apply_move(opponent_move)
-                break
+                return opponent_move
 
 
     def iterative_deepening_search(self, moves: List[Move]) -> Move | None:
@@ -145,7 +173,6 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        print("received weights", args)
         if game_state.terminal_test() or depth == 0:
             return c_heuristic(game_state, *args)
 
