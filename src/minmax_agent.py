@@ -52,25 +52,23 @@ class MinimaxAgent:
         while not self.game_state.terminal_test():
             # Player turn
             if self.current_move:
-                print("player turn")
+                print("Player turn")
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(generate_move(self.player_colour, self.game_state.board))
                 if move_to_make is None:
                     print("(ERROR) Generated move is None. Exiting program...")
                     return
 
-                print("Generated move: ", move_to_make)
                 # Apply the move to the game state
                 self.game_state.apply_move(move_to_make)
 
             # Opponent turn
             else:
-                print("opponent turn")
+                print("Opponent turn")
                 applied_move = self.apply_opponent_move_random()
                 if not applied_move:
                     break
-
-            # Alternate move
+                        # Alternate move
             self.current_move = not self.current_move
             print(self.game_state)
         
@@ -109,6 +107,7 @@ class MinimaxAgent:
         opponent_move = possible_opponent_moves[r]
         return opponent_move
 
+
     # FIXME: This should return a Move object
     def _get_opponent_move_input(self) -> Tuple[int, int, int, str]:
         """
@@ -139,16 +138,14 @@ class MinimaxAgent:
         """
         best_move = None
         best_score = -math.inf
-
+        
         # Iterative search
         for depth in range(1, self.depth + 1): # NOTE: Use time module: limit 5s or given
             # Visit every node (move)
             for move in moves:
-
                 # Create the resulting game state
-                board = Board()
-                apply_move_obj(board, move)
-                result_game_state = GameState(self.game_state.player, board)
+                result_game_state = copy.deepcopy(self.game_state)
+                apply_move_obj(result_game_state.board, move)
 
                 score = self.mini_max(
                     result_game_state, 
@@ -174,7 +171,7 @@ class MinimaxAgent:
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.max_value(game_state, depth, *args) 
+        return self.min_value(game_state, depth, *args) 
 
 
     def max_value(self, game_state: GameState, depth: int, *args) -> float:
@@ -192,16 +189,14 @@ class MinimaxAgent:
         v = -math.inf
 
         for move in generate_move(game_state.player, game_state.board):
-            # Create the resulting board with the generated move
-            board = Board()
-            apply_move_obj(board, move)
+            # Create the game state if we were to make the move
+            result_game_state = copy.deepcopy(game_state)
+            apply_move_obj(result_game_state.board, move)
 
-            # Create the resulting game state
-            result_game_state = GameState(game_state.player, board)
-            
-            v = max(v, self.min_value(result_game_state, depth-1))
+            v = max(v, self.min_value(result_game_state, depth-1, *args))
 
         return v
+
 
     def min_value(self, game_state: GameState, depth: int, *args) -> float:
         """
@@ -212,20 +207,19 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
+
         if game_state.terminal_test() or depth == 0:
             return c_heuristic(game_state, *args)
         
         v = math.inf
 
         for move in generate_move(game_state.player, game_state.board):
-            # Create the resulting board with the generated move
-            board = Board()
-            apply_move_obj(board, move)
+            # Create the game state if we were to make the move
+            result_game_state = copy.deepcopy(game_state)
+            apply_move_obj(result_game_state.board, move)
 
-            # Create the resulting game state
-            result_game_state = GameState(game_state.player, board)
-
-            v = min(v, self.max_value(result_game_state, depth-1))
+            
+            v = min(v, self.max_value(result_game_state, depth-1, *args))
 
         return v
 

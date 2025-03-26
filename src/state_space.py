@@ -421,11 +421,11 @@ class GameState:
 
         :return: a new GameState object
         """
-        # Deep copy mutable attributes
+        # Copy the original board
         new_board = copy.deepcopy(self.board, memo)
         
-        # Create the new GameState object
-        new_game_state = GameState(self.player , new_board)
+        # Create the new GameState object, with the next player turn as the current player to move
+        new_game_state = GameState(self.get_next_turn_colour(), new_board)
 
         # Set the address of memo to prevent recursive copies
         memo[id(self)] = new_game_state
