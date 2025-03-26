@@ -415,20 +415,17 @@ class GameState:
         """
         return Marble.WHITE.value if self.player == Marble.BLACK.value else Marble.BLACK.value
 
-    def __deep_copy__(self, memo):
+    def deep_copy(self):
         """
         Creates and returns a deepcopy for a GameState.
 
         :return: a new GameState object
         """
         # Copy the original board
-        new_board = copy.deepcopy(self.board, memo)
+        new_board = self.board.deep_copy()
         
         # Create the new GameState object, with the next player turn as the current player to move
         new_game_state = GameState(self.get_next_turn_colour(), new_board)
-
-        # Set the address of memo to prevent recursive copies
-        memo[id(self)] = new_game_state
 
         return new_game_state
 

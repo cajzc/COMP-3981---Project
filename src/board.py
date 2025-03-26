@@ -4,6 +4,7 @@ import sys
 from enum import Enum, auto
 from typing import Tuple, Set, List
 from enums import Marble
+import copy
 
 
 class BoardConfiguration(Enum):
@@ -270,4 +271,12 @@ class Board:
 
         return board
 
+    def deep_copy(self) -> 'Board':
+        """
+        Creates and returns a deep copy of the current board.
+        """
+        new_board = Board()
+        new_board.marble_positions = copy.deepcopy(self.marble_positions)
+        new_board.empty_positions = copy.deepcopy(self.empty_positions)
+        return new_board
 

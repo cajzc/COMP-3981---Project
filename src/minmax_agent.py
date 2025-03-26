@@ -3,7 +3,7 @@ from state_space import GameState, apply_move_obj, generate_move
 from typing import List, Tuple
 from moves import Move
 from board import Board
-import time, copy, math
+import time, math
 from heuristic import heuristic, c_heuristic
 from enums import Marble
 from board import Board
@@ -145,7 +145,7 @@ class MinimaxAgent:
             # Visit every node (move)
             for move in moves:
                 # Create the resulting game state
-                result_game_state = copy.deepcopy(self.game_state)
+                result_game_state = self.game_state.deep_copy()
                 apply_move_obj(result_game_state.board, move)
 
                 score = self.mini_max(
@@ -191,7 +191,7 @@ class MinimaxAgent:
 
         for move in generate_move(game_state.player, game_state.board):
             # Create the game state if we were to make the move
-            result_game_state = copy.deepcopy(game_state)
+            result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
 
             v = max(v, self.min_value(result_game_state, depth-1, *args))
@@ -208,7 +208,6 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        print("running min")
 
         if depth == 0 or game_state.terminal_test():
             return c_heuristic(game_state, *args)
@@ -217,7 +216,7 @@ class MinimaxAgent:
 
         for move in generate_move(game_state.player, game_state.board):
             # Create the game state if we were to make the move
-            result_game_state = copy.deepcopy(game_state)
+            result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
 
             
