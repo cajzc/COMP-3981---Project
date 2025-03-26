@@ -5,6 +5,7 @@ from typing import List, Set, Tuple, Dict
 from board import Board, BoardConfiguration
 import state_space 
 from minmax_agent import MinimaxAgent
+from enums import Marble
 
 
 class DebugMenu:
@@ -74,15 +75,14 @@ class DebugMenu:
                     print("Invalid selection")
                     continue
 
-            player = input("Enter the player turn ('b' or 'w')")
+            player = input("Enter the player turn ('b' or 'w'): ")
             if player not in ["b", "w"]:
                 print("Invalid selection")
                 continue
 
             break
             
-
-        agent = MinimaxAgent(board, player)
+        agent = MinimaxAgent(board, Marble(player))
 
         agent.run_game()
 
