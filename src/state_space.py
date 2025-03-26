@@ -341,12 +341,12 @@ def apply_move(board_obj: Board, move_str: str) -> None:
 class GameState:
     """Represents the complete game state an Abalone game."""
 
-    def __init__(self, player, board):
+    def __init__(self, player: str, board: Board):
         """
         Initialize a new game state.
         
         :param player: First player to move ('b' for black or 'w' for white)
-        :param board: Dictionary representing the board state {(x, y): 'b'/'w'/'N'}
+        :param board: A Board object representing the initial board configuration
         """
         self.player = player
         self.board = board
@@ -361,8 +361,10 @@ class GameState:
         initial_black_marbles = 14  # Standard Abalone setup
         initial_white_marbles = 14
 
-        current_black_marbles = sum(1 for v in self.board.values() if v == Marble.BLACK.value)
-        current_white_marbles = sum(1 for v in self.board.values() if v == Marble.WHITE.value)
+        board_dict_values = self.board.marble_positions.values()
+
+        current_black_marbles = sum(1 for v in board_dict_values if v == Marble.BLACK.value)
+        current_white_marbles = sum(1 for v in board_dict_values if v == Marble.WHITE.value)
 
         black_score = initial_white_marbles - current_white_marbles  # Black's score = White marbles pushed off
         white_score = initial_black_marbles - current_black_marbles  # White's score = Black marbles pushed off
