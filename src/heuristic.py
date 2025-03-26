@@ -1,6 +1,6 @@
 import math
 from typing import Dict, Tuple, Set
-from src.moves import DIRECTIONS
+from moves import DIRECTIONS
 from state_space import GameState
 from enums import Marble
 from itertools import combinations
