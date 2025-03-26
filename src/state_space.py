@@ -1,7 +1,7 @@
 import re
 
 from moves import Move, DIRECTIONS
-from typing import List, Tuple, Union
+from typing import List, Tuple
 from board import Board
 import copy
 from enums import Marble
@@ -396,7 +396,7 @@ class GameState:
             return Marble.WHITE.value
         return None
 
-    def apply_move(self, move: Union[Move, Tuple[int, int, int, str]]):
+    def apply_move(self, move: Move | Tuple[int, int, int, str]):
         """
         Applies a move to the GameState, updating the board and player turn.
 
@@ -425,4 +425,7 @@ class GameState:
 
         return new_game_state
 
+    def __str__(self):
+        return f"Game over: {self.terminal_test}\n" \
+            f"Score: {self.score}"
 
