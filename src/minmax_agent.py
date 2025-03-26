@@ -62,18 +62,30 @@ class MinimaxAgent:
                 self.game_state.apply_move(move_to_make)
             # Opponent turn
             else:
-                opponent_move = input("Enter the opponent's move: ")
-                # NOTE: Do some error handling here
-                opponent_move = Board.convert_marble_notation(opponent_move)
-                self.game_state.apply_move(opponent_move)
-
+                self._get_opponent_move()
+                
             # Alternate move
             self.current_move = not self.current_move
         
         # NOTE: We should be checking for time constraints
         print("Game over")
         print(self.game_state.check_win(), "won")
+
                 
+    def _get_opponent_move(self):
+        """Gets the opponents move from user input. Handles errors appropriately, reprompting the opponent."""
+        while True:
+            opponent_move = input("Enter the opponent's move: ")
+            opponent_move = Board.convert_marble_notation(opponent_move)
+            try:
+                self.game_state.apply_move(opponent_move)
+            except ValueError:
+                print("Invalid move entered")
+            except Exception as e:
+                print("Unknown error parsing opponent move:", e)
+            else:
+                break
+
 
     def iterative_deepening_search(self, moves: List[Move]) -> Move | None:
         """
