@@ -55,6 +55,7 @@ class MinimaxAgent:
                 print("Player turn")
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(generate_move(self.player_colour, self.game_state.board))
+                print("best move", move_to_make)
                 if move_to_make is None:
                     print("(ERROR) Generated move is None. Exiting program...")
                     return
@@ -171,7 +172,7 @@ class MinimaxAgent:
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.min_value(game_state, depth, *args) 
+        return self.max_value(game_state, depth, *args) 
 
 
     def max_value(self, game_state: GameState, depth: int, *args) -> float:
@@ -183,7 +184,7 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        if game_state.terminal_test() or depth == 0:
+        if depth == 0 or game_state.terminal_test():
             return c_heuristic(game_state, *args)
 
         v = -math.inf
@@ -207,8 +208,9 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
+        print("running min")
 
-        if game_state.terminal_test() or depth == 0:
+        if depth == 0 or game_state.terminal_test():
             return c_heuristic(game_state, *args)
         
         v = math.inf
