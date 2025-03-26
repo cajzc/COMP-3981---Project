@@ -345,7 +345,7 @@ class GameState:
         """
         Initialize a new game state.
         
-        :param player: First player to move ('b' for black or 'w' for white)
+        :param player: the colour of the current turns player
         :param board: A Board object representing the initial board configuration
         """
         self.player = player
@@ -404,7 +404,16 @@ class GameState:
             apply_move_obj(self.board, move)
         elif isinstance(move, Tuple):
             pass
-        self.player = Marble.BLACK.value if self.player == Marble.WHITE.value else Marble.BLACK.value
+        # Swap player turn
+        self.player = self.get_next_turn_colour()
+
+    def get_next_turn_colour(self) -> str:
+        """
+        Returns the next player to moves colour.
+
+        :return: the next marble to move as a str "b" or "w"
+        """
+        return Marble.WHITE.value if self.player == Marble.BLACK.value else Marble.BLACK.value
 
     def __deep_copy__(self, memo):
         """
@@ -416,7 +425,7 @@ class GameState:
         new_board = copy.deepcopy(self.board, memo)
         
         # Create the new GameState object
-        new_game_state = GameState(self.player, new_board)
+        new_game_state = GameState(self.player , new_board)
 
         # Set the address of memo to prevent recursive copies
         memo[id(self)] = new_game_state
