@@ -64,7 +64,9 @@ class MinimaxAgent:
 
             # Opponent turn
             else:
-                self.apply_opponent_move_random()
+                applied_move = self.apply_opponent_move_random()
+                if not applied_move:
+                    break
                 
             # Alternate move
             self.current_move = not self.current_move
@@ -72,27 +74,36 @@ class MinimaxAgent:
         # NOTE: We should be checking for time constraints
         print("Game over")
         print(self.game_state.check_win(), "won")
-
                 
     
-    def apply_opponent_move_random(self):
-        """Applies a randomly generated opponent move to the game state."""
+    def apply_opponent_move_random(self) -> bool:
+        """
+        Applies a randomly generated opponent move to the game state.
+
+        :return: True if the move was applied, False if not and the game is over
+        """
         move = self._get_opponent_move_random()
+        if not move:
+            return False
         self.game_state.apply_move(move)
+        return True
 
     def apply_opponent_move_input(self):
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
         self.game_state.apply_move(move)
     
-    def _get_opponent_move_random(self) -> Move:
+    def _get_opponent_move_random(self) -> Move | None:
         """
         Generates all possible moves for the opponent, returning a randomly selected one.
 
-        :return: a randomly selected move for the opponent
+        :return: a randomly selected move for the opponent or None if there are no generated moves
         """
         possible_opponent_moves = generate_move(self.opponent_colour, self.game_state.board)
-        r = random.randint(0, len(possible_opponent_moves))
+        if len(possible_opponent_moves) == 0:
+            return None
+        r = random.randint(0, len(possible_opponent_moves) - 1)
+        print(f"r is {r} len is {len(possible_opponent_moves)}")
         opponent_move = possible_opponent_moves[r]
         return opponent_move
 
