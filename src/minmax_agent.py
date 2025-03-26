@@ -18,16 +18,18 @@ class MinimaxAgent:
         weights (dict): Weight values for heuristic components
     """
 
-    def __init__(self, board: Board, player_turn: str, time_limit=5, depth=3, weights=None):
+    def __init__(self, board: Board, player_colour: Marble, time_limit=5, depth=3, weights=None):
         """
         Initialize minimax agent with search parameters
 
-        Args:
-            board (Board): The initial configuration of the Abalone game board
-            player_turn (str): The player whose initial turn it is
-            depth (int): Maximum search depth (default: 3)
-            weights (dict): Heuristic component weights (default: predefined values)
+        :param board: the initial configuration of the Abalone game board
+        :param player_colour: the colour of the player as an enum
+        :param depth:  maximum search depth (default: 3)
+        :param weights: heuristic component weights as a dict 
         """
+        self.board = board
+        self.player_colour = player_colour.value
+        self.time_limit = time_limit
         self.depth = depth
         self.weights = weights or {
             'center_distance': -0.5,  # Negative weight (closer to center = better)
@@ -37,10 +39,9 @@ class MinimaxAgent:
             'score': 2.0,  # Direct score difference multiplier
             'triangle_formation': 1.0  # Multiplier for obtaining a triangle formation
         }
-        self.game_state = GameState(player_turn, board)
-        self.time_limit = time_limit
-        self.board = board
-        self.current_move = True if player_turn == Marble.BLACK.value else False
+        self.game_state = GameState(self.player_colour, board)
+        self.current_move = True if self.player_colour == Marble.BLACK.value else False
+        self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
 
     def run_game(self):
         """
@@ -75,8 +76,9 @@ class MinimaxAgent:
     def _get_opponent_move(self):
         """Gets the opponents move from user input. Handles errors appropriately, reprompting the opponent."""
         while True:
-            opponent_move = input("Enter the opponent's move: ")
+            opponent_move = input("Enter the opponent move position: ")
             try:
+                opponent_move = f"{opponent_move}{self.opponent_colour}"
                 opponent_move = Board.convert_marble_notation(opponent_move)
             except ValueError:
                 print("Invalid move entered")
@@ -131,7 +133,7 @@ class MinimaxAgent:
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.max_value(game_state, depth, args) 
+        return self.max_value(game_state, depth, *args) 
 
 
     def max_value(self, game_state: GameState, depth: int, *args) -> float:
