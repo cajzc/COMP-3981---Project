@@ -353,7 +353,6 @@ class MinimaxAgent:
             alpha: float, 
             beta: float, 
             heuristic, 
-            player: str,
             *args
     ) -> float:
         """
@@ -365,7 +364,7 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
         if depth == 0 or terminal_test(board):
-            return heuristic(board, *args)
+            return heuristic(player_colour, board, *args)
 
         v = -math.inf
         moves_generated = generate_move_dict(player_colour, board, empty_positions)
@@ -404,7 +403,6 @@ class MinimaxAgent:
             alpha: float, 
             beta: float, 
             heuristic, 
-            player: str,
             *args
         ) -> float:
         """
@@ -416,7 +414,7 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
         if depth == 0 or terminal_test(board):
-            return heuristic(board, *args)
+            return heuristic(player_colour, board, *args)
 
         v = math.inf
 
