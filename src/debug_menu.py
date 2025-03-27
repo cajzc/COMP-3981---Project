@@ -4,8 +4,9 @@ import os, sys
 from typing import List, Set, Tuple, Dict
 from board import Board, BoardConfiguration
 import state_space 
-from minmax_agent import MinimaxAgent
+from minmax_agent import MinimaxAgent, AgentConfiguration
 from enums import Marble
+from heuristic import c_heuristic
 
 
 class DebugMenu:
@@ -59,8 +60,15 @@ class DebugMenu:
         weights = DebugMenu._get_weights()
         time_limit = DebugMenu._get_time_limit()
         depth = DebugMenu._get_depth()
+        config= DebugMenu.get_game_configuration()
 
-        agent = MinimaxAgent(board, player_colour, time_limit=time_limit, depth=depth, weights=weights)
+        agent = MinimaxAgent(
+            board, 
+            player_colour, 
+            config,
+            time_limit=time_limit, 
+            depth=depth, 
+            weights=weights)
 
         agent.run_game()
     
@@ -182,6 +190,49 @@ class DebugMenu:
                     print("Depth must be a positive integer. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a valid number for the depth.")
+
+    @staticmethod
+    def get_game_configuration() -> AgentConfiguration:
+        """
+        Prompts the user to select a game mode and heuristics.
+        - AI vs AI (same heuristic)
+        - AI vs AI (different heuristics)
+        - AI vs Human
+        """
+        while True:
+            print(
+                "(1) AI vs AI (Same Heuristic)\n"
+                "(2) AI vs AI (Different Heuristic)\n"
+                "(3) AI vs Human\n"
+                "(4) AI vs Random\n"
+            )
+            user_input = input("Enter the Game Mode: ").strip()
+            
+            if user_input in {"1", "2"}:
+                heuristic_one = DebugMenu.get_heuristic("Select first heuristic")
+                heuristic_two = heuristic_one if user_input == "1" else DebugMenu.get_heuristic("Select second heuristic")
+                return AgentConfiguration(False, user_input == "1", user_input == "2", False, heuristic_one, heuristic_two)
+            elif user_input == "3":
+                return AgentConfiguration(True, False, False, False)
+            elif user_input == "4":
+                return AgentConfiguration(False, False, False, True)
+            else:
+                print("Invalid selection. Please try again.")
+
+    @staticmethod
+    def get_heuristic(prompt: str):
+        """
+        Prompts the user to select a heuristic function, returning it.
+        """
+        while True:
+            print(f"{prompt}\n(1) c_heuristic\n(2) j_heuristic")
+            heuristic_input = input("Enter your choice: ").strip()
+            if heuristic_input == "1":
+                return c_heuristic
+            elif heuristic_input == "2":
+                return c_heuristic
+            else:
+                print("Invalid selection. Please try again.")
 
 
     @staticmethod

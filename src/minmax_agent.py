@@ -316,7 +316,7 @@ class MinimaxAgent:
         :param args: the weights
         :return: the move for the player to take as str
         """
-        return self.max_value(game_state, depth, *args) if is_player else self.min_value(game_state, depth, *args)
+        return self.max_value(game_state, depth, heuristic, *args) if is_player else self.min_value(game_state, depth, *args)
 
 
     def max_value(self, game_state: GameState, depth: int, heuristic, *args) -> float:
@@ -340,12 +340,12 @@ class MinimaxAgent:
             result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
 
-            v = max(v, self.min_value(result_game_state, depth-1, *args))
+            v = max(v, self.min_value(result_game_state, depth-1, heuristic, *args))
 
         return v
 
 
-    def min_value(self, game_state: GameState, depth: int, *args) -> float:
+    def min_value(self, game_state: GameState, depth: int, heuristic, *args) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
@@ -355,7 +355,7 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
         if depth == 0 or game_state.terminal_test():
-            return c_heuristic(game_state, *args)
+            return heuristic(game_state, *args)
         
         v = math.inf
 
