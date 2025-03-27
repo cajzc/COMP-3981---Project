@@ -76,7 +76,7 @@ class MinimaxAgent:
         AI vs random
         Starts the game of Abalone with the model against an opponent.
         """
-        # NOTE: We should be checking for time constraints
+        print("Weights: ", self.weights)
         while not self.game_state.terminal_test():
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
