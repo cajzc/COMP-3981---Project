@@ -179,9 +179,9 @@ class DebugMenu:
         :return: the depth of the search
         """
         while True:
-            user_input = input(f"Enter the search depth (default 3): ").strip()
+            user_input = input(f"Enter the search depth (default 1): ").strip()
             if not user_input:  # No input, use default value
-                return 3
+                return 1
             try:
                 depth = int(user_input)
                 if depth > 0:
