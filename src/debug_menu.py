@@ -69,8 +69,11 @@ class DebugMenu:
             time_limit=time_limit, 
             depth=depth, 
             weights=weights)
-
-        agent.run_game()
+        
+        if config.ai_random:
+            agent.run_game()
+        elif config.ai_diff_heuristic:
+            agent.run_game_two_heuristics()
     
     @staticmethod
     def _get_board_configuration() -> Board:

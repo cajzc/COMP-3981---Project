@@ -166,7 +166,7 @@ class MinimaxAgent:
         print(self.game_state.check_win(), "won")
 
 
-    def run_game_two_heuristics(self, h1, h2):
+    def run_game_two_heuristics(self):
         """
         AI vs AI with different heuristics.
         Starts the game of Abalone with the model against an opponent.
@@ -174,7 +174,7 @@ class MinimaxAgent:
         # NOTE: We should be checking for time constraints
         while not self.game_state.terminal_test():
             if self.current_move: # Player turn
-                print("\nPlayer Turn\n")
+                print("\nPlayer Turn")
 
                 s = time.time() # Debug
                 # Get the next move 
@@ -195,12 +195,15 @@ class MinimaxAgent:
 
             # Opponent turn
             else:
-                print("\nOpponent Turn\n")
+                print("\nOpponent Turn")
+                s = time.time() # Debug
                 move_to_make = self.iterative_deepening_search(
                     False, 
                     generate_move(self.opponent_colour, self.game_state.board),
                     self.config.heuristic_two
                 )
+                e = time.time() # Debug
+                print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
 
                 # Terminal state reached
                 if move_to_make is None:
