@@ -257,15 +257,6 @@ def t_distance_to_center(game_state: GameState) -> float:
     if not positions:
         return 0.0
 
-    #
-    edge_positions = {
-        (q, r, s)
-        for q in range(-4, 5)
-        for r in range(-4, 5)
-        for s in range(-4, 5)
-        if q + r + s == 0 and (abs(q) == 4 or abs(r) == 4 or abs(s) == 4)
-    }
-
     total_score = 0.0
     center_count = 0
     for q, r, s in positions:
