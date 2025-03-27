@@ -297,3 +297,39 @@ def t_euclidean_distance(pos1: Tuple[int, int, int],
         (pos2[1] - pos1[1]) ** 2 +
         (pos2[2] - pos1[2]) ** 2
     )
+
+
+def t_marbles_coherence(game_state: GameState) -> float:
+    """
+    Measures how closely grouped the player's marbles are using a covariance-based approach.
+
+    This function calculates the trace of the covariance matrix, which represents overall dispersion,
+    and the average nearest-neighbor distance, which represents local density.
+
+    :param game_state: The current state of the game
+    :return: A heuristic score where lower values indicate better cohesion
+    """
+    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items()
+                 if color == game_state.player]
+
+    if len(positions) < 2:
+        return 0.0
+
+    # Compute covariance matrix trace (measuring dispersion)
+    pos_array = np.array(positions)
+    cov_matrix = np.cov(pos_array, rowvar=False)
+    trace = np.trace(cov_matrix)
+
+    # Compute average nearest neighbor distance
+    distances = []
+    for i in range(len(positions)):
+        min_dist = min(
+            t_euclidean_distance(positions[i], positions[j])
+            for j in range(len(positions)) if j != i
+        )
+        distances.append(min_dist)
+
+    avg_nn_dist = np.mean(distances)
+
+    return -trace - avg_nn_dist  # Lower values indicate better grouping
+
