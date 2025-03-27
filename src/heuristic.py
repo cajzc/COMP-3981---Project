@@ -1,14 +1,15 @@
 import math
 from typing import Dict, Tuple, Set
+import board
 from moves import DIRECTIONS
 from state_space import GameState
 from enums import Marble
 from itertools import combinations
 
-def heuristic(game_state: GameState) -> float:
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     return 0
 
-def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
+def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
@@ -19,9 +20,9 @@ def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
     :param wmc: weight for the marble coherence evaluation
     :param wt: weight for the distance to triangle formation
     """
-    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wt*triangle_formation(game_state)
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wt*triangle_formation(player_colour, board)
 
-def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
+def b_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wes: int) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
@@ -33,26 +34,26 @@ def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
     :param wmc: weight for the marble coherence evaluation
     :param wes: weight for the edge safety evaluation
     """
-    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wes*marble_edge_safety(game_state)
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wes*marble_edge_safety(player_colour, board)
 
-def distance_to_center(game_state: GameState) -> float:
+def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
 
     The hex grid distance for a position (q, r, s) from center is ( |q| + |r| + |s| ) / 2.
     """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color ==
-                 game_state.player]
+    positions = [(q, r, s) for (q, r, s), color in board.items() if color ==
+                 player_colour]
     distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
-def marbles_coherence(game_state: GameState) -> float:
+def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Measure the spatial clustering of the player's marbles by calculating the sum of variance in q and r coordinates plus their covariance.
 
     This provides a measure of how spread out the marbles are from their mean position.
     """
-    positions = [(q, r) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    positions = [(q, r) for (q, r, s), color in board.items() if color == player_colour]
     q_values = [q for q, r in positions]
     r_values = [r for q, r in positions]
     mean_q = sum(q_values) / len(positions)
@@ -74,7 +75,7 @@ def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     return math.sqrt((pos2[0]-pos1[1]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
 
 
-def triangle_formation(game_state: GameState):
+def triangle_formation(player_colour: str, board: Dict[Tuple[int, int, int], str]):
     """
     A triangle formation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
     When marbles are in a triangle formation, it requires the opponent to make an additional few moves to push the player
@@ -89,7 +90,7 @@ def triangle_formation(game_state: GameState):
     max_score = 10.0
     min_score = 0.0
 
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color in board.items() if color == player_colour]
     if not positions or len(positions) < 3:
         return 0.0
 
@@ -143,7 +144,7 @@ def marbles_in_danger(board_obj, player: str) -> int:
     return danger_count
 
 
-def marble_edge_safety(game_state: GameState) -> float:
+def marble_edge_safety(player: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Measure the safety of a player's marbles with respect to their position near the board's edges.
 
@@ -158,7 +159,6 @@ def marble_edge_safety(game_state: GameState) -> float:
     :param game_state: The current game state
     :return: A float representing the edge safety score (higher is safer)
     """
-    player = game_state.player
     opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
     total_safety_score = 0.0
     marble_count = 0
@@ -166,7 +166,7 @@ def marble_edge_safety(game_state: GameState) -> float:
     # Maximum distance from center to edge is 4 in this grid
     max_edge_distance = 4.0
 
-    for (q, r, s), color in game_state.board.marble_positions.items():
+    for (q, r, s), color in board.items():
         if color != player:
             continue
 
@@ -180,7 +180,7 @@ def marble_edge_safety(game_state: GameState) -> float:
         opponent_neighbors = 0
         for (dq, dr, ds) in DIRECTIONS.values():
             neighbor_pos = (q + dq, r + dr, s + ds)
-            neighbor_color = game_state.board.marble_positions.get(neighbor_pos)
+            neighbor_color = board.get(neighbor_pos)
             if neighbor_color == player:
                 friendly_neighbors += 1
             elif neighbor_color == opponent:

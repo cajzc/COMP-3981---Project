@@ -1,6 +1,6 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import GameState, apply_move_obj, generate_move
-from typing import List, Tuple
+from state_space import GameState, apply_move_obj, generate_move, apply_move_dict, generate_move_dict, terminal_test
+from typing import List, Tuple, Set, Dict
 from moves import Move
 from board import Board
 import  math
@@ -53,6 +53,7 @@ class MinimaxAgent:
         :param weights: heuristic component weights as a dict 
         """
         self.board = board
+        self.board_dict = board.marble_positions
         self.player_colour = player_colour.value
         self.time_limit = time_limit
         self.depth = depth
@@ -217,7 +218,6 @@ class MinimaxAgent:
 
 
                 
-    
     def apply_opponent_move_random(self) -> bool:
         """
         Applies a randomly generated opponent move to the game state.
@@ -287,12 +287,16 @@ class MinimaxAgent:
             # Visit every node (move)
             for move in moves:
                 # Create the resulting game state
-                result_game_state = self.game_state.deep_copy()
-                apply_move_obj(result_game_state.board, move)
+                board = self.game_state.board.marble_positions.copy()
+                empty_positions = self.game_state.board.empty_positions.copy()
+                apply_move_dict(board, empty_positions, move)
+                # result_game_state = self.game_state.deep_copy()
+                # apply_move_obj(result_game_state.board, move)
 
                 score = self.mini_max(
-                    is_player,
-                    result_game_state, 
+                    not is_player, # Switch turn
+                    board,
+                    empty_positions,
                     depth, 
                     heuristic,
                     self.weights["center_distance"], 
@@ -306,7 +310,7 @@ class MinimaxAgent:
         return best_move
 
 
-    def mini_max(self, is_player: bool, game_state: GameState, depth: int, heuristic, *args) -> float:
+    def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]], depth: int, heuristic, *args) -> float:
         """
         Minimax algorithm.
 
@@ -318,7 +322,9 @@ class MinimaxAgent:
         """
         if is_player:
             return self.max_value(
-                game_state,
+                self.player_colour,
+                board,
+                empty_positions,
                 depth,
                 -math.inf,
                 math.inf,
@@ -327,7 +333,9 @@ class MinimaxAgent:
         )
         else:
             return self.min_value(
-                game_state,
+                self.opponent_colour,
+                board,
+                empty_positions,
                 depth,
                 -math.inf,
                 math.inf,
@@ -336,7 +344,18 @@ class MinimaxAgent:
         )
 
 
-    def max_value(self, game_state: GameState, depth: int, alpha: float, beta: float, heuristic, *args) -> float:
+    def max_value(
+            self, 
+            player_colour: str,
+            board: Dict[Tuple[int, int, int], str], 
+            empty_positions: Set[Tuple[int, int, int]], 
+            depth: int, 
+            alpha: float, 
+            beta: float, 
+            heuristic, 
+            player: str,
+            *args
+    ) -> float:
         """
         A minimax algorithm that determines the best move to take for the current player.
         
@@ -345,18 +364,30 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        if depth == 0 or game_state.terminal_test():
-            return heuristic(game_state, *args)
+        if depth == 0 or terminal_test(board):
+            return heuristic(board, *args)
 
         v = -math.inf
-        moves_generated = generate_move(game_state.player, game_state.board)
+        moves_generated = generate_move_dict(player_colour, board, empty_positions)
         for move in moves_generated:
 
-            # Create the game state if we were to make the move
-            result_game_state = game_state.deep_copy()
-            apply_move_obj(result_game_state.board, move)
+            # Create the resulting game state
+            board = board.copy()
+            empty_positions = empty_positions.copy()
+            apply_move_dict(board, empty_positions, move)
 
-            v = max(v, self.min_value(result_game_state, depth-1, alpha, beta, heuristic, *args))
+
+            v = max(v, self.min_value(
+                Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
+                board,
+                empty_positions,
+                depth-1,
+                -math.inf,
+                math.inf,
+                heuristic,
+                *args
+            ))
+
             if v > beta:
                 return v
             alpha = max(alpha, v)
@@ -364,7 +395,18 @@ class MinimaxAgent:
         return v
 
 
-    def min_value(self, game_state: GameState, depth: int, alpha: float, beta: float, heuristic, *args) -> float:
+    def min_value(
+            self, 
+            player_colour: str,
+            board: Dict[Tuple[int, int, int], str], 
+            empty_positions: Set[Tuple[int, int, int]], 
+            depth: int, 
+            alpha: float, 
+            beta: float, 
+            heuristic, 
+            player: str,
+            *args
+        ) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
@@ -373,20 +415,30 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        if depth == 0 or game_state.terminal_test():
-            return heuristic(game_state, *args)
-        
+        if depth == 0 or terminal_test(board):
+            return heuristic(board, *args)
+
         v = math.inf
 
-        moves_generated = generate_move(game_state.player, game_state.board)
+        moves_generated = generate_move_dict(player_colour, board, empty_positions)
 
         for move in moves_generated:
-            # Create the game state if we were to make the move
-            result_game_state = game_state.deep_copy()
-            apply_move_obj(result_game_state.board, move)
+            # Create the resulting game state
+            board = board.copy()
+            empty_positions = empty_positions.copy()
+            apply_move_dict(board, empty_positions, move)
 
-            
-            v = min(v, self.max_value(result_game_state, depth-1, alpha, beta, heuristic, *args))
+            v = min(v, self.max_value(
+                Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
+                board,
+                empty_positions,
+                depth-1, 
+                alpha, 
+                beta, 
+                heuristic, 
+                *args
+                )
+            )
             if v < alpha:
                 return v
             beta = min(beta, v)

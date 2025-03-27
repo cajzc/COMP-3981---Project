@@ -1,7 +1,7 @@
 import re
 
 from moves import Move, DIRECTIONS
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 from board import Board
 import copy
 from enums import Marble
@@ -11,18 +11,22 @@ from enums import Marble
 Below are faster implementations of existing move generation functions. Uses a dictionary over a Board object.
 """
 
-def generate_move_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_board: Dict[Tuple[int, int, int], str]) -> List[Move]:
+INITIAL_BLACK_MARBLES= 14  # Standard Abalone setup
+INITIAL_WHITE_MARBLES= 14  # Standard Abalone setup
+
+
+def generate_move_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]]) -> List[Move]:
     """
     Generates all possible legal moves given the player whose turn it is an a dictionary board configuration.
 
     :param player: the player who has the current turn
     :param board: the board configuration as a Board object
-    :param empty_board: an empty board
+    :param empty_positions: a set of empty positions
     :return: a list of Move objects
     """
-    return get_single_moves_dict(player, board, empty_board) + get_inline_moves_dict(player, board, empty_board) + get_side_step_moves_dict(player, board, empty_board)
+    return get_single_moves_dict(player, board, empty_positions) + get_inline_moves_dict(player, board, empty_positions) + get_side_step_moves_dict(player, board, empty_positions)
 
-def get_single_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_board: Dict[Tuple[int, int, int], str]) -> List[Move]:
+def get_single_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]]) -> List[Move]:
     """
     Generates all valid single-marble moves for the given player,
     using boards marble positions for occupied cells and
@@ -37,7 +41,7 @@ def get_single_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], e
             continue
         for dir_symbol, (dq, dr, ds) in DIRECTIONS.items():
             new_pos = (q + dq, r + dr, s + ds)
-            if new_pos in empty_board:
+            if new_pos in empty_positions:
                 move_obj = Move(
                     player=player,
                     direction=dir_symbol,
@@ -47,7 +51,7 @@ def get_single_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], e
                 moves.append(move_obj)
     return moves
 
-def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_board: Dict[Tuple[int, int, int], str]) -> List[Move]:
+def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]]) -> List[Move]:
     """
     Generate all valid inline moves (including push moves) for 2–3 aligned marbles.
     For a given movable group, if the cell immediately ahead of the group is empty, it's an inline move.
@@ -62,7 +66,7 @@ def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], e
         last = group[-1]
         dest = (last[0] + dq, last[1] + dr, last[2] + ds)
         # CASE 1: Destination is empty.
-        if dest in empty_board:
+        if dest in empty_positions:
             dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
             move_obj = Move(
                 player=player,
@@ -147,7 +151,7 @@ def get_moveable_groups_dict(player: str, board: Dict[Tuple[int, int, int], str]
     return groups
 
 
-def get_side_step_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_positions: Dict[Tuple[int, int, int], str]) -> List[Move]:
+def get_side_step_moves_dict(player: str, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]]) -> List[Move]:
     """
     Generate all valid side-step moves for groups of 2–3 aligned marbles.
     Uses helper functions get_moveable_groups and get_side_step_directions.
@@ -198,6 +202,52 @@ def get_marble_group_dict(start_pos: Tuple[int, int, int], direction: str, board
             break
     return group
 
+def apply_move_dict(board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]], move: Move) -> None:
+    """
+    Applies the given Move object to the Board object in place.
+
+    For push moves:
+      - For each pushed opponent marble, its original cell is removed from
+        marble_positions and marked empty.
+      - Then, each opponent marble is moved to its destination (if that cell is empty)
+        and that destination cell is removed from empty_positions.
+
+    For the player's marbles:
+      - Their original positions are deleted and marked empty.
+      - Then, they are placed at their destination positions (removing those cells from empty_positions).
+
+    Finally, empty_positions is recomputed.
+    """
+    dq, dr, ds = DIRECTIONS[move.direction]
+
+    if move.push:
+        # Process pushed opponent marbles.
+        # First, remove each opponent marble from its original position and mark that cell empty.
+        for (oq, or_, os, opp_color) in reversed(move.pushed_marbles):
+            if (oq, or_, os) in board:
+                del board[(oq, or_, os)]
+                empty_positions.add((oq, or_, os))
+        # Now update pushed opponent marbles to their destination positions.
+        for (oq, or_, os, opp_color) in move.pushed_marbles:
+            new_pos = (oq + dq, or_ + dr, os + ds)
+            if new_pos in empty_positions:
+                board[new_pos] = opp_color
+                empty_positions.remove(new_pos)
+            else:
+                # Marble pushed off the board; update score if needed.
+                pass
+
+    # Process player's marbles: first remove originals.
+    for (q, r, s, col) in reversed(move.moved_marbles):
+        if (q, r, s) in board:
+            del board[(q, r, s)]
+            empty_positions.add((q, r, s))
+    # Now update them to their destination positions.
+    for (q, r, s, col) in move.moved_marbles:
+        new_pos = (q + dq, r + dr, s + ds)
+        board[new_pos] = col
+        if new_pos in empty_positions:
+            empty_positions.remove(new_pos)
 
 """
 Above are faster implementations of existing move generation functions. Uses a dictionary over a Board object.
@@ -528,12 +578,58 @@ def apply_move_obj(board_obj: Board, move: Move) -> None:
         if new_pos in board_obj.empty_positions:
             board_obj.empty_positions.remove(new_pos)
 
+
+def get_score(board: Dict[Tuple[int, int, int], str]):
+    """
+    Calculates the score for both players based on the number of opponent marbles pushed off the board.
+
+    :return: Dictionary with scores {'b': int, 'w': int}
+    """
+
+    board_dict_values = board.values()
+
+    current_black_marbles = sum(1 for v in board_dict_values if v == Marble.BLACK.value)
+    current_white_marbles = sum(1 for v in board_dict_values if v == Marble.WHITE.value)
+
+    black_score = INITIAL_WHITE_MARBLES - current_white_marbles  # Black's score = White marbles pushed off
+    white_score = INITIAL_BLACK_MARBLES - current_black_marbles  # White's score = Black marbles pushed off
+
+    return {
+        Marble.BLACK.value: black_score,
+        Marble.WHITE.value: white_score
+    }
+
+
+def terminal_test(board: Dict[Tuple[int, int, int], str]) -> bool:
+    """
+    Determines whether the terminal state has been reached: either player has won.
+
+    :return: True if reached else False
+    """
+    return check_win(board) is not None
+
+
+def check_win(board: Dict[Tuple[int, int, int], str]):
+    """
+    Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
+        
+    :return: 'b' if black wins, 'w' if white wins, None if no winner 
+    """
+    score = get_score(board)
+    if score[Marble.BLACK.value] >= 6:
+        return Marble.BLACK.value
+    elif score[Marble.WHITE.value] >= 6:
+        return Marble.WHITE.value
+    return None
+
+
 def apply_move(board_obj: Board, move_str: str) -> None:
     """
     Parses move_str into a Move object and applies it to the Board object.
     """
     move = parse_move_str(move_str)
     apply_move_obj(board_obj, move)
+
 
 class GameState:
     """Represents the complete game state an Abalone game."""
