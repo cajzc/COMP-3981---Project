@@ -6,8 +6,20 @@ from state_space import GameState
 from enums import Marble
 from itertools import combinations
 
-def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
-    return 0
+
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
+    """
+    Implementation for a heuristic function that uses the following evaluation functions:
+    - Distance to centre
+    - Marble coherence
+    - Triangular formation
+
+    :param wdc: weight for the distance to centre evaluation
+    :param wmc: weight for the marble coherence evaluation
+    :param wt: weight for the distance to triangle formation
+    """
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board)
+
 
 def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
     """

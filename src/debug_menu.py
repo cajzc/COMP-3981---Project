@@ -6,7 +6,7 @@ from board import Board, BoardConfiguration
 import state_space 
 from minmax_agent import MinimaxAgent, AgentConfiguration
 from enums import Marble
-from heuristic import c_heuristic, b_heuristic
+from heuristic import c_heuristic, b_heuristic, heuristic
 
 
 class DebugMenu:
@@ -229,11 +229,13 @@ class DebugMenu:
         Prompts the user to select a heuristic function, returning it.
         """
         while True:
-            print(f"{prompt}\n(1) c_heuristic\n(2) b_heuristic")
+            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
-                return c_heuristic
+                return heuristic
             elif heuristic_input == "2":
+                return c_heuristic
+            elif heuristic_input == "3":
                 return b_heuristic
             else:
                 print("Invalid selection. Please try again.")
