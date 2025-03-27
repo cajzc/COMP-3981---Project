@@ -110,6 +110,7 @@ class MinimaxAgent:
             self.current_move = not self.current_move # Alternate move
 
             print(self.game_state) # Debug
+        input("Enter to continue...")
         
         print("Game over")
         print(self.game_state.check_win(), "won")
