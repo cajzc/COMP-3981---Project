@@ -384,3 +384,55 @@ def t_marbles_in_danger(board_obj, player: str) -> int:
     return danger_count
 
 
+# ---------------------------
+# Formation Detection (Prefixed with t_)
+# ---------------------------
+
+def t_is_triangle(pos1: Tuple[int, int, int],
+                  pos2: Tuple[int, int, int],
+                  pos3: Tuple[int, int, int]) -> bool:
+    """
+    Checks if three marbles form an equilateral triangle in hexagonal space.
+    Strict Equilateral Triangle Detection (Allows 10% Tolerance)
+
+    :param pos1: First marble position
+    :param pos2: Second marble position
+    :param pos3: Third marble position
+    :return: True if the three positions form an equilateral triangle, False otherwise
+    """
+    d1 = t_euclidean_distance(pos1, pos2)
+    d2 = t_euclidean_distance(pos1, pos3)
+    d3 = t_euclidean_distance(pos2, pos3)
+
+    return (
+            math.isclose(d1, d2, rel_tol=0.1) and
+            math.isclose(d1, d3, rel_tol=0.1) and
+            math.isclose(d2, d3, rel_tol=0.1)
+    )
+
+
+def t_detect_wedge(positions: List[Tuple[int, int, int]]) -> int:
+    """
+    Detects wedge formations, where three marbles are aligned in an arrow shape suitable for pushing.
+    (Three Marbles in a Straight Line with Distance of 1)
+
+    :param positions: List of marble positions
+    :return: Number of wedge formations detected
+    """
+    wedge_count = 0
+    direction_set = set(DIRECTIONS.values())
+    for trio in combinations(positions, 3):
+        sorted_trio = sorted(trio)
+        delta1 = (
+            sorted_trio[1][0] - sorted_trio[0][0],
+            sorted_trio[1][1] - sorted_trio[0][1],
+            sorted_trio[1][2] - sorted_trio[0][2]
+        )
+        delta2 = (
+            sorted_trio[2][0] - sorted_trio[1][0],
+            sorted_trio[2][1] - sorted_trio[1][1],
+            sorted_trio[2][2] - sorted_trio[1][2]
+        )
+        if delta1 == delta2 and delta1 in direction_set:
+            wedge_count += 1
+    return wedge_count
