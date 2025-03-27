@@ -36,7 +36,9 @@ def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
     :param wmc: weight for the marble coherence evaluation
     :param wes: weight for the edge safety evaluation
     """
-    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wes*marble_edge_safety(game_state)
+    return (wdc*distance_to_center(game_state)
+            + wmc*marbles_coherence(game_state)
+            + wes*marble_edge_safety(game_state))
 
 def distance_to_center(game_state: GameState) -> float:
     """
@@ -58,7 +60,9 @@ def marbles_coherence(game_state: GameState) -> float:
     Measure the spatial clustering of the player's marbles by calculating the average hex distance
     from each marble to the mean marble position. A lower score indicates higher coherence.
     """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color
+                 in game_state.board.marble_positions.items()
+                 if color == game_state.player]
     if not positions:
         return 0.0
 
@@ -85,9 +89,10 @@ def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
 
 def triangle_formation(game_state: GameState):
     """
-    A triangle formation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
-    When marbles are in a triangle formation, it requires the opponent to make an additional few moves to push the player
-    marbles off the map.
+    A triangle formation is one where three or more marbles group up to form at the minimum,
+    the three edges of a triangle.
+    When marbles are in a triangle formation,
+    it requires the opponent to make an additional few moves to push the player marbles off the map.
 
     Triangle definition:
     pos1, pos2, pos3. Each pos contains coordinates (q, r, s).
@@ -98,7 +103,9 @@ def triangle_formation(game_state: GameState):
     max_score = 10.0
     min_score = 0.0
 
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color
+                 in game_state.board.marble_positions.items()
+                 if color == game_state.player]
     if not positions or len(positions) < 3:
         return 0.0
 

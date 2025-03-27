@@ -16,7 +16,13 @@ class AgentConfiguration:
     """
 
 
-    def __init__(self, ai_player: bool, ai_same_heuristic: bool, ai_diff_heuristic: bool, ai_random: bool, heuristic_one = None, heuristic_two = None):
+    def __init__(self,
+                 ai_player: bool,
+                 ai_same_heuristic: bool,
+                 ai_diff_heuristic: bool,
+                 ai_random: bool,
+                 heuristic_one = None,
+                 heuristic_two = None):
         """
         A configuration for an abalone playing agent.
 
@@ -43,7 +49,13 @@ class MinimaxAgent:
         weights (dict): Weight values for heuristic components
     """
 
-    def __init__(self, board: Board, player_colour: Marble, config: AgentConfiguration, time_limit=5, depth=3, weights=None):
+    def __init__(self,
+                 board: Board,
+                 player_colour: Marble,
+                 config: AgentConfiguration,
+                 time_limit=5,
+                 depth=3,
+                 weights=None):
         """
         Initialize minimax agent with search parameters
 
@@ -272,7 +284,8 @@ class MinimaxAgent:
 
     def iterative_deepening_search(self, is_player: bool, moves: List[Move], heuristic) -> Move | None:
         """
-        Runs an iterative deepening search using the mini-max algorithm with a heuristic function to determine the best move to take
+        Runs an iterative deepening search using the mini-max algorithm
+        with a heuristic function to determine the best move to take
         for the agent, returning the best move for the agent to take.
 
         :param is_player: True if mini max should be ran for the player, False if it should be ran for the opponent
@@ -354,7 +367,12 @@ class MinimaxAgent:
         # )
 
 
-    def max_value(self, game_state: GameState, depth: int, alpha: float, beta: float, heuristic, *args) -> float:
+    def max_value(self,
+                  game_state: GameState,
+                  depth: int,
+                  alpha: float,
+                  beta: float,
+                  heuristic, *args) -> float:
         """
         A minimax algorithm that determines the best move to take for the current player.
         
@@ -382,7 +400,12 @@ class MinimaxAgent:
         return v
 
 
-    def min_value(self, game_state: GameState, depth: int, alpha: float, beta: float, heuristic, *args) -> float:
+    def min_value(self,
+                  game_state: GameState,
+                  depth: int,
+                  alpha: float,
+                  beta: float,
+                  heuristic, *args) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
