@@ -46,8 +46,9 @@ def distance_to_center(game_state: GameState) -> float:
 
     The hex grid distance for a position (q, r, s) from center is ( |q| + |r| + |s| ) / 2.
     """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color ==
-                 game_state.player]
+    positions = [(q, r, s) for (q, r, s), color
+                 in game_state.board.marble_positions.items()
+                 if color == game_state.player]
     distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
