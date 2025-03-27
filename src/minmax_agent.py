@@ -3,7 +3,7 @@ from state_space import GameState, apply_move_obj, generate_move
 from typing import List, Tuple
 from moves import Move
 from board import Board
-import time, copy, math
+import time, math
 from heuristic import heuristic, c_heuristic
 from enums import Marble
 from board import Board
@@ -55,6 +55,7 @@ class MinimaxAgent:
                 print("Player turn")
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(generate_move(self.player_colour, self.game_state.board))
+                print("best move", move_to_make)
                 if move_to_make is None:
                     print("(ERROR) Generated move is None. Exiting program...")
                     return
@@ -144,7 +145,7 @@ class MinimaxAgent:
             # Visit every node (move)
             for move in moves:
                 # Create the resulting game state
-                result_game_state = copy.deepcopy(self.game_state)
+                result_game_state = self.game_state.deep_copy()
                 apply_move_obj(result_game_state.board, move)
 
                 score = self.mini_max(
@@ -171,7 +172,7 @@ class MinimaxAgent:
         :return: the move for the player to take as str
         """
         # Assuming the player (not opponent) has the first move
-        return self.min_value(game_state, depth, *args) 
+        return self.max_value(game_state, depth, *args) 
 
 
     def max_value(self, game_state: GameState, depth: int, *args) -> float:
@@ -183,14 +184,14 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
-        if game_state.terminal_test() or depth == 0:
+        if depth == 0 or game_state.terminal_test():
             return c_heuristic(game_state, *args)
 
         v = -math.inf
 
         for move in generate_move(game_state.player, game_state.board):
             # Create the game state if we were to make the move
-            result_game_state = copy.deepcopy(game_state)
+            result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
 
             v = max(v, self.min_value(result_game_state, depth-1, *args))
@@ -208,14 +209,14 @@ class MinimaxAgent:
         :return: the utility value of a given game state
         """
 
-        if game_state.terminal_test() or depth == 0:
+        if depth == 0 or game_state.terminal_test():
             return c_heuristic(game_state, *args)
         
         v = math.inf
 
         for move in generate_move(game_state.player, game_state.board):
             # Create the game state if we were to make the move
-            result_game_state = copy.deepcopy(game_state)
+            result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
 
             
