@@ -100,8 +100,7 @@ class MinimaxAgent:
                     self.config.heuristic_one,
                 )
                 e = time.time() # Debug
-                print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
-
+                print("Player generated move", move_to_make)
                 # Terminal state reached
                 if move_to_make is None:
                     break
@@ -113,8 +112,8 @@ class MinimaxAgent:
             else:
                 print("\nOpponent Turn\n")
 
-                applied_move = self.apply_opponent_move_input()
-                # applied_move = self.apply_opponent_move_random()
+                #applied_move = self.apply_opponent_move_input()
+                applied_move = self.apply_opponent_move_random()
                 if not applied_move:
                     break
 
@@ -123,6 +122,7 @@ class MinimaxAgent:
             self.current_move = not self.current_move # Alternate move
 
             print(self.game_state) # Debug
+            input("Enter to continue...")
         
         print("Game over")
         print(self.game_state.check_win(), "won")
@@ -173,7 +173,7 @@ class MinimaxAgent:
 
             self.current_move = not self.current_move # Alternate move
 
-            print(self.game_state) # Debug
+        print(self.game_state) # Debug
         
         print("Game over")
         print(self.game_state.check_win(), "won")
@@ -241,6 +241,7 @@ class MinimaxAgent:
         move = self._get_opponent_move_random()
         if not move:
             return False
+        print("Randomly generated move", move)
         self.game_state.apply_move(move)
         return True
 

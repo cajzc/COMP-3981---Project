@@ -402,6 +402,7 @@ class GameState:
         """
         if isinstance(move, Move):
             apply_move_obj(self.board, move)
+            print("moved !!!")
         elif isinstance(move, Tuple):
             pass
         # Swap player turn

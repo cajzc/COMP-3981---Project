@@ -85,7 +85,7 @@ def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     :param pos2: the second position
     :return: the euclidean distance betwen the two points
     """
-    return math.sqrt((pos2[0]-pos1[1]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
+    return math.sqrt((pos2[0]-pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
 
 
 def triangle_formation(game_state: GameState):
@@ -114,9 +114,9 @@ def triangle_formation(game_state: GameState):
 
     # Lots of iterations
     for c in combinations(positions, 3):
-        d1 = euclidean_distance(c[0], c[1])
-        d2 = euclidean_distance(c[0], c[2])
-        d3 = euclidean_distance(c[1], c[2])
+        d1 = hex_distance(c[0], c[1])
+        d2 = hex_distance(c[0], c[2])
+        d3 = hex_distance(c[1], c[2])
 
         score = min(max_score, max_score - abs(d1-d2)+abs(d1-d3)+abs(d2-d3))
         score = max(min_score, score)
