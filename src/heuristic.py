@@ -49,21 +49,27 @@ def distance_to_center(game_state: GameState) -> float:
     distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
+def hex_distance(p1,p2):
+    """helper method to calculate the steps between two marbles"""
+    return max(abs(p1[0] - p2[0]), abs(p1[1] - p2[1]), abs(p1[2] - p2[2]))
+
 def marbles_coherence(game_state: GameState) -> float:
     """
-    Measure the spatial clustering of the player's marbles by calculating the sum of variance in q and r coordinates plus their covariance.
-
-    This provides a measure of how spread out the marbles are from their mean position.
+    Measure the spatial clustering of the player's marbles by calculating the average hex distance
+    from each marble to the mean marble position. A lower score indicates higher coherence.
     """
-    positions = [(q, r) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
-    q_values = [q for q, r in positions]
-    r_values = [r for q, r in positions]
-    mean_q = sum(q_values) / len(positions)
-    mean_r = sum(r_values) / len(positions)
-    variance_q = sum((q - mean_q)**2 for q in q_values) / len(positions)
-    variance_r = sum((r - mean_r)**2 for r in r_values) / len(positions)
-    covariance_qr = sum((q - mean_q)*(r - mean_r) for q, r in zip(q_values, r_values)) / len(positions)
-    return variance_q + variance_r + covariance_qr
+    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items() if color == game_state.player]
+    if not positions:
+        return 0.0
+
+    mean_q = sum(q for q, r, s in positions) / len(positions)
+    mean_r = sum(r for q, r, s in positions) / len(positions)
+    mean_s = -mean_q - mean_r  # Ensure q + r + s = 0 in cube coordinates
+
+    mean_pos = (mean_q, mean_r, mean_s)
+    distances = [hex_distance((q, r, s), mean_pos) for q, r, s in positions]
+
+    return sum(distances) / len(distances)
 
 
 def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
@@ -110,7 +116,7 @@ def triangle_formation(game_state: GameState):
 
     return sum(scores)/len(scores)
 
-
+# test this one
 def marbles_in_danger(board_obj, player: str) -> int:
     """
     Count the number of the player's marbles that are in danger.
@@ -198,7 +204,14 @@ def marble_edge_safety(game_state: GameState) -> float:
     # Return average safety score, or 0 if no marbles
     return total_safety_score / marble_count if marble_count > 0 else 0.0
 
-"""keep heuristic simple and get deeper search"""
+"""
+keep heuristic simple and get deeper search, and it overlaps with coherence
+If the agent's search is deep enough, then break_opponent_formation() becomes partially redundant.
+
+break_opponent_formation() can still be a useful shortcut or enhancer. You can:
+Include it in low-depth or time-limited searches.
+Leave it as an optional weighted term for testing.
+"""
 # def opponent_territory(board_obj, opponent: str) -> Set[Tuple[int, int]]:
 #     """
 #     Identify positions in the opponent's territory.
