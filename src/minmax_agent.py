@@ -112,7 +112,9 @@ class MinimaxAgent:
             # Opponent turn
             else:
                 print("\nOpponent Turn\n")
-                applied_move = self.apply_opponent_move_random()
+
+                applied_move = self.apply_opponent_move_input()
+                # applied_move = self.apply_opponent_move_random()
                 if not applied_move:
                     break
 
@@ -242,10 +244,16 @@ class MinimaxAgent:
         self.game_state.apply_move(move)
         return True
 
+
     def apply_opponent_move_input(self):
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
         self.game_state.apply_move(move)
+
+    # def apply_opponent_move_input(self):
+    #     """Applies the move to the game state. This assumes the opponents move is a valid one."""
+    #     move = self._get_opponent_move_input()
+    #     self.game_state.apply_move(move)
     
     def _get_opponent_move_random(self) -> Move | None:
         """
