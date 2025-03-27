@@ -431,5 +431,5 @@ class GameState:
 
     def __str__(self):
         return f"Game status: {"over" if self.terminal_test() else "in progress"}\n" \
-                f"Score: {self.score}"
+                f"Score: {self.get_score()}"
 
