@@ -70,10 +70,11 @@ class DebugMenu:
             depth=depth, 
             weights=weights)
         
-        if config.ai_random:
-            agent.run_game()
-        elif config.ai_diff_heuristic:
-            agent.run_game_two_heuristics()
+        agent.run_game()
+        # if config.ai_random:
+        #     agent.run_game()
+        # elif config.ai_diff_heuristic:
+        #     agent.run_game_two_heuristics()
     
     @staticmethod
     def _get_board_configuration() -> Board:
