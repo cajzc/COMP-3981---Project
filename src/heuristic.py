@@ -471,3 +471,53 @@ def t_detect_chains(positions: List[Tuple[int, int, int]],
                 visited.update(current_chain)
     return chain_count
 
+
+# ---------------------------
+# Combined Heuristic Function
+# ---------------------------
+
+def t_heuristic(
+        game_state: GameState,
+        w_center: float = 1.0,
+        w_coherence: float = 0.8,
+        w_triangle: float = 1.2,
+        w_wedge: float = 1.5,
+        w_chain: float = 0.7,
+        w_danger: float = -1.3
+) -> float:
+    """
+    Computes a comprehensive heuristic score based on multiple evaluation factors.
+
+    Factors considered include:
+    - Distance to the board center (negative weight, closer is better)
+    - Marble cohesion (negative weight, more compact formations are better)
+    - Triangle formations (positive weight, beneficial formations)
+    - Wedge formations (positive weight, suitable for offensive moves)
+    - Chain formations (positive weight, useful for defense and mobility)
+    - Danger factor (negative weight, penalty for vulnerable marbles)
+
+    :param game_state: Current state of the game
+    :param w_center: Center Distance Weight (Negative, Smaller is Better)
+    :param w_coherence: Cohesion Weight (Negative)
+    :param w_triangle: Triangle Formation Bonus
+    :param w_wedge: Wedge Formation Bonus
+    :param w_chain: Chain Formation Defense Bonus
+    :param w_danger: Danger Penalty
+    :return: Heuristic evaluation score
+    """
+    # Compute Basic Metrics
+    positions = [pos for pos, color in game_state.board.marble_positions.items()
+                 if color == game_state.player]
+
+    # Example of Dynamic Weight Adjustment (Can be Adjusted Based on Game Phase)
+    # if game_state.score[game_state.player] >= 3: # Endgame Phase - Increase Danger Penalty
+    #     w_danger *= 2
+
+    return (
+            w_center * t_distance_to_center(game_state) +
+            w_coherence * t_marbles_coherence(game_state) +
+            w_triangle * sum(1 for c in combinations(positions, 3) if t_is_triangle(*c)) +
+            w_wedge * t_detect_wedge(positions) +
+            w_chain * t_detect_chains(positions) +
+            w_danger * t_marbles_in_danger(game_state.board, game_state.player)
+    )
