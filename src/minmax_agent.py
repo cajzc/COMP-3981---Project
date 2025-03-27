@@ -1,5 +1,6 @@
 """ this agent will use all the modules to generate a best move"""
 from state_space import GameState, apply_move_obj, generate_move
+from transposition_tables import TranspositionTable
 from typing import List, Tuple
 from moves import Move
 from board import Board
@@ -47,6 +48,7 @@ class MinimaxAgent:
     Attributes:
         depth (int): Search depth for minimax algorithm
         weights (dict): Weight values for heuristic components
+        transposition_table (TranspositionTable): Cache for game state evaluations
     """
 
     def __init__(self,
@@ -56,6 +58,7 @@ class MinimaxAgent:
                  time_limit=5,
                  depth=3,
                  weights=None):
+        self.transposition_table = TranspositionTable()
         """
         Initialize minimax agent with search parameters
 
@@ -296,10 +299,12 @@ class MinimaxAgent:
         with a heuristic function to determine the best move to take
         for the agent, returning the best move for the agent to take.
 
+        :param heuristic:
         :param is_player: True if mini max should be ran for the player, False if it should be ran for the opponent
         :param moves: a List of the moves to run iterative deepening and mini max on
         :return: the move for the agent to take as a Move object
         """
+        self.transposition_table.clear()
         best_move = None
         best_score = -math.inf
         
@@ -389,22 +394,35 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
+        # Check transposition table first to see if current games state with
+        # sufficient depth has been evaluated/already in the table
+        entry = self.transposition_table.lookup(game_state)
+        if entry and entry.depth >= depth:
+            if entry.flag == 'exact':
+                return entry.value
+            elif entry.flag == 'lower' and entry.value >= beta:
+                return entry.value
+            elif entry.flag == 'upper' and entry.value <= alpha:
+                return entry.value
+
+        # when depth is 0 or at terminal node, return the heuristic value
         if depth == 0 or game_state.terminal_test():
-            return heuristic(game_state, *args)
+            value = heuristic(game_state, *args)
+            self.transposition_table.store(game_state, value, depth, 'exact')
+            return value
 
         v = -math.inf
         moves_generated = generate_move(game_state.player, game_state.board)
         for move in moves_generated:
-
-            # Create the game state if we were to make the move
             result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
-
-            v = max(v, self.min_value(result_game_state, depth-1, alpha, beta, heuristic, *args))
-            if v > beta:
+            v = max(v, self.min_value(result_game_state, depth - 1, alpha, beta, heuristic, *args))
+            if v >= beta:
+                self.transposition_table.store(game_state, v, depth, 'lower')
                 return v
             alpha = max(alpha, v)
 
+        self.transposition_table.store(game_state, v, depth, 'exact' if v > alpha else 'upper')
         return v
 
 
@@ -422,26 +440,35 @@ class MinimaxAgent:
         :param args: the weights
         :return: the utility value of a given game state
         """
+        # Check transposition table to see if current games state with
+        # sufficient depth has been evaluated/already in the table
+        entry = self.transposition_table.lookup(game_state)
+        if entry and entry.depth >= depth:
+            if entry.flag == 'exact':
+                return entry.value
+            elif entry.flag == 'lower' and entry.value >= beta:
+                return entry.value
+            elif entry.flag == 'upper' and entry.value <= alpha:
+                return entry.value
+
+        # when depth is 0 or at terminal node, return the heuristic value
         if depth == 0 or game_state.terminal_test():
-            return heuristic(game_state, *args)
-        
+            value = heuristic(game_state, *args)
+            self.transposition_table.store(game_state, value, depth, 'exact')
+            return value
+
         v = math.inf
-
         moves_generated = generate_move(game_state.player, game_state.board)
-        #print("number moves generated in min", len(moves_generated))
-
         for move in moves_generated:
-            # Create the game state if we were to make the move
             result_game_state = game_state.deep_copy()
             apply_move_obj(result_game_state.board, move)
-
-            
-            v = min(v, self.max_value(result_game_state, depth-1, alpha, beta, heuristic, *args))
-            if v < alpha:
+            v = min(v, self.max_value(result_game_state, depth - 1, alpha, beta, heuristic, *args))
+            if v <= alpha:
+                self.transposition_table.store(game_state, v, depth, 'upper')
                 return v
             beta = min(beta, v)
 
-
+        self.transposition_table.store(game_state, v, depth, 'exact' if v < beta else 'lower')
         return v
 
 
