@@ -436,3 +436,38 @@ def t_detect_wedge(positions: List[Tuple[int, int, int]]) -> int:
         if delta1 == delta2 and delta1 in direction_set:
             wedge_count += 1
     return wedge_count
+
+
+def t_detect_chains(positions: List[Tuple[int, int, int]],
+                    min_length=3) -> int:
+    """
+    Detects linear formations of marbles, where marbles are aligned in a straight line.
+    (Linear Alignment of at Least min_length Marbles)
+
+    :param positions: List of marble positions
+    :param min_length: Minimum number of marbles required to form a chain
+    :return: Number of chains detected
+    """
+    chain_count = 0
+    visited = set()
+    pos_set = set(positions)
+
+    for pos in positions:
+        if pos in visited:
+            continue
+        # Checking chain length in six directions
+        for direction in DIRECTIONS.values():
+            current = pos
+            current_chain = []
+            while current in pos_set:
+                current_chain.append(current)
+                current = (
+                    current[0] + direction[0],
+                    current[1] + direction[1],
+                    current[2] + direction[2]
+                )
+            if len(current_chain) >= min_length:
+                chain_count += 1
+                visited.update(current_chain)
+    return chain_count
+
