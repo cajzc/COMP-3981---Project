@@ -335,24 +335,6 @@ class MinimaxAgent:
                 *args
         )
 
-        # return (
-        #     self.max_value(
-        #         game_state=game_state, 
-        #         depth=depth, 
-        #         alpha=-math.inf,
-        #         beta=math.inf,
-        #         heuristic=heuristic, 
-        #         *args
-        # )   if is_player else self.min_value(
-        #         game_state=game_state, 
-        #         depth=depth, 
-        #         alpha=-math.inf,
-        #         beta=math.inf,
-        #         heuristic=heuristic, 
-        #         *args
-        #     )
-        # )
-
 
     def max_value(self, game_state: GameState, depth: int, alpha: float, beta: float, heuristic, *args) -> float:
         """
@@ -397,7 +379,6 @@ class MinimaxAgent:
         v = math.inf
 
         moves_generated = generate_move(game_state.player, game_state.board)
-        #print("number moves generated in min", len(moves_generated))
 
         for move in moves_generated:
             # Create the game state if we were to make the move
