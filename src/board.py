@@ -54,7 +54,7 @@ class Board:
         # White marble initial positions (top 3 rows)
         white_marble_initial_pos = [
             # Row G (r=-2), cols 4..6 => q=-1..1
-            (0, -2, 3), (1, -2, 1), (2, -2, 0),
+            (0, -2, 2), (1, -2, 1), (2, -2, 0),
             # Row H (r=-3), cols 4..9 => q=-1..4
             (-1, -3, 4), (0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0), (4, -3, -1),
             # Row I (r=-4), cols 5..9 => q=0..4
