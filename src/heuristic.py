@@ -333,3 +333,54 @@ def t_marbles_coherence(game_state: GameState) -> float:
 
     return -trace - avg_nn_dist  # Lower values indicate better grouping
 
+
+# ---------------------------
+# Danger Detection (Prefixed with t_)
+# ---------------------------
+
+def t_marbles_in_danger(board_obj, player: str) -> int:
+    """
+    Identifies marbles that are in a vulnerable position (near an edge or surrounded by opponents).
+
+    Args:
+        board_obj: The current board state.
+        player: The player whose marbles are being evaluated.
+
+    Returns:
+        The number of marbles in a dangerous position.
+    """
+    opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
+    danger_count = 0
+
+    edge_positions = {
+        (q, r, s)
+        for q in range(-4, 5)
+        for r in range(-4, 5)
+        for s in range(-4, 5)
+        if q + r + s == 0 and (abs(q) == 4 or abs(r) == 4 or abs(s) == 4)
+    }
+
+    for (q, r, s), color in board_obj.marble_positions.items():
+        if color != player:
+            continue
+
+        # Quick edge check
+        on_edge = (q, r, s) in edge_positions
+
+        # Count neighboring opponent marbles
+        opponent_neighbors = 0
+        for dq, dr, ds in DIRECTIONS.values():
+            neighbor_pos = (q + dq, r + dr, s + ds)
+            if board_obj.marble_positions.get(neighbor_pos) == opponent:
+                opponent_neighbors += 1
+                # Early termination: if danger condition is met
+                if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
+                    break
+
+        # Check danger condition
+        if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
+            danger_count += 1
+
+    return danger_count
+
+
