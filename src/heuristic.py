@@ -10,7 +10,7 @@ def heuristic(game_state: GameState) -> float:
 
 def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
     """
-    Implemtation for a heuristic function that uses the following evaluation functions:
+    Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
     - Marble coherence
     - Triangular formation
@@ -20,6 +20,20 @@ def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
     :param wt: weight for the distance to triangle formation
     """
     return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wt*triangle_formation(game_state)
+
+def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
+    """
+    Implementation for a heuristic function that uses the following evaluation functions:
+    - Distance to centre
+    - Marble coherence
+    - Edge safety
+
+    :param game_state:
+    :param wdc: weight for the distance to centre evaluation
+    :param wmc: weight for the marble coherence evaluation
+    :param wes: weight for the edge safety evaluation
+    """
+    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wes*marble_edge_safety(game_state)
 
 def distance_to_center(game_state: GameState) -> float:
     """
@@ -127,6 +141,59 @@ def marbles_in_danger(board_obj, player: str) -> int:
             danger_count += 1
 
     return danger_count
+
+
+def marble_edge_safety(game_state: GameState) -> float:
+    """
+    Measure the safety of a player's marbles with respect to their position near the board's edges.
+
+    A higher score indicates safer marbles (farther from edges or well-protected),
+    while a lower score indicates vulnerability (near edges with opponent presence).
+
+    Safety is calculated based on:
+    - Distance from the edge (marbles farther from edges are safer)
+    - Presence of friendly marbles nearby (support reduces vulnerability)
+    - Presence of opponent marbles nearby (increases vulnerability)
+
+    :param game_state: The current game state
+    :return: A float representing the edge safety score (higher is safer)
+    """
+    player = game_state.player
+    opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
+    total_safety_score = 0.0
+    marble_count = 0
+
+    # Maximum distance from center to edge is 4 in this grid
+    max_edge_distance = 4.0
+
+    for (q, r, s), color in game_state.board.marble_positions.items():
+        if color != player:
+            continue
+
+        marble_count += 1
+        # Calculate distance from edge
+        edge_distance = min(max_edge_distance, abs(q), abs(r), abs(s))
+        base_safety = edge_distance / max_edge_distance  # Normalized [0,1]
+
+        # Count friendly and opponent neighbors
+        friendly_neighbors = 0
+        opponent_neighbors = 0
+        for (dq, dr, ds) in DIRECTIONS.values():
+            neighbor_pos = (q + dq, r + dr, s + ds)
+            neighbor_color = game_state.board.marble_positions.get(neighbor_pos)
+            if neighbor_color == player:
+                friendly_neighbors += 1
+            elif neighbor_color == opponent:
+                opponent_neighbors += 1
+
+        # Adjust safety based on neighbors
+        # Each friendly neighbor increases safety, each opponent decreases it
+        safety_modifier = (friendly_neighbors * 0.2) - (opponent_neighbors * 0.3)
+        marble_safety = max(0.0, min(1.0, base_safety + safety_modifier))  # Clamp between 0 and 1
+        total_safety_score += marble_safety
+
+    # Return average safety score, or 0 if no marbles
+    return total_safety_score / marble_count if marble_count > 0 else 0.0
 
 """keep heuristic simple and get deeper search"""
 # def opponent_territory(board_obj, opponent: str) -> Set[Tuple[int, int]]:
