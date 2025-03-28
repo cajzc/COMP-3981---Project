@@ -1,388 +1,281 @@
 """Houses the board representation methods."""
 import os
 import sys
-from typing import Tuple, Set
-from state_space import *
+from enum import Enum, auto
+from typing import Tuple, Set, List
+from enums import Marble
+import copy
+
+
+class BoardConfiguration(Enum):
+    """Represents initial board configurations as an enum."""
+    DEFAULT = auto()
+    BELGIAN = auto()
+    GERMAN = auto()
 
 class Board:
     """Holds the implementation to parse and output a board's representation."""
 
-    # Get the project root directory and test file paths
-    if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
-        PROJECT_ROOT = os.path.dirname(os.path.abspath(sys.executable))
-    else:  # Running as a regular Python script
-        PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
-    VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
-    TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
+    def __init__(self):
+        self.marble_positions = {} # (q,r,s):color only store marbles in the dict saving space
+        self.empty_positions = set((q,r,s) for q in range(-4,5)
+                                           for r in range(-4,5)
+                                           for s in range(-4,5)
+                                           if q+r+s == 0)
 
-    @staticmethod
-    def initialize_board():
-        """
-        Initialize the board with all positions as 'N' (neutral/empty)
-        
-        :returns: the game board representation as dictionary, where keys represent tuples of positions and values represent the value in the position
-        """
-        return {(x, y): 'N' for x in range(-4, 5) for y in range(-4, 5) if -4 <= x - y <= 4}
 
-    @staticmethod
-    def get_default_board():
+    def reset_board(self):
         """
-        Creates a standard Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the standard board with initial marble positions
+        Resets the board by clearing all marble positions and regenerating empty positions.
         """
-        # Initialize an empty board
-        board = Board.initialize_board()
+        self.marble_positions.clear()
+        self.empty_positions = set(
+            (q, r, s) for q in range(-4, 5)
+            for r in range(-4, 5)
+            for s in range(-4, 5)
+            if q + r + s == 0
+        )
 
+    def set_default_board(self):
+        """
+        Creates a standard Abalone board with black marbles on the bottom
+        (rows A–C) and white marbles on top (rows G–I).
+        """
+        # Black marble initial positions (bottom 3 rows)
         black_marble_initial_pos = [
-             (-4, -4, 'b'), (-3, -4, 'b'), (-2, -4, 'b'), (-1, -4, 'b'), (0, -4, 'b'), # Row 1
-             (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'), (-1, -3, 'b'), (0, -3, 'b'), (1, -3, 'b'), # Row 2j
-             (-2, -2, 'b'),  (-1, -2, 'b'), (0, -2, 'b') # Row 3
-         ]
-
-        # White marble initial positions
-        white_marbles_initial_pos = [
-            (0,4,'w'), (1,4,'w'), (2,4,'w'), (3,4,'w'), (4,4,'w'), # Row 1
-            (-1,3,'w'), (0,3,'w'), (1,3,'w'), (2,3,'w'), (3,3,'w'), (4,3,'w'), # Row 2
-            (0,2,'w'), (1,2,'w'), (2,2,'w') # Row 3
+            # Row A (r=+4), cols 1..5 => q=-4..0, s=-q-r
+            (-4, 4, 0), (-3, 4, -1), (-2, 4, -2), (-1, 4, -3), (0, 4, -4),
+            # Row B (r=+3), cols 1..6 => q=-4..1
+            (-4, 3, 1), (-3, 3, 0), (-2, 3, -1), (-1, 3, -2), (0, 3, -3), (1, 3, -4),
+            # Row C (r=+2), cols 4..6 => q=-1..1
+            (-2, 2, 0), (-1, 2, -1), (0, 2, -2)
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
+        # White marble initial positions (top 3 rows)
+        white_marble_initial_pos = [
+            # Row G (r=-2), cols 4..6 => q=-1..1
+            (0, -2, 2), (1, -2, 1), (2, -2, 0),
+            # Row H (r=-3), cols 4..9 => q=-1..4
+            (-1, -3, 4), (0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0), (4, -3, -1),
+            # Row I (r=-4), cols 5..9 => q=0..4
+            (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
+        ]
 
-        return board
+        self.reset_board()
 
-    @staticmethod
-    def get_belgian_daisy_board():
+        # Place black marbles
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = Marble.BLACK.value
+
+        # Place white marbles
+        for pos in white_marble_initial_pos:
+            self.marble_positions[pos] = Marble.WHITE.value
+
+        # Remove these positions from empty_positions
+        self.empty_positions -= set(black_marble_initial_pos + white_marble_initial_pos)
+
+
+    def set_belgian_daisy_board(self):
         """
-        Creates a belgian daisy Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the belgian daisy board with initial marble positions
+        Places the Belgian Daisy layout with Black marbles on rows near A
+        and White marbles on rows near I, using (q,r,s) with row A=+4, row I=-4.
         """
 
-        # Initialize an empty board
-        board = Board.initialize_board()
-
+        # -----------------------------
+        # Black marbles (two 'daisies' at the bottom left and top right)
+        # -----------------------------
         black_marble_initial_pos = [
-            # Group 1
-            (-4, -4, 'b'), (-3, -4, 'b'),
-            (-4, -3, 'b'), (-3, -3, 'b'), (-2, -3, 'b'),
-            (-3, -2, 'b'), (-2, -2, 'b'),
+            # Bottom-left daisy (rows A to C):
+            # Row A 
+            (-4, 4, 0), (-3, 4, -1),
+            # Row B 
+            (-4, 3, 1), (-3, 3, 0), (-2, 3, -1),
+            # Row C 
+            (-3, +2, +1), (-2, +2, 0),
 
-            # Group 2
-            (4, 4, 'b'), (3, 4, 'b'),
-            (4, 3, 'b'), (3, 3, 'b'), (2, 3, 'b'),
-            (3, 2, 'b'), (2, 2, 'b'),
+            # Top-right daisy (rows I to G):
+            # Row I 
+            (3, -4, 1), (4, -4, 0),
+            # Row H 
+            (2, -3, 1), (3, -3, 0), (4, -3, -1),
+            # Row G 
+            (2, -2, 0), (3, -2, -1)
         ]
 
+        # -----------------------------
+        # White marbles (two 'daisies' at the bottom right and top left)
+        # -----------------------------
         white_marbles_initial_pos = [
-            # Group 1
-            (0, -4, 'w'), (-1, -4, 'w'),
-            (1, -3, 'w'), (0, -3, 'w'), (-1, -3, 'w'),
-            (0, -2, 'w'), (1, -2, 'w'),
+            # Bottom-right daisy (rows A to C):
+            # Row A 
+            (-1, 4, -3), (0, 4, -4),
+            # Row B 
+            (-1, 3, -2), (0, 3, -3), (1, 3, -4),
+            # Row C 
+            (0, 2, -2), (1, 2, -3),
 
-            # Group 2
-            (0, 4, 'w'), (1, 4, 'w'),
-            (-1, 3, 'w'), (0, 3, 'w'), (1, 3, 'w'),
-            (-1, 2, 'w'), (0, 2, 'w')
+            # Top-left daisy (rows I to G):
+            # Row I 
+            (0, -4, 4), (1, -4, 3),
+            # Row H 
+            (-1, -3, 4), (0, -3, 3), (1, -3, 2),
+            # Row G 
+            (-1, -2, 3), (0, -2, 2)
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
+        # Clear and place on board
+        self.reset_board()
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = Marble.BLACK.value
+        for pos in white_marbles_initial_pos:
+            self.marble_positions[pos] = Marble.WHITE.value
+        self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
-        return board
 
-
-    @staticmethod
-    def get_german_daisy_board():
+    def set_german_daisy_board(self):
         """
-        Creates a german daisy Abalone board with the standard initial marble positions.
-        
-        :returns: Dictionary representing the german daisy board with initial marble positions
+        Places the German Daisy layout with Black on bottom daisies,
+        White on top daisies, under the same row A=+4 -> row I=-4 orientation.
         """
 
-         # Initialize an empty board
-        board = Board.initialize_board()
-
+        # -----------------------------
+        # Black marbles (two arcs near the bottom-left and top-right)
+        # -----------------------------
         black_marble_initial_pos = [
-            # Group 1
-            (-4, -3, 'b'), (-3, -3, 'b'),
-            (-4, -2, 'b'), (-3, -2, 'b'), (-2, -2, 'b'),
-            (-3, -1, 'b'), (-2, -1, 'b'),
+            # Bottom-left arc
+            (-4, 3, 1), (-3, 3, 0),
+            (-4, 2, 2), (-3, 2, 1), (-2, 2, 0),
+            (-3, 1, 2), (-2, 1, 1),
 
-            # Group 2
-            (4, 3, 'b'), (3, 3, 'b'),
-            (4, 2, 'b'), (3, 2, 'b'), (2, 2, 'b'), 
-            (3, 1, 'b'), (2, 1, 'b')
+
+            # Top-right arc
+            (3, -3, 0), (4, -3, -1),
+            (2, -2, 0), (3, -2, -1), (4, -2, 0),
+            (2, -1, -1), (3, -1, -2)
         ]
 
+        # -----------------------------
+        # White marbles (two arcs near the top-left and bottom-right)
+        # -----------------------------
         white_marbles_initial_pos = [
-            # Group 1
-            (0, -3, 'w'), (1, -3, 'w'),
-            (0, -2, 'w'), (1, -2, 'w'), (2, -2, 'w'),
-            (1, -1, 'w'), (2, -1, 'w'),
+            # Bottom-right arc
+            (1, 1, -2), (2, 1, -3),
+            (0, 2, -2), (1, 2, -3), (2, 2, -4),
+            (0, 3, -3), (1, 3, -4),
 
-            # Group 2
-            (-1, 3, 'w'), (0, 3, 'w'),
-            (-2, 2, 'w'), (-1, 2, 'w'), (0, 2, 'w'),
-            (-2, 1, 'w'), (-1, 1, 'w')
+            # Top-left arc
+            (-1, -3, 4), (0, -3, 3),
+            (-2, -2, 4), (-1, -2, 3), (0, -2, 2),
+            (-2, -1, 3), (-1, -1, 2)
         ]
 
-        Board.place_marbles(black_marble_initial_pos, board)
-        Board.place_marbles(white_marbles_initial_pos, board)
-
-        return board
-
-
-    @staticmethod
-    def valid_position(x, y):
-        """
-        Returns whether a given set of coordinates is a valid position in our game board representation.
-
-        :param x: the x coordinate as an int
-        :param y: the x coordinate as an int
-        :returns: true if valid else false
-
-        >>> valid_position(4, 5)
-        False
-        >>> valid_position(-4, -4)
-        True
-        >>> valid_position(4, 6)
-        False
-        """
-        return -4 <= x <= 4 and -4 <= y <= 4 and -4 <= (x - y) <= 4
+        # Clear and place on board
+        self.reset_board()
+        for pos in black_marble_initial_pos:
+            self.marble_positions[pos] = Marble.BLACK.value
+        for pos in white_marbles_initial_pos:
+            self.marble_positions[pos] = Marble.WHITE.value
+        self.empty_positions -= set(black_marble_initial_pos + white_marbles_initial_pos)
 
 
-    @staticmethod
-    def place_marbles(coloured_marbles, board):
+    def place_marbles(self, coloured_marbles):
         """
         Places marbles on the board at specified positions with specified colours.
-        
-        :param coloured_marbles: List of tuples (x, y, colour) where x and y are coordinates and colour is 'b', 'w', or 'N'
-        :param board: Dictionary representing the board where keys are (x, y) coordinates and values are marble colours
+
+        :param coloured_marbles: List of tuples (q, r, s, colour) where q, r, s are coordinates and colour is 'b', 'w'
         """
-        for (x, y, colour) in coloured_marbles:
-            board[(x, y)] = colour
+        for (q, r, s, colour) in coloured_marbles:
+            self.marble_positions[(q, r, s)] = colour
+            self.empty_positions.discard((q, r, s))
 
 
-    @staticmethod
-    def get_input_board_representation(file_name):
+    def get_input_board_representation(self, player: str, marble_moves: List[str]) -> Tuple[str, dict]:
         """
-        Given the class example files with the suffix ".input", returns the player turn and converts a given input board position from an example format:
+        Converts an input with a player move and marble moves to cube coordinates. Returns and sets the board positions.
 
-        Into the team's specific game board format, i.e:
-        {(-4, -4): 'N', ..., (-2, -2): 'W', ..., (4, 4): 'N'}
-
-        :param file_name: the name of the input file
-        :returns: tuple containing (player turn, game board representation as dictionary)
+        :param player: the letter of the player's turn
+        :param marble_moves: a comma-separated list of marble notations (e.g., "C5b")
+        :return: a converted .input move representation into cube coordinates and returns (player, marble_positions dictionary)
         """
-        current_board = Board.initialize_board()
+        for notation in marble_moves:
+            notation = notation.strip()
+            if not notation:
+                continue  # Skip empty tokens
+            q, r, s, color = Board.convert_marble_notation(notation)
+            # Only add if not already present.
+            self.marble_positions[(q, r, s)] = color
+            if (q, r, s) in self.empty_positions:
+                self.empty_positions.remove((q, r, s))
+        return (player, self.marble_positions)
 
-        path = os.path.join(Board.TEST_INPUT_FILES_DIR, file_name)
-        
-        with open(path, 'r', encoding="utf-8") as f:
-            player = f.readline().strip()
-            initial_configuration = f.readline().strip().split(',')
 
-        for marble in initial_configuration:
-            x = int(marble[1]) - 5
-            y = ord(marble[0]) - ord('E')
-            current_board[(x, y)] = marble[2]
-
-        return player, current_board
-
-    @staticmethod
-    def write_to_move_file(file_name, moves):
+    def to_string_board(self):
         """
-        Writes an array of moves to a .move file.
-        :param file_name: the name of the file to write to
-        :param moves: an array of generated moves
-        """
-        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
-
-        with open(path, "w", encoding="utf-8") as move_file:
-            for move in moves:
-                move_file.write(move + "\n")
-
-    @staticmethod
-    def write_to_board_file(file_name, states):
-        """
-        Writes an array of board configuration to a .board file.
-        :param file_name: the name of the file to write to
-        :param states: an array of board state
-        """
-        path = os.path.join(Board.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
-
-        with open(path, "w", encoding="utf-8") as state_file:
-            for state in states:
-                state_file.write(state + "\n")
-
-    @staticmethod
-    def write_to_input_file(file_name, board, colour):
-        """
-        Writes a board into a new file as the .input format.
-        :param file_name: the name of the file to write to
-        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
-        :param colour: the starting player's colour
-        """
-        path = os.path.join(Board.TEST_INPUT_FILES_DIR, f"{file_name}.input")
-        with open(path, "w", encoding="utf-8") as input_file:
-            input_file.write(colour + "\n")
-            for line in Board.to_string_board(board):
-                input_file.write(line)
-
-
-    @staticmethod
-    def to_string_board(board):
-        """
-        Converts the board state back to the input file format.
-
-        :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
-        :return: String formatted as the input file (player + marbles).
+        Converts the board's marble_positions (q,r,s -> 'b'/'w') into a
+        comma-separated string like 'A1b,A2b,...'.
+        Uses the row mapping: r=+4 -> 'A' down to r=-4 -> 'I',
+        and the column mapping: q=-4 -> col=1 up to q=+4 -> col=9.
         """
         marble_list = []
-        for (x, y), color in board.items():
-            if color == 'N':
-                continue  # Skip empty cells
-            row = chr(y + 69)  # Convert y to row letter (A-I)
-            column = x + 5  # Convert x to column number (1-9)
-            marble_str = f"{row}{column}{color}"
+        for (q, r, s), color in self.marble_positions.items():
+            # Convert r to row letter: A=+4, B=+3, ... I=-4
+            row_letter = chr(ord('A') + (4 - r))
+            # Convert q to column (1..9)
+            col_number = q + 5
 
-            marble_list.append((color,row,column,marble_str)) # append tuple for sorting
+            # Build something like "A2b" or "C3w"
+            notation = f"{row_letter}{col_number}{color}"
 
-        sorted_marbles = sorted(marble_list, key=lambda item: (item[0],item[1],item[2]))
+            # Keep a tuple for sorting: (color, row_letter, col_number, "A2b")
+            marble_list.append((color, row_letter, col_number, notation))
 
-        marble_strs = [item[3] for item in sorted_marbles]
+        # Sort by color first, then row letter, then column
+        sorted_marbles = sorted(marble_list, key=lambda item: (item[0], item[1], item[2]))
 
-        # return f"{player}\n{','.join(marble_strs)}"
-        return f"{','.join(marble_strs)}"
-
-    @staticmethod
-    def boards_equal(file_name) -> Tuple[bool, Set[str]]:
-        """
-        Compares two ".board" files to check if they contain the same boards configurations, regardless of order.
-        
-        :param file_name: the file path of both files to check
-        """
-        output_file = os.path.join(Board.TEST_OUTPUT_FILES_DIR, file_name)
-        valid_output_file = os.path.join(Board.VALID_OUTPUT_FILES_DIR, file_name)
-        with open(output_file, 'r') as output, open(valid_output_file, 'r') as valid_output:
-            output = {line.strip() for line in output.readlines()}
-            valid_output = {line.strip() for line in valid_output.readlines()}
-        
-        differences = output - valid_output
-        return output == valid_output, differences 
+        # Return just the comma-separated notation pieces
+        return ",".join(item[3] for item in sorted_marbles)
 
     @staticmethod
-    def options():
-        while True:
-            print(
-                "\nAgent debugging screen\n"
-                "----------------------\n"
-                "Options\n"
-                "(1) Generate boards from .input file(s)\n"
-                "(2) Check if .board files are equal\n"
-                "(3) Exit\n"
-            )
-            user_input = input("Enter: ").strip(",.?! ")
-            match user_input:
-                case "1":
-                    Board._handle_input_files()
-                case "2":
-                    file = input("Enter the .board file to compare. (File names to compare should be equal): ")
-                    eq, board = Board.boards_equal(file)
-                    if eq:
-                        print("(SUCCESS) Files contain the same board")
-                    else:
-                        print("(ERROR) Files do not contain the same board!")
-                        print(f"test_output/{file} contains the following lines that valid_output/{file} does not: ", board)
-                case "3":
-                    print("Exiting program...")
-                    break
-                case _:
-                    print("Invalid selection")
-
-    
-    @staticmethod
-    def get_input_files_from_user():
+    def convert_marble_notation(notation: str) -> Tuple[int, int, int, str]:
         """
-        Prompts the user to enter filenames ending with '.input' and stores them in a list.
-        
-        The function will continue asking for filenames until the user enters 'q', 'quit', or 'exit'.
-        It validates that each filename ends with '.input' before adding it to the list.
-        
-        returns: a list of valid input filenames entered by the user
+        Converts a marble notation (e.g., "C5b") to cube coordinates (q, r, s, color).
+        Convention: Row A = r=+4, B=+3, ... I=-4; Column 5 = q=0.
+        s is computed as -q - r.
         """
-        input_files = []
-        print("\nInput file(s) selection\n")
-        print("Options:")
-        print("- Enter filenames ending with '.input' (one per line)")
-        print("- Type 'q' to exit file selection menu\n")
-        
-        while True:
-            user_input = input("Enter filename (or 'q' to quit file selection menu): ").strip()
-            
-            if user_input.lower() == "q":
-                break
-            
-            # Validate filename
-            if not user_input.endswith('.input'):
-                print("Error: Filename must end with '.input'")
-                continue
-            
-            # Check if file exists in the input directory
-            file_path = os.path.join(Board.TEST_INPUT_FILES_DIR, user_input)
-            if not os.path.exists(file_path):
-                print(f"Warning: File '{user_input}' not found in {Board.TEST_INPUT_FILES_DIR}")
-                continue_anyway = input("Add anyway? (y/n): ").strip().lower()
-                if continue_anyway != 'y':
-                    continue
-            
-            # Add valid filename to the list
-            input_files.append(user_input)
-            print(f"Added: {user_input}")
-        
-        return input_files
+        row_letter = notation[0]
+        col_str = notation[1:-1]
+        color = notation[-1]
+        r = 4 - (ord(row_letter.upper()) - ord('A'))
+        q = int(col_str) - 5
+        s = -q - r
+        return (q, r, s, color)
 
     @staticmethod
-    def _handle_input_files():
-        user_input_files = Board.get_input_files_from_user() 
-        if not user_input_files:
-            return
-        print("\nGenerated Boards\n")
-        for file in user_input_files:
-            Board.test_state_space(file)
-
-    @staticmethod
-    def test_state_space(file, board=None, player="b"):
+    def create_board(board_configuration: BoardConfiguration) -> 'Board':
         """
-        Generates the state space and outputs to a file.
-    
-        :param file: the name of the output and optional .input file
-        :param board: an optional board to preconfigure the state space with
-        :param player: an optional player to initiate first ply, black by default
+        Instantiates and returns a new board object setup with the given board configuration enum.
+
+        :param board_configuration: the configuration of the board of which to return
+        :return: the setup Board
         """
-        if board is None:
-            player, board = Board.get_input_board_representation(file)
+        board = Board()
 
-        # Generate all possible moves
-        all_moves = get_single_moves(player, board) + get_inline_moves(player, board) + get_side_step_moves(player, board)
-        file = file.strip(".input")
+        match board_configuration:
+            case BoardConfiguration.DEFAULT:
+                board.set_default_board()
+            case BoardConfiguration.BELGIAN:
+                board.set_belgian_daisy_board()
+            case BoardConfiguration.GERMAN:
+                board.set_german_daisy_board()
 
-        # Write moves to file
-        Board.write_to_move_file(file, all_moves)
-    
-        # Apply each move and write new board states
-        new_states = []
-        for move in all_moves:
-            new_board = board.copy()
-            apply_move(new_board, move)
-            new_states.append(Board.to_string_board(new_board))
+        return board
 
-        # Write resulting board to file
-        Board.write_to_board_file(file, new_states)
-   
-        print(f"Moves saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {Board.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
-
+    def deep_copy(self) -> 'Board':
+        """
+        Creates and returns a deep copy of the current board.
+        """
+        new_board = Board()
+        new_board.marble_positions = copy.deepcopy(self.marble_positions)
+        new_board.empty_positions = copy.deepcopy(self.empty_positions)
+        return new_board
 
