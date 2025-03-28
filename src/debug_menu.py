@@ -6,7 +6,7 @@ from board import Board, BoardConfiguration
 import state_space 
 from minmax_agent import MinimaxAgent, AgentConfiguration
 from enums import Marble
-from heuristic import c_heuristic, b_heuristic, t_heuristic
+from heuristic import c_heuristic, b_heuristic, heuristic
 
 
 class DebugMenu:
@@ -179,9 +179,9 @@ class DebugMenu:
         :return: the depth of the search
         """
         while True:
-            user_input = input(f"Enter the search depth (default 3): ").strip()
+            user_input = input(f"Enter the search depth (default 1): ").strip()
             if not user_input:  # No input, use default value
-                return 3
+                return 1
             try:
                 depth = int(user_input)
                 if depth > 0:
@@ -225,14 +225,14 @@ class DebugMenu:
         Prompts the user to select a heuristic function, returning it.
         """
         while True:
-            print(f"{prompt}\n(1) c_heuristic\n(2) b_heuristic\n(3) t_heuristic")
+            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
-                return c_heuristic
+                return heuristic
             elif heuristic_input == "2":
-                return b_heuristic
+                return c_heuristic
             elif heuristic_input == "3":
-                return t_heuristic
+                return b_heuristic
             else:
                 print("Invalid selection. Please try again.")
 

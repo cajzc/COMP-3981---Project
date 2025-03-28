@@ -3,15 +3,15 @@ from typing import Dict, Tuple, Set, List
 
 import numpy as np
 
+from typing import Dict, Tuple, Set
+import board
 from moves import DIRECTIONS
 from state_space import GameState
 from enums import Marble
 from itertools import combinations
 
-def heuristic(game_state: GameState) -> float:
-    return 0
 
-def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
@@ -22,9 +22,23 @@ def c_heuristic(game_state: GameState, wdc: int, wmc: int, wt: int) -> float:
     :param wmc: weight for the marble coherence evaluation
     :param wt: weight for the distance to triangle formation
     """
-    return wdc*distance_to_center(game_state) + wmc*marbles_coherence(game_state) + wt*triangle_formation(game_state)
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board)
 
-def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
+
+def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
+    """
+    Implementation for a heuristic function that uses the following evaluation functions:
+    - Distance to centre
+    - Marble coherence
+    - Triangular formation
+
+    :param wdc: weight for the distance to centre evaluation
+    :param wmc: weight for the marble coherence evaluation
+    :param wt: weight for the distance to triangle formation
+    """
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wt*triangle_formation(player_colour, board)
+
+def b_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wes: int) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
@@ -56,8 +70,9 @@ def score_difference(game_state: GameState) -> int:
     opponent = game_state.get_next_turn_colour()
     return game_state.score[player] - game_state.score[opponent]
 
+    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wes*marble_edge_safety(player_colour, board)
 
-def distance_to_center(game_state: GameState) -> float:
+def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
 
@@ -177,7 +192,7 @@ def marbles_in_danger(board_obj, player: str) -> int:
     return danger_count
 
 
-def marble_edge_safety(game_state: GameState) -> float:
+def marble_edge_safety(player: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Measure the safety of a player's marbles with respect to their position near the board's edges.
 
@@ -192,7 +207,6 @@ def marble_edge_safety(game_state: GameState) -> float:
     :param game_state: The current game state
     :return: A float representing the edge safety score (higher is safer)
     """
-    player = game_state.player
     opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
     total_safety_score = 0.0
     marble_count = 0
@@ -200,7 +214,7 @@ def marble_edge_safety(game_state: GameState) -> float:
     # Maximum distance from center to edge is 4 in this grid
     max_edge_distance = 4.0
 
-    for (q, r, s), color in game_state.board.marble_positions.items():
+    for (q, r, s), color in board.items():
         if color != player:
             continue
 
@@ -214,7 +228,7 @@ def marble_edge_safety(game_state: GameState) -> float:
         opponent_neighbors = 0
         for (dq, dr, ds) in DIRECTIONS.values():
             neighbor_pos = (q + dq, r + dr, s + ds)
-            neighbor_color = game_state.board.marble_positions.get(neighbor_pos)
+            neighbor_color = board.get(neighbor_pos)
             if neighbor_color == player:
                 friendly_neighbors += 1
             elif neighbor_color == opponent:
