@@ -40,6 +40,17 @@ def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
             + wmc*marbles_coherence(game_state)
             + wes*marble_edge_safety(game_state))
 
+def score_difference(game_state: GameState) -> int:
+    """
+    Returns the difference in score between the current player and the opponent.
+
+    Positive values favor the current player, negative values favor the opponent.
+    """
+    player = game_state.player
+    opponent = game_state.get_next_turn_colour()
+    return game_state.score[player] - game_state.score[opponent]
+
+
 def distance_to_center(game_state: GameState) -> float:
     """
     Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
