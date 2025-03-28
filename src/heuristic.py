@@ -40,6 +40,12 @@ def b_heuristic(game_state: GameState, wdc: int, wmc: int, wes: int) -> float:
             + wmc*marbles_coherence(game_state)
             + wes*marble_edge_safety(game_state))
 
+def yz_heuristic(game_state: GameState, wdc: int, wmc: int, wsc: int) -> float:
+    """ add the score diff to the heuristic """
+    return (wdc*distance_to_center(game_state)
+            + wmc*marbles_coherence(game_state)
+            + wsc*score_difference(game_state))
+
 def score_difference(game_state: GameState) -> int:
     """
     Returns the difference in score between the current player and the opponent.
