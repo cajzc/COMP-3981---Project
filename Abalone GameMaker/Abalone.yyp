@@ -35,8 +35,7 @@
   "name":"Abalone",
   "resources":[
     {"id":{"name":"Board","path":"objects/Board/Board.yy",},},
-    {"id":{"name":"MarbleBlack","path":"objects/MarbleBlack/MarbleBlack.yy",},},
-    {"id":{"name":"MarbleWhite","path":"objects/MarbleWhite/MarbleWhite.yy",},},
+    {"id":{"name":"Marble","path":"objects/Marble/Marble.yy",},},
     {"id":{"name":"Selector","path":"objects/Selector/Selector.yy",},},
     {"id":{"name":"Space","path":"objects/Space/Space.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},

@@ -1,13 +1,12 @@
 {
   "$GMObject":"",
-  "%Name":"Space",
+  "%Name":"Marble",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":4,"eventType":6,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"Space",
+  "name":"Marble",
   "overriddenProperties":[],
   "parent":{
     "name":"Objects",
@@ -28,18 +27,18 @@
   "physicsShapePoints":[],
   "physicsStartAwake":true,
   "properties":[
+    {"$GMObjectProperty":"v1","%Name":"color","filters":[],"listItems":[],"multiselect":false,"name":"color","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"b","varType":2,},
     {"$GMObjectProperty":"v1","%Name":"q","filters":[],"listItems":[],"multiselect":false,"name":"q","rangeEnabled":true,"rangeMax":5.0,"rangeMin":-5.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"0","varType":1,},
     {"$GMObjectProperty":"v1","%Name":"r","filters":[],"listItems":[],"multiselect":false,"name":"r","rangeEnabled":true,"rangeMax":5.0,"rangeMin":-5.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"0","varType":1,},
     {"$GMObjectProperty":"v1","%Name":"s","filters":[],"listItems":[],"multiselect":false,"name":"s","rangeEnabled":true,"rangeMax":5.0,"rangeMin":-5.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"0","varType":1,},
-    {"$GMObjectProperty":"v1","%Name":"name","filters":[],"listItems":[],"multiselect":false,"name":"name","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"E5","varType":2,},
-    {"$GMObjectProperty":"v1","%Name":"marble","filters":[],"listItems":[],"multiselect":false,"name":"marble","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resource":{"name":"Marble","path":"objects/Marble/Marble.yy",},"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"Marble","varType":5,},
+    {"$GMObjectProperty":"v1","%Name":"tile","filters":[],"listItems":[],"multiselect":false,"name":"tile","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"E5","varType":2,},
   ],
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"BoardSpace",
-    "path":"sprites/BoardSpace/BoardSpace.yy",
+    "name":"MarbleBlackSprite",
+    "path":"sprites/MarbleBlackSprite/MarbleBlackSprite.yy",
   },
   "spriteMaskId":null,
   "visible":true,
