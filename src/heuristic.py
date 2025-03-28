@@ -50,9 +50,9 @@ def b_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc:
     :param wmc: weight for the marble coherence evaluation
     :param wes: weight for the edge safety evaluation
     """
-    return (wdc*distance_to_center(game_state)
-            + wmc*marbles_coherence(game_state)
-            + wes*marble_edge_safety(game_state))
+    return (wdc*distance_to_center(player_colour, board)
+            + wmc*marbles_coherence(player_colour, board)
+            + wes*marble_edge_safety(player_colour, board))
 
 def yz_heuristic(game_state: GameState, wdc: int, wmc: int, wsc: int) -> float:
     """ add the score diff to the heuristic """
@@ -70,17 +70,14 @@ def score_difference(game_state: GameState) -> int:
     opponent = game_state.get_next_turn_colour()
     return game_state.score[player] - game_state.score[opponent]
 
-    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wes*marble_edge_safety(player_colour, board)
-
 def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
     Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
 
     The hex grid distance for a position (q, r, s) from center is ( |q| + |r| + |s| ) / 2.
     """
-    positions = [(q, r, s) for (q, r, s), color
-                 in game_state.board.marble_positions.items()
-                 if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color in board.items() if color ==
+                 player_colour]
     distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
     return sum(distances) / len(distances)
 
@@ -88,14 +85,15 @@ def hex_distance(p1,p2):
     """helper method to calculate the steps between two marbles"""
     return max(abs(p1[0] - p2[0]), abs(p1[1] - p2[1]), abs(p1[2] - p2[2]))
 
-def marbles_coherence(game_state: GameState) -> float:
+def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
-    Measure the spatial clustering of the player's marbles by calculating the average hex distance
-    from each marble to the mean marble position. A lower score indicates higher coherence.
+    Measure the spatial clustering of the player's marbles by calculating the sum of variance in q and r coordinates plus their covariance.
+
+    This provides a measure of how spread out the marbles are from their mean position.
     """
     positions = [(q, r, s) for (q, r, s), color
-                 in game_state.board.marble_positions.items()
-                 if color == game_state.player]
+                 in board.items()
+                 if color == player_colour]
     if not positions:
         return 0.0
 
@@ -108,7 +106,6 @@ def marbles_coherence(game_state: GameState) -> float:
 
     return sum(distances) / len(distances)
 
-
 def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     """
     Determines the euclidean distance between points on a hexagonal grid. Each point is represented as a tuple.
@@ -119,13 +116,11 @@ def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     """
     return math.sqrt((pos2[0]-pos1[1]) ** 2 + (pos2[1] - pos1[1]) ** 2 + (pos2[2] - pos1[2]) ** 2)
 
-
-def triangle_formation(game_state: GameState):
+def triangle_formation(player_colour: str, board: Dict[Tuple[int, int, int], str]):
     """
-    A triangle formation is one where three or more marbles group up to form at the minimum,
-    the three edges of a triangle.
-    When marbles are in a triangle formation,
-    it requires the opponent to make an additional few moves to push the player marbles off the map.
+    A triangle formation is one where three or more marbles group up to form at the minimum, the three edges of a triangle.
+    When marbles are in a triangle formation, it requires the opponent to make an additional few moves to push the player
+    marbles off the map.
 
     Triangle definition:
     pos1, pos2, pos3. Each pos contains coordinates (q, r, s).
@@ -136,9 +131,7 @@ def triangle_formation(game_state: GameState):
     max_score = 10.0
     min_score = 0.0
 
-    positions = [(q, r, s) for (q, r, s), color
-                 in game_state.board.marble_positions.items()
-                 if color == game_state.player]
+    positions = [(q, r, s) for (q, r, s), color in board.items() if color == player_colour]
     if not positions or len(positions) < 3:
         return 0.0
 
@@ -155,6 +148,7 @@ def triangle_formation(game_state: GameState):
         scores.append(score)
 
     return sum(scores)/len(scores)
+
 
 # test this one
 def marbles_in_danger(board_obj, player: str) -> int:
