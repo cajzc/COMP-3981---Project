@@ -270,6 +270,45 @@ class Board:
 
         return board
 
+    def print_board(self):
+        """Prints the board configuration to stdout as a hexagonal board."""
+        combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
+
+        # Sort first by r (descending), then by q (ascending)
+        sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
+        
+        current_r = None
+        row_values = []
+        MAX_ROW_SIZE = 17
+        row_str = ""
+
+        """
+             . . . # 3
+        . . . . . . . # 7
+        """
+        for (_, r, _), val in sorted_combined:
+            if r != current_r:
+            # Print previous row before moving to the next one
+                if row_values:
+                    row_str = " ".join(row_values)
+                    if len(row_str) < MAX_ROW_SIZE:
+                        row_str = (MAX_ROW_SIZE - int(len(row_str)/2)) * " " + row_str
+                        print(row_str)
+                    else:
+                        print(" " * 8, row_str)
+        
+                # Start new row
+                row_values = []
+                current_r = r
+
+            row_values.append(str(val))  # Store values as strings for printing
+
+        # Print the last row
+        if row_values:
+            row_str = " ".join(row_values)
+            row_str = (MAX_ROW_SIZE - int(len(row_str)/2)) * " " + row_str
+            print(row_str)
+
     def deep_copy(self) -> 'Board':
         """
         Creates and returns a deep copy of the current board.

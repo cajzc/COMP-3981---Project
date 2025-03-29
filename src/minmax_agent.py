@@ -93,6 +93,7 @@ class MinimaxAgent:
         """
         print("Weights: ", self.weights)
         while not self.game_state.terminal_test():
+            self.game_state.board.print_board() # Debug
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
 
@@ -120,12 +121,10 @@ class MinimaxAgent:
                 if not applied_move:
                     break
 
-            print(self.game_state.board.marble_positions) # Debug
 
             self.current_move = not self.current_move # Alternate move
 
             print(self.game_state) # Debug
-        input("Enter to continue...")
 
         print("Game over")
         print(self.game_state.check_win(), "won")
