@@ -244,6 +244,7 @@ class DebugMenu:
         :param file_name: the name of the file to write to
         :param moves: an array of generated moves
         """
+        print("file name", file_name)
         path = os.path.join(DebugMenu.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
 
         with open(path, "w", encoding="utf-8") as move_file:
@@ -464,5 +465,5 @@ class DebugMenu:
         # Write resulting board to file
         DebugMenu.write_to_board_file(file.strip(".input"), board_states)
    
-        print(f"Moves saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file}.move\nBoard saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file}.board\n")
+        print(f"Moves saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.move\nBoard saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.board\n")
 
