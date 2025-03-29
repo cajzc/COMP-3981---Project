@@ -698,15 +698,18 @@ class GameState:
         elif isinstance(move, Tuple):
             pass
         # Swap player turn
-        self.player = self.get_next_turn_colour()
+        self.player = GameState.get_next_turn_colour(self.player)
 
-    def get_next_turn_colour(self) -> str:
+    @staticmethod
+    def get_next_turn_colour(player_colour: str) -> str:
         """
         Returns the next player to moves colour.
 
+        :param player_colour: the colour of the current player
+
         :return: the next marble to move as a str "b" or "w"
         """
-        return Marble.WHITE.value if self.player == Marble.BLACK.value else Marble.BLACK.value
+        return Marble.WHITE.value if player_colour == Marble.BLACK.value else Marble.BLACK.value
 
     def deep_copy(self):
         """
@@ -718,7 +721,7 @@ class GameState:
         new_board = self.board.deep_copy()
         
         # Create the new GameState object, with the next player turn as the current player to move
-        new_game_state = GameState(self.get_next_turn_colour(), new_board)
+        new_game_state = GameState(GameState.get_next_turn_colour(self.player), new_board)
 
         return new_game_state
 
