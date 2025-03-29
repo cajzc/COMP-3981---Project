@@ -201,21 +201,17 @@ class DebugMenu:
         """
         while True:
             print(
-                "(1) AI vs AI (Same Heuristic)\n"
-                "(2) AI vs AI (Different Heuristic)\n"
-                "(3) AI vs Human\n"
-                "(4) AI vs Random\n"
+                "(1) AI vs Random\n"
+                "(2) AI vs AI (Same Heuristic)\n"
+                "(3) AI vs AI (Different Heuristic)\n"
+                "(4) AI vs Human\n"
             )
             user_input = input("Enter the Game Mode: ").strip()
             
-            if user_input in {"1", "2"}:
+            if user_input in ["1", "2", "3", "4"]:
                 heuristic_one = DebugMenu.get_heuristic("Select first heuristic")
-                heuristic_two = heuristic_one if user_input == "1" else DebugMenu.get_heuristic("Select second heuristic")
+                heuristic_two = DebugMenu.get_heuristic("Select second heuristic") if user_input == "1" else None
                 return AgentConfiguration(False, user_input == "1", user_input == "2", False, heuristic_one, heuristic_two)
-            elif user_input == "3":
-                return AgentConfiguration(True, False, False, False)
-            elif user_input == "4":
-                return AgentConfiguration(False, False, False, True)
             else:
                 print("Invalid selection. Please try again.")
 

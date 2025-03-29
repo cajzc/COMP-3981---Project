@@ -21,8 +21,12 @@ class AgentConfiguration:
                  ai_same_heuristic: bool,
                  ai_diff_heuristic: bool,
                  ai_random: bool,
-                 heuristic_one = None,
-                 heuristic_two = None):
+                 h1= None,
+                 h2= None,
+                 h1_weights= None,
+                 h2_weights= None,
+                 ):
+
         """
         A configuration for an abalone playing agent.
 
@@ -35,8 +39,8 @@ class AgentConfiguration:
         self.ai_same_heuristic = ai_same_heuristic
         self.ai_diff_heuristic = ai_diff_heuristic
         self.ai_random = ai_random
-        self.heuristic_one = heuristic_one
-        self.heuristic_two = heuristic_two
+        self.h1 = h1
+        self.h2 = h2
 
 
 class MinimaxAgent:
@@ -84,6 +88,7 @@ class MinimaxAgent:
         self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
         self.config = config
         self.transposition_table = TranspositionTable()
+        print("Weights: ", self.weights)
 
 
     def run_game(self):
@@ -91,7 +96,6 @@ class MinimaxAgent:
         AI vs random
         Starts the game of Abalone with the model against an opponent.
         """
-        print("Weights: ", self.weights)
         while not self.game_state.terminal_test():
             self.game_state.board.print_board() # Debug
             if self.current_move: # Player turn
@@ -102,7 +106,7 @@ class MinimaxAgent:
                 move_to_make = self.iterative_deepening_search(
                     True, 
                     generate_move(self.player_colour, self.game_state.board),
-                    self.config.heuristic_one,
+                    self.config.h1
                 )
                 e = time.time() # Debug
                 print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
@@ -130,13 +134,13 @@ class MinimaxAgent:
         print(self.game_state.check_win(), "won")
 
 
-    def run_game_against_self(self):
+    def run_game_diff_heuristic(self):
         """
-        AI vs AI
+        AI vs another heuristic
         Starts the game of Abalone with the model against an opponent.
         """
-        # NOTE: We should be checking for time constraints
         while not self.game_state.terminal_test():
+            self.game_state.board.print_board() # Debug
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
 
@@ -145,7 +149,7 @@ class MinimaxAgent:
                 move_to_make = self.iterative_deepening_search(
                     True, 
                     generate_move(self.player_colour, self.game_state.board),
-                    self.config.heuristic_one,
+                    self.config.h1
                 )
                 e = time.time() # Debug
                 print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
@@ -160,80 +164,17 @@ class MinimaxAgent:
             # Opponent turn
             else:
                 print("\nOpponent Turn\n")
-                move_to_make = self.iterative_deepening_search(
-                    False, 
-                    generate_move(self.opponent_colour, self.game_state.board),
-                    self.config.heuristic_one,
-                )
-
-                # Terminal state reached
-                if move_to_make is None:
+                applied_move = self.apply_opponent_move_random()
+                if not applied_move:
                     break
 
-
-            print(self.game_state.board.marble_positions) # Debug
 
             self.current_move = not self.current_move # Alternate move
 
             print(self.game_state) # Debug
-        
+
         print("Game over")
         print(self.game_state.check_win(), "won")
-
-
-    def run_game_two_heuristics(self):
-        """
-        AI vs AI with different heuristics.
-        Starts the game of Abalone with the model against an opponent.
-        """
-        # NOTE: We should be checking for time constraints
-        while not self.game_state.terminal_test():
-            if self.current_move: # Player turn
-                print("\nPlayer Turn")
-
-                s = time.time() # Debug
-                # Get the next move 
-                move_to_make = self.iterative_deepening_search(
-                    True, 
-                    generate_move(self.player_colour, self.game_state.board),
-                    self.config.heuristic_one
-                )
-                e = time.time() # Debug
-                print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
-
-                # Terminal state reached
-                if move_to_make is None:
-                    break
-
-                # Apply the move to the game state
-                self.game_state.apply_move(move_to_make)
-
-            # Opponent turn
-            else:
-                print("\nOpponent Turn")
-                s = time.time() # Debug
-                move_to_make = self.iterative_deepening_search(
-                    False, 
-                    generate_move(self.opponent_colour, self.game_state.board),
-                    self.config.heuristic_two
-                )
-                e = time.time() # Debug
-                print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
-
-                # Terminal state reached
-                if move_to_make is None:
-                    break
-
-
-            print(self.game_state.board.marble_positions) # Debug
-
-            self.current_move = not self.current_move # Alternate move
-
-            print(self.game_state) # Debug
-        
-        print("Game over")
-        print(self.game_state.check_win(), "won")
-
 
 
     def apply_opponent_move_random(self) -> bool:
