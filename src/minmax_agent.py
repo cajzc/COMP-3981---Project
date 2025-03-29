@@ -17,30 +17,49 @@ class AgentConfiguration:
 
 
     def __init__(self,
-                 ai_player: bool,
+                 player_colour: Marble,
+                 board: Board,
+                 depth: int,
+                 time_limit: int,
                  ai_same_heuristic: bool,
                  ai_diff_heuristic: bool,
+                 ai_human: bool,
                  ai_random: bool,
-                 h1= None,
+                 h1,
+                 h1_weights,
                  h2= None,
-                 h1_weights= None,
-                 h2_weights= None,
+                 h2_weights= None
                  ):
 
         """
         A configuration for an abalone playing agent.
 
-        :param ai_player: True if the model should run ai vs player (user input)
+        :param player_colour: The color of the player's marbles (BLACK or WHITE)
+        :param board: the game board instance
+        :param depth: maximum search depth for the minimax algorithm
+        :param time_limit: Maximum time in seconds allowed for move calculation
         :param ai_same_heuristic: True if the model should run ai vs its own heuristic
         :param ai_diff_heuristic: True if the model should run two different heuristics
+        :param ai_human: True if the model should run ai vs human (user input)
         :param ai_random: True if the model should run ai vs random moves
+        :param h1: First heuristic function to use for evaluation
+        :param h1_weights: Weights for the first heuristic function
+        :param h2: Second heuristic function to use for evaluation (when using different heuristics)
+        :param h2_weights: Weights for the second heuristic function
         """
-        self.ai_player = ai_player
+        self.player_colour = player_colour
+        self.board = board
+        self.depth = depth
+        self.time_limit = time_limit
+        self.ai_human = ai_human
         self.ai_same_heuristic = ai_same_heuristic
         self.ai_diff_heuristic = ai_diff_heuristic
         self.ai_random = ai_random
         self.h1 = h1
         self.h2 = h2
+        self.h1_weights = h1_weights
+        print("h2 weights 'ere", h2_weights)
+        self.h2_weights = h2_weights
 
 
 class MinimaxAgent:
@@ -75,23 +94,23 @@ class MinimaxAgent:
         self.player_colour = player_colour.value
         self.time_limit = time_limit
         self.depth = depth
-        self.weights = weights or {
-            'center_distance': -0.5,  # Negative weight (closer to center = better)
-            'coherence': -0.3,  # Negative weight (lower variance = better)
-            'danger': -1.0,  # Penalty for endangered marbles
-            'opponent_break': 0.8,  # Reward for disrupting opponent
-            'score': 2.0,  # Direct score difference multiplier
-            'triangle_formation': 1.0  # Multiplier for obtaining a triangle formation
-        }
         self.game_state = GameState(self.player_colour, board)
         self.current_move = True if self.player_colour == Marble.BLACK.value else False
         self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
         self.config = config
         self.transposition_table = TranspositionTable()
-        print("Weights: ", self.weights)
+
+        # Display the configuration
+        print("CONFIGURATION")
+        print("-------------")
+        print("Heuristic 1:", self.config.h1.__name__)
+        print("Weights:", self.config.h1_weights)
+        if self.config.h2:
+            print("Heuristic 2:", self.config.h2.__name__)
+            print("Weights:", self.config.h2_weights)
 
 
-    def run_game(self):
+    def run_random(self):
         """
         AI vs random
         Starts the game of Abalone with the model against an opponent.
@@ -106,7 +125,7 @@ class MinimaxAgent:
                 move_to_make = self.iterative_deepening_search(
                     True, 
                     generate_move(self.player_colour, self.game_state.board),
-                    self.config.h1
+                    self.config.h1_weights
                 )
                 e = time.time() # Debug
                 print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
@@ -134,9 +153,9 @@ class MinimaxAgent:
         print(self.game_state.check_win(), "won")
 
 
-    def run_game_diff_heuristic(self):
+    def run_game_heuristic(self):
         """
-        AI vs another heuristic
+        Two agents using the same or different heuristic.
         Starts the game of Abalone with the model against an opponent.
         """
         while not self.game_state.terminal_test():
@@ -149,7 +168,8 @@ class MinimaxAgent:
                 move_to_make = self.iterative_deepening_search(
                     True, 
                     generate_move(self.player_colour, self.game_state.board),
-                    self.config.h1
+                    self.config.h1,
+                    self.config.h1_weights
                 )
                 e = time.time() # Debug
                 print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
@@ -164,6 +184,13 @@ class MinimaxAgent:
             # Opponent turn
             else:
                 print("\nOpponent Turn\n")
+                move_to_make = self.iterative_deepening_search(
+                    False, 
+                    generate_move(self.opponent_colour, self.game_state.board),
+                    self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
+                    self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
+                )
+
                 applied_move = self.apply_opponent_move_random()
                 if not applied_move:
                     break
@@ -194,6 +221,7 @@ class MinimaxAgent:
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
         self.game_state.apply_move(move)
+
     
     def _get_opponent_move_random(self) -> Move | None:
         """
@@ -230,7 +258,7 @@ class MinimaxAgent:
                 return opponent_move
 
 
-    def iterative_deepening_search(self, is_player: bool, moves: List[Move], heuristic) -> Move | None:
+    def iterative_deepening_search(self, is_player: bool, moves: List[Move], heuristic, args) -> Move | None:
         """
         Runs an iterative deepening search using the mini-max algorithm
         with a heuristic function to determine the best move to take
@@ -238,6 +266,7 @@ class MinimaxAgent:
 
         :param is_player: True if mini max should be ran for the player, False if it should be ran for the opponent
         :param moves: a List of the moves to run iterative deepening and mini max on
+        :param args: the weights of the heuristic
         :return: the move for the agent to take as a Move object
         """
         self.transposition_table.clear()
@@ -261,10 +290,8 @@ class MinimaxAgent:
                     empty_positions,
                     depth, 
                     heuristic,
-                    self.weights["center_distance"], 
-                    self.weights["coherence"], 
-                    self.weights["triangle_formation"]
-                )
+                    args,
+                    )
                 if score > best_score:
                     best_score = score
                     best_move = move
@@ -272,7 +299,7 @@ class MinimaxAgent:
         return best_move
 
 
-    def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]], depth: int, heuristic, *args) -> float:
+    def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]], depth: int, heuristic, args) -> float:
         """
         Minimax algorithm.
 
@@ -291,7 +318,7 @@ class MinimaxAgent:
                 -math.inf,
                 math.inf,
                 heuristic,
-                *args
+                args,
         )
         else:
             return self.min_value(
@@ -302,7 +329,7 @@ class MinimaxAgent:
                 -math.inf,
                 math.inf,
                 heuristic,
-                *args
+                args 
         )
 
 
@@ -315,14 +342,14 @@ class MinimaxAgent:
             alpha: float,
             beta: float,
             heuristic,
-            *args
+            args
     ) -> float:
         """
         A minimax algorithm that determines the best move to take for the current player.
         
         :param game_state: the game state to run the algorithm on
         :param depth: the depth to run the search
-        :param args: the weights
+        :param args: the weights 
         :return: the utility value of a given game state
         """
         entry = self.transposition_table.lookup(player_colour, board)
@@ -357,7 +384,7 @@ class MinimaxAgent:
                 -math.inf,
                 math.inf,
                 heuristic,
-                *args
+                args
             ))
 
             if v >= beta:
@@ -378,14 +405,14 @@ class MinimaxAgent:
             alpha: float,
             beta: float,
             heuristic,
-            *args
+            args
         ) -> float:
         """
         A minimax algorithm that determines the best move to take for the opponent.
         
         :param game_state: the game state to run the algorithm on
         :param depth: the depth to run the search
-        :param args: the weights
+        :param args: weights as a dict
         :return: the utility value of a given game state
         """
         entry = self.transposition_table.lookup(player_colour, board)
@@ -420,7 +447,7 @@ class MinimaxAgent:
                 alpha,
                 beta,
                 heuristic,
-                *args
+                args
                 )
             )
             if v <= alpha:

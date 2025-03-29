@@ -55,22 +55,22 @@ class DebugMenu:
 
     @staticmethod
     def _run_model():
-        board = DebugMenu._get_board_configuration()
-        player_colour = DebugMenu._get_player_colour()
-        weights = DebugMenu._get_weights()
-        time_limit = DebugMenu._get_time_limit()
-        depth = DebugMenu._get_depth()
         config= DebugMenu.get_game_configuration()
 
         agent = MinimaxAgent(
-            board, 
-            player_colour, 
+            config.board,
+            config.player_colour,
             config,
-            time_limit=time_limit, 
-            depth=depth, 
-            weights=weights)
+            config.time_limit,
+            config.depth,
+        ) 
+        if config.ai_same_heuristic or config.ai_diff_heuristic:
+            agent.run_game_heuristic()
+        elif config.ai_human:
+            print("Not yet implemented")
+        elif config.ai_random:
+            agent.run_random()
 
-        agent.run_game()
     
     @staticmethod
     def _get_board_configuration() -> Board:
@@ -119,7 +119,7 @@ class DebugMenu:
                 continue
 
     @staticmethod
-    def _get_weights() -> dict:
+    def _get_weights() -> List[str]:
         """
         Prompts the user to input custom weights, or use defaults if no input is provided.
 
@@ -135,19 +135,21 @@ class DebugMenu:
             'triangle_formation': 1.0
         }
 
-        weights = {}
+        weights = []
 
-        print("Enter weights for the following parameters (press Enter to use default values)")
+        print("Enter weights for the following parameters (Enter -1 to omit the weight. Enter <Enter> to use default values)")
         for key, default_value in default_weights.items():
             user_input_weight = input(f"{key} (default {default_value}): ").strip()
+            if user_input_weight == "-1": # Skip the weight
+                continue
             if not user_input_weight:  # No input, use default value
-                weights[key] = default_value
+                weights.append(default_value)
             else:
                 try:
-                    weights[key] = float(user_input_weight)
+                    weights.append(float(user_input_weight))
                 except ValueError:
                     print(f"Invalid input for {key}, using default value of {default_value}.")
-                    weights[key] = default_value
+                    weights.append(default_value)
 
         return weights
 
@@ -194,24 +196,41 @@ class DebugMenu:
     @staticmethod
     def get_game_configuration() -> AgentConfiguration:
         """
-        Prompts the user to select a game mode and heuristics.
+        Prompts a user for the game configuration.
         - AI vs AI (same heuristic)
         - AI vs AI (different heuristics)
         - AI vs Human
+        - AI vs Random
         """
+        board = DebugMenu._get_board_configuration()
+        player_colour = DebugMenu._get_player_colour()
+        time_limit = DebugMenu._get_time_limit()
+        depth = DebugMenu._get_depth()
+
         while True:
             print(
-                "(1) AI vs Random\n"
-                "(2) AI vs AI (Same Heuristic)\n"
-                "(3) AI vs AI (Different Heuristic)\n"
-                "(4) AI vs Human\n"
+                "(1) AI vs AI (Same Heuristic)\n"
+                "(2) AI vs AI (Different Heuristic)\n"
+                "(3) AI vs Human\n"
+                "(4) AI vs Random\n"
             )
             user_input = input("Enter the Game Mode: ").strip()
             
             if user_input in ["1", "2", "3", "4"]:
-                heuristic_one = DebugMenu.get_heuristic("Select first heuristic")
-                heuristic_two = DebugMenu.get_heuristic("Select second heuristic") if user_input == "1" else None
-                return AgentConfiguration(False, user_input == "1", user_input == "2", False, heuristic_one, heuristic_two)
+                return AgentConfiguration(
+                    player_colour,
+                    board,
+                    depth,
+                    time_limit,
+                    True if user_input == "1" else False,
+                    True if user_input == "2" else False, # FIXME:
+                    True if user_input == "3" else False,
+                    True if user_input == "4" else False,
+                    DebugMenu.get_heuristic("Select first heuristic"),
+                    DebugMenu._get_weights(),
+                    DebugMenu.get_heuristic("Select second heuristic") if user_input == "2" else None,
+                    DebugMenu._get_weights() if user_input == "2" else None
+                )
             else:
                 print("Invalid selection. Please try again.")
 

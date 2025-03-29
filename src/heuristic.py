@@ -11,7 +11,7 @@ from enums import Marble
 from itertools import combinations
 
 
-def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int ) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
@@ -20,7 +20,6 @@ def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: i
 
     :param wdc: weight for the distance to centre evaluation
     :param wmc: weight for the marble coherence evaluation
-    :param wt: weight for the distance to triangle formation
     """
     return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board)
 
@@ -54,11 +53,11 @@ def b_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc:
             + wmc*marbles_coherence(player_colour, board)
             + wes*marble_edge_safety(player_colour, board))
 
-def yz_heuristic(game_state: GameState, wdc: int, wmc: int, wsc: int) -> float:
+def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wsc: int) -> float:
     """ add the score diff to the heuristic """
-    return (wdc*distance_to_center(game_state)
-            + wmc*marbles_coherence(game_state)
-            + wsc*score_difference(game_state))
+    return (wdc*distance_to_center(player_colour, board)
+            + wmc*marbles_coherence(player_colour, board)
+            + wsc*score_difference(player_colour, board))
 
 def score_difference(game_state: GameState) -> int:
     """
@@ -67,7 +66,7 @@ def score_difference(game_state: GameState) -> int:
     Positive values favor the current player, negative values favor the opponent.
     """
     player = game_state.player
-    opponent = game_state.get_next_turn_colour()
+    opponent = GameState.get_next_turn_colour(player)
     return game_state.score[player] - game_state.score[opponent]
 
 def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
