@@ -125,7 +125,8 @@ class MinimaxAgent:
                 move_to_make = self.iterative_deepening_search(
                     True, 
                     generate_move(self.player_colour, self.game_state.board),
-                    self.config.h1_weights
+                    self.config.h1,
+                    self.config.h1_weights,
                 )
                 e = time.time() # Debug
                 print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
