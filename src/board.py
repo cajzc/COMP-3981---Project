@@ -142,15 +142,16 @@ class Board:
         # Black marbles (two arcs near the bottom-left and top-right)
         # -----------------------------
         black_marble_initial_pos = [
-            # Bottom-left arc
+
+            # Top-right arc
             (-4, 3, 1), (-3, 3, 0),
             (-4, 2, 2), (-3, 2, 1), (-2, 2, 0),
             (-3, 1, 2), (-2, 1, 1),
 
 
-            # Top-right arc
+            # Bottom-left arc
             (3, -3, 0), (4, -3, -1),
-            (2, -2, 0), (3, -2, -1), (4, -2, 0),
+            (2, -2, 0), (3, -2, -1), (4, -2, -2),
             (2, -1, -1), (3, -1, -2)
         ]
 
