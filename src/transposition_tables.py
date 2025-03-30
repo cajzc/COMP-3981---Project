@@ -1,66 +1,48 @@
-import hashlib
+
+import random
 from typing import Dict, Tuple, Optional
-from state_space import GameState
 
 class TranspositionEntry:
     """Represents an entry in the transposition table."""
     def __init__(self, value: float, depth: int, flag: str):
-        """
-        :param value: The heuristic value of the game state
-        :param depth: The depth at which this value was calculated
-        :param flag: 'exact', 'lower', or 'upper' to indicate the type of bound
-        """
         self.value = value
         self.depth = depth
         self.flag = flag
 
 class TranspositionTable:
-    """A transposition table to cache game state evaluations for performance enhancement."""
+    """A transposition table using Zobrist hashing for fast game state lookups."""
+    
     def __init__(self):
         self.table: Dict[int, TranspositionEntry] = {}
+        self.zobrist_table = self._initialize_zobrist()
+    
+    def _initialize_zobrist(self) -> Dict[Tuple[Tuple[int, int, int], str], int]:
+        """Precomputes random 64-bit values for each (position, piece) combination."""
+        positions = [(x, y, z) for x in range(3) for y in range(3) for z in range(3)]  # Adjust for your board size
+        pieces = ['w', 'b', '']  # White, Black, Empty
+        return {(pos, piece): random.getrandbits(64) for pos in positions for piece in pieces}
 
     def hash_game_state(self, player: str, board: Dict[Tuple[int, int, int], str]) -> int:
-        """
-        Creates a hash of the game state based on board positions and current player.
-
-        :param player: the colour of the player to make the current move
-        :param board: the current board state
-        :return: A unique integer hash value
-        """
-        # Convert board positions to a sorted string for consistency
-        board_str = ",".join(
-            f"{pos}:{color}" for pos, color in sorted(board.items())
-        )
-        # Include the current player to differentiate states
-        state_str = f"{board_str}|{player}"
-        # Use SHA-256 and take the first 8 bytes (64 bits) as an integer
-        hash_obj = hashlib.sha256(state_str.encode('utf-8'))
-        return int(hash_obj.hexdigest()[:16], 16)  # 64-bit hash (the hash_key)
-
+        """Computes Zobrist hash for the given board state and player."""
+        hash_value = 0
+        for pos, piece in board.items():
+            if (pos, piece) not in self.zobrist_table:
+                self.zobrist_table[(pos, piece)] = random.getrandbits(64)  # Assign dynamically
+            hash_value ^= self.zobrist_table[(pos, piece)]
+        hash_value ^= random.getrandbits(64) if player == 'w' else 0  # Differentiate players
+        return hash_value
+   
     def lookup(self, player: str, board: Dict[Tuple[int, int, int], str]) -> Optional[TranspositionEntry]:
-        """
-        Retrieves an entry from the table if it exists.
-
-        :param game_state: The game state to look up
-        :return: TranspositionEntry if found, None otherwise
-        """
-        hash_key = self.hash_game_state(player, board)
-        return self.table.get(hash_key)
+        """Retrieves an entry from the transposition table if it exists."""
+        return self.table.get(self.hash_game_state(player, board))
 
     def store(self, player: str, board: Dict[Tuple[int, int, int], str], value: float, depth: int, flag: str) -> None:
-        """
-        Stores an entry in the transposition table.
-
-        :param game_state: The game state to store
-        :param value: The heuristic value
-        :param depth: The depth at which this value was calculated
-        :param flag: 'exact', 'lower', or 'upper'
-        """
+        """Stores an entry in the transposition table with depth-based replacement policy."""
         hash_key = self.hash_game_state(player, board)
-        # Only overwrite if the new depth is greater or equal (more reliable evaluation)
         if hash_key not in self.table or depth >= self.table[hash_key].depth:
             self.table[hash_key] = TranspositionEntry(value, depth, flag)
 
     def clear(self) -> None:
         """Clears the transposition table."""
         self.table.clear()
+
