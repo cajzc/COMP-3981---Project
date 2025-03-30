@@ -93,12 +93,10 @@ def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]
     positions = [(q, r, s) for (q, r, s), color
                  in board.items()
                  if color == player_colour]
-    if not positions:
-        return 0.0
 
     mean_q = sum(q for q, r, s in positions) / len(positions)
     mean_r = sum(r for q, r, s in positions) / len(positions)
-    mean_s = -mean_q - mean_r  # Ensure q + r + s = 0 in cube coordinates
+    mean_s = -mean_q - mean_r
 
     mean_pos = (mean_q, mean_r, mean_s)
     distances = [hex_distance((q, r, s), mean_pos) for q, r, s in positions]
