@@ -60,8 +60,7 @@ def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc
     """ add the score diff to the heuristic """
     return (wdc*distance_to_center(player_colour, board)
             + wmc*marbles_coherence(player_colour, board)
-            + wsc*score_difference(player_colour, board)
-            + adjacency_score(player_colour, board))
+            + wsc*score_difference(player_colour, board))
 
 def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
     """

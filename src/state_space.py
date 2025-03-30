@@ -482,34 +482,30 @@ def apply_move_obj(board_obj: Board, move: Move) -> None:
     dq, dr, ds = DIRECTIONS[move.direction]
 
     if move.push:
+        # Process pushed opponent marbles.
+        # First, remove each opponent marble from its original position and mark that cell empty.
+        for (oq, or_, os, opp_color) in reversed(move.pushed_marbles):
+            if (oq, or_, os) in board_obj.marble_positions:
+                del board_obj.marble_positions[(oq, or_, os)]
+                board_obj.empty_positions.add((oq, or_, os))
+        # Now update pushed opponent marbles to their destination positions.
         for (oq, or_, os, opp_color) in move.pushed_marbles:
-            old_pos = (oq, or_, os)
             new_pos = (oq + dq, or_ + dr, os + ds)
-
-            # Always remove the marble once from its original position
-            if old_pos in board_obj.marble_positions:
-                del board_obj.marble_positions[old_pos]
-                board_obj.empty_positions.add(old_pos)
-
-            # Check if the new position is valid (on the board)
-            if max(abs(new_pos[0]), abs(new_pos[1]), abs(new_pos[2])) <= 4:
-                # Marble moves onto new position on the board
+            if new_pos in board_obj.empty_positions:
                 board_obj.marble_positions[new_pos] = opp_color
-                if new_pos in board_obj.empty_positions:
-                    board_obj.empty_positions.remove(new_pos)
-            # No else here needed—marble pushed off is already handled by removal above
+                board_obj.empty_positions.remove(new_pos)
+            else:
+                # Marble pushed off the board; update score if needed.
+                pass
 
-    # Move the player's marbles to the new positions
+    # Process player's marbles: first remove originals.
+    for (q, r, s, col) in reversed(move.moved_marbles):
+        if (q, r, s) in board_obj.marble_positions:
+            del board_obj.marble_positions[(q, r, s)]
+            board_obj.empty_positions.add((q, r, s))
+    # Now update them to their destination positions.
     for (q, r, s, col) in move.moved_marbles:
-        old_pos = (q, r, s)
         new_pos = (q + dq, r + dr, s + ds)
-
-        # Remove from old position
-        if old_pos in board_obj.marble_positions:
-            del board_obj.marble_positions[old_pos]
-            board_obj.empty_positions.add(old_pos)
-
-        # Place at new position
         board_obj.marble_positions[new_pos] = col
         if new_pos in board_obj.empty_positions:
             board_obj.empty_positions.remove(new_pos)
