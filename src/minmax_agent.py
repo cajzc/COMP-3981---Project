@@ -1,11 +1,11 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status
+from state_space import GameState, apply_move_dict, terminal_test, generate_move_dict, check_win, game_status, \
+    generate_move
 from transposition_tables import TranspositionTable
 from typing import List, Tuple, Dict, Set
 from moves import Move
 import  math
-import time 
-from heuristic import heuristic, c_heuristic
+import time
 from enums import Marble
 from board import Board
 import random
