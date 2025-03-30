@@ -240,7 +240,7 @@ class DebugMenu:
         Prompts the user to select a heuristic function, returning it.
         """
         while True:
-            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic(4)yz_heuristic")
+            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
                 return heuristic
