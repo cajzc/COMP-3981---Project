@@ -583,6 +583,7 @@ def get_score(board: Dict[Tuple[int, int, int], str]):
     """
     Calculates the score for both players based on the number of opponent marbles pushed off the board.
 
+    :param board: A Board object representing the initial board configuration
     :return: Dictionary with scores {'b': int, 'w': int}
     """
 
@@ -604,6 +605,7 @@ def terminal_test(board: Dict[Tuple[int, int, int], str]) -> bool:
     """
     Determines whether the terminal state has been reached: either player has won.
 
+    :param board: A Board object representing the initial board configuration
     :return: True if reached else False
     """
     return check_win(board) is not None
@@ -613,6 +615,7 @@ def check_win(board: Dict[Tuple[int, int, int], str]):
     """
     Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
         
+    :param board: A Board object representing the initial board configuration
     :return: 'b' if black wins, 'w' if white wins, None if no winner 
     """
     score = get_score(board)
@@ -630,6 +633,15 @@ def apply_move(board_obj: Board, move_str: str) -> None:
     move = parse_move_str(move_str)
     apply_move_obj(board_obj, move)
 
+def game_status(board: Dict[Tuple[int, int, int], str]) -> str:
+    """
+    Returns the status of the game as a string.
+
+    :param board: A Board object representing the initial board configuration
+    :return: a str
+    """
+    return f"Game status: {"over" if terminal_test(board) else "in progress"}\n" \
+                f"Score: {get_score(board)}"
 
 class GameState:
     """Represents the complete game state an Abalone game."""
@@ -643,49 +655,6 @@ class GameState:
         """
         self.player = player
         self.board = board
-        self.score = self.get_score()
-
-    def get_score(self):
-        """
-        Calculates the score for both players based on the number of opponent marbles pushed off the board.
-
-        :return: Dictionary with scores {'b': int, 'w': int}
-        """
-        initial_black_marbles = 14  # Standard Abalone setup
-        initial_white_marbles = 14
-
-        board_dict_values = self.board.marble_positions.values()
-
-        current_black_marbles = sum(1 for v in board_dict_values if v == Marble.BLACK.value)
-        current_white_marbles = sum(1 for v in board_dict_values if v == Marble.WHITE.value)
-
-        black_score = initial_white_marbles - current_white_marbles  # Black's score = White marbles pushed off
-        white_score = initial_black_marbles - current_black_marbles  # White's score = Black marbles pushed off
-
-        return {
-            Marble.BLACK.value: black_score,
-            Marble.WHITE.value: white_score
-        }
-
-    def terminal_test(self) -> bool:
-        """
-        Determines whether the terminal state has been reached: either player has won.
-
-        :return: True if reached else False
-        """
-        return self.check_win() is not None
-
-    def check_win(self):
-        """
-        Checks if either player has won the game by pushing 6 or more opponent marbles off the board.
-        
-        :return: 'b' if black wins, 'w' if white wins, None if no winner 
-        """
-        if self.score[Marble.BLACK.value] >= 6:
-            return Marble.BLACK.value
-        elif self.score[Marble.WHITE.value] >= 6:
-            return Marble.WHITE.value
-        return None
 
     def apply_move(self, move: Move | Tuple[int, int, int, str]):
         """
@@ -724,6 +693,7 @@ class GameState:
         new_game_state = GameState(GameState.get_next_turn_colour(self.player), new_board)
 
         return new_game_state
+
 
     def __str__(self):
         return f"Game status: {"over" if self.terminal_test() else "in progress"}\n" \
