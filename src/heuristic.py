@@ -60,7 +60,8 @@ def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc
     """ add the score diff to the heuristic """
     return (wdc*distance_to_center(player_colour, board)
             + wmc*marbles_coherence(player_colour, board)
-            + wsc*score_difference(player_colour, board))
+            + wsc*score_difference(player_colour, board)
+            + adjacency_score(player_colour, board))
 
 def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
     """
@@ -96,6 +97,35 @@ def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]
     mean_pos = positions.mean(axis=0)
     distances = np.max(np.abs(positions - mean_pos), axis=1)
     return np.mean(distances)
+
+def adjacency_score(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
+    """
+    Counts the total number of adjacent same-colored marbles for a given player.
+    For each marble, we count how many of its 6 neighboring cells are occupied by
+    another marble of the same color.
+
+    This function sums all such adjacent links across the board.
+
+    :param player_colour: 'b' or 'w'
+    :param board: Board state as a dictionary from (q, r, s) to color
+    :return: total adjacency count
+    """
+    count = 0
+    visited = set()
+
+    for (q, r, s), color in board.items():
+        if color != player_colour:
+            continue
+        for dq, dr, ds in DIRECTIONS.values():
+            neighbor = (q + dq, r + dr, s + ds)
+            if neighbor in board and board[neighbor] == player_colour:
+                # Avoid double-counting links
+                pair = tuple(sorted([(q, r, s), neighbor]))
+                if pair not in visited:
+                    visited.add(pair)
+                    count += 1
+
+    return count
 
 def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     """

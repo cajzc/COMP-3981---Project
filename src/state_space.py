@@ -495,8 +495,10 @@ def apply_move_obj(board_obj: Board, move: Move) -> None:
                 board_obj.marble_positions[new_pos] = opp_color
                 board_obj.empty_positions.remove(new_pos)
             else:
-                # Marble pushed off the board; update score if needed.
-                pass
+                # Marble pushed off the board
+                if (oq, or_, os) in board_obj.marble_positions:
+                    del board_obj.marble_positions[(oq, or_, os)]
+                # no need to add to empty_positions, it's off the board
 
     # Process player's marbles: first remove originals.
     for (q, r, s, col) in reversed(move.moved_marbles):
