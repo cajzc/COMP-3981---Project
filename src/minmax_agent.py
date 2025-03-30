@@ -142,6 +142,8 @@ class MinimaxAgent:
                         self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
                         self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
                     )
+                    if move_to_make:
+                        self.game_state.apply_move(move_to_make)
 
             self.current_move = not self.current_move # Alternate move
 
