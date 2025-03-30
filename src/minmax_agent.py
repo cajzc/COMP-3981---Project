@@ -232,16 +232,14 @@ class MinimaxAgent:
             for move in moves:
                 # Create the resulting game state
                 board = self.board.copy()
-                empty_positions = self.empty_positions.copy()
-                apply_move_dict(board, empty_positions, move)
+                apply_move_dict(board, move)
                 # result_game_state = self.game_state.deep_copy()
                 # apply_move_obj(result_game_state.board, move)
 
                 score = self.mini_max(
                     not is_player, # Switch turn
                     board,
-                    empty_positions,
-                    depth, 
+                    depth,
                     heuristic,
                     args,
                     )
@@ -252,13 +250,12 @@ class MinimaxAgent:
         return best_move
 
 
-    def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]], depth: int, heuristic, args) -> float:
+    def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], depth: int, heuristic, args) -> float:
         """
         Minimax algorithm.
 
         :param is_player: True if mini max should be ran for the player, False if it should be ran for the opponent
         :param board: the current board state as a dictionary
-        :param empty_positions: empty positions of the board
         :param depth: the depth to run the search
         :param heuristic: the heuristic function to use
         :param args: the weights
@@ -268,7 +265,6 @@ class MinimaxAgent:
             return self.max_value(
                 self.player_colour,
                 board,
-                empty_positions,
                 depth,
                 -math.inf,
                 math.inf,
@@ -279,7 +275,6 @@ class MinimaxAgent:
             return self.min_value(
                 self.opponent_colour,
                 board,
-                empty_positions,
                 depth,
                 -math.inf,
                 math.inf,
@@ -292,7 +287,6 @@ class MinimaxAgent:
             self,
             player_colour: str,
             board: Dict[Tuple[int, int, int], str],
-            empty_positions: Set[Tuple[int, int, int]],
             depth: int,
             alpha: float,
             beta: float,
@@ -304,7 +298,6 @@ class MinimaxAgent:
 
         :param player_colour: True if mini max should be ran for the player, False if it should be ran for the opponent
         :param board: the current board state as a dictionary
-        :param empty_positions: empty positions of the board
         :param depth: the depth to run the search
         :param alpha: the alpha value of the caller
         :param beta: the beta value of the caller
@@ -327,19 +320,17 @@ class MinimaxAgent:
             return value
 
         v = -math.inf
-        moves_generated = generate_move_dict(player_colour, board, empty_positions)
+        moves_generated = generate_move_dict(player_colour, board)
         for move in moves_generated:
 
             # Create the resulting game state
             board = board.copy()
-            empty_positions = empty_positions.copy()
-            apply_move_dict(board, empty_positions, move)
+            apply_move_dict(board, move)
 
 
             v = max(v, self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
                 board,
-                empty_positions,
                 depth-1,
                 -math.inf,
                 math.inf,
@@ -360,7 +351,6 @@ class MinimaxAgent:
             self,
             player_colour: str,
             board: Dict[Tuple[int, int, int], str],
-            empty_positions: Set[Tuple[int, int, int]],
             depth: int,
             alpha: float,
             beta: float,
@@ -372,7 +362,6 @@ class MinimaxAgent:
 
         :param player_colour: True if mini max should be ran for the player, False if it should be ran for the opponent
         :param board: the current board state as a dictionary
-        :param empty_positions: empty positions of the board
         :param depth: the depth to run the search
         :param alpha: the alpha value of the caller
         :param beta: the beta value of the caller
@@ -396,18 +385,16 @@ class MinimaxAgent:
 
         v = math.inf
 
-        moves_generated = generate_move_dict(player_colour, board, empty_positions)
+        moves_generated = generate_move_dict(player_colour, board)
 
         for move in moves_generated:
             # Create the resulting game state
             board = board.copy()
-            empty_positions = empty_positions.copy()
-            apply_move_dict(board, empty_positions, move)
+            apply_move_dict(board, move)
 
             v = min(v, self.max_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
                 board,
-                empty_positions,
                 depth-1,
                 alpha,
                 beta,
