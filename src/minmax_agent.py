@@ -25,7 +25,6 @@ class AgentConfiguration:
                  ai_diff_heuristic: bool,
                  ai_human: bool,
                  ai_random: bool,
-                 board_obj: Board,
                  h1,
                  h1_weights,
                  h2= None,
@@ -62,7 +61,6 @@ class AgentConfiguration:
         self.h2 = h2
         self.h1_weights = h1_weights
         self.h2_weights = h2_weights
-        self.board_obj = board_obj #FIXME: TESTING
 
 
 class MinimaxAgent:
@@ -94,7 +92,6 @@ class MinimaxAgent:
         self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
         self.config = config
         self.transposition_table = TranspositionTable()
-        self.board_obj = config.board_obj # FIXME: TESTING
 
         
     def run_game(self):
@@ -111,7 +108,7 @@ class MinimaxAgent:
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(
                     True, 
-                    generate_move_dict(self.player_colour, self.board), #FIXME: URGENT
+                    generate_move_dict(self.player_colour, self.board), 
                     self.config.h1,
                     self.config.h1_weights
                 )
@@ -123,7 +120,7 @@ class MinimaxAgent:
                     break
 
                 # Apply the move to the game state
-                apply_move_dict(self.board, move_to_make) #FIXME: URGENT
+                apply_move_dict(self.board, move_to_make) 
 
             # Opponent turn
             else:
@@ -135,12 +132,12 @@ class MinimaxAgent:
                 else:
                     move_to_make = self.iterative_deepening_search(
                         False, 
-                        generate_move_dict(self.opponent_colour, self.board), #FIXME: URGENT
+                        generate_move_dict(self.opponent_colour, self.board), 
                         self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
                         self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
                     )
                     if move_to_make:
-                        apply_move_dict(self.board, move_to_make) #FIXME: URGENT
+                        apply_move_dict(self.board, move_to_make)
 
             self.current_move = not self.current_move # Alternate move
 
@@ -160,7 +157,7 @@ class MinimaxAgent:
         if not move:
             return False
 
-        apply_move_dict(self.board, move) #FIXME: URGENT
+        apply_move_dict(self.board, move) 
         return True
 
 
@@ -179,7 +176,7 @@ class MinimaxAgent:
 
         :return: a randomly selected move for the opponent or None if there are no generated moves
         """
-        possible_opponent_moves = generate_move_dict(self.opponent_colour, self.board) #FIXME: URGENT
+        possible_opponent_moves = generate_move_dict(self.opponent_colour, self.board) 
         if len(possible_opponent_moves) == 0:
             return None
         r = random.randint(0, len(possible_opponent_moves) - 1)

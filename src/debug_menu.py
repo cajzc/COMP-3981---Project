@@ -226,7 +226,6 @@ class DebugMenu:
                     True if user_input == "2" else False, 
                     True if user_input == "3" else False,
                     True if user_input == "4" else False,
-                    board, #FIXME: TESTING
                     DebugMenu.get_heuristic("Select first heuristic:"),
                     DebugMenu._get_weights(),
                     DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
