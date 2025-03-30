@@ -323,16 +323,16 @@ class MinimaxAgent:
         for move in moves_generated:
 
             # Create the resulting game state
-            board = board.copy()
-            apply_move_dict(board, move)
+            new_board = board.copy()            #important fix from Yiming
+            apply_move_dict(new_board, move)    #important fix from Yiming
 
 
             v = max(v, self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
-                board,
+                new_board,
                 depth-1,
-                -math.inf,
-                math.inf,
+                alpha,  #important fix from Yiming
+                beta,   #important fix from Yiming
                 heuristic,
                 args
             ))
@@ -388,8 +388,8 @@ class MinimaxAgent:
 
         for move in moves_generated:
             # Create the resulting game state
-            board = board.copy()
-            apply_move_dict(board, move)
+            new_board = board.copy()
+            apply_move_dict(new_board, move)
 
             v = min(v, self.max_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
