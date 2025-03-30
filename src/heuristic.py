@@ -6,7 +6,7 @@ import numpy as np
 from typing import Dict, Tuple, Set
 import board
 from moves import DIRECTIONS
-from state_space import GameState
+from state_space import GameState, get_score
 from enums import Marble
 from itertools import combinations
 
@@ -59,15 +59,15 @@ def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc
             + wmc*marbles_coherence(player_colour, board)
             + wsc*score_difference(player_colour, board))
 
-def score_difference(game_state: GameState) -> int:
+def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
     """
     Returns the difference in score between the current player and the opponent.
 
     Positive values favor the current player, negative values favor the opponent.
     """
-    player = game_state.player
-    opponent = GameState.get_next_turn_colour(player)
-    return game_state.score[player] - game_state.score[opponent]
+    opponent_colour = GameState.get_next_turn_colour(player_colour)
+    score = get_score(board)
+    return score[player_colour] - score[opponent_colour]
 
 def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """

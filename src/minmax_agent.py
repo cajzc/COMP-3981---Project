@@ -1,5 +1,5 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict
+from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status
 from transposition_tables import TranspositionTable
 from typing import List, Tuple, Dict, Set
 from moves import Move
@@ -108,14 +108,15 @@ class MinimaxAgent:
         if self.config.h2:
             print("Heuristic 2:", self.config.h2.__name__)
             print("Weights:", self.config.h2_weights)
-
+        print("-------------")
+        input("Enter to begin")
 
     def run_random(self):
         """
         AI vs random
         Starts the game of Abalone with the model against an opponent.
         """
-        while not self.game_state.terminal_test():
+        while not terminal_test(self.game_state.board.marble_positions):
             self.game_state.board.print_board() # Debug
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
@@ -148,10 +149,10 @@ class MinimaxAgent:
 
             self.current_move = not self.current_move # Alternate move
 
-            print(self.game_state) # Debug
+            print(game_status(self.game_state.board.marble_positions)) # Debug
 
         print("Game over")
-        print(self.game_state.check_win(), "won")
+        print(check_win(self.game_state.board.marble_positions), "won")
 
 
     def run_game_heuristic(self):
@@ -159,7 +160,8 @@ class MinimaxAgent:
         Two agents using the same or different heuristic.
         Starts the game of Abalone with the model against an opponent.
         """
-        while not self.game_state.terminal_test():
+
+        while not terminal_test(self.game_state.board.marble_positions):
             self.game_state.board.print_board() # Debug
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
@@ -199,10 +201,10 @@ class MinimaxAgent:
 
             self.current_move = not self.current_move # Alternate move
 
-            print(self.game_state) # Debug
+            print(game_status(self.game_state.board.marble_positions)) # Debug
 
         print("Game over")
-        print(self.game_state.check_win(), "won")
+        print(check_win(self.game_state.board.marble_positions), "won")
 
 
     def apply_opponent_move_random(self) -> bool:
