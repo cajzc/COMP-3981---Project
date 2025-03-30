@@ -2,7 +2,7 @@
 import os
 import sys
 from enum import Enum, auto
-from typing import Tuple, Set, List
+from typing import Tuple, Set, List, Dict
 from enums import Marble
 import copy
 
@@ -272,9 +272,15 @@ class Board:
 
         return board
 
-    def print_board(self):
-        """Prints the board configuration to stdout as a hexagonal board."""
-        combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
+    @staticmethod
+    def print_board(board: Dict[Tuple[int, int, int], str], empty_positions: Set[Tuple[int, int, int]]):
+        """
+        Prints the board configuration to stdout as a hexagonal board.
+        
+        :param board: the board configuration as a Board object
+        :param empty_positions: a set of empty positions
+        """
+        combined = [(pos, board.get(pos, '.')) for pos in (set(board.keys()) | empty_positions)]
 
         # Sort first by r (descending), then by q (ascending)
         sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
@@ -310,13 +316,4 @@ class Board:
             row_str = " ".join(row_values)
             row_str = (MAX_ROW_SIZE - int(len(row_str)/2)) * " " + row_str
             print(row_str)
-
-    def deep_copy(self) -> 'Board':
-        """
-        Creates and returns a deep copy of the current board.
-        """
-        new_board = Board()
-        new_board.marble_positions = copy.deepcopy(self.marble_positions)
-        new_board.empty_positions = copy.deepcopy(self.empty_positions)
-        return new_board
 

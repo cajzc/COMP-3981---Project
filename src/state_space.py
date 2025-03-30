@@ -626,13 +626,6 @@ def check_win(board: Dict[Tuple[int, int, int], str]):
     return None
 
 
-def apply_move(board_obj: Board, move_str: str) -> None:
-    """
-    Parses move_str into a Move object and applies it to the Board object.
-    """
-    move = parse_move_str(move_str)
-    apply_move_obj(board_obj, move)
-
 def game_status(board: Dict[Tuple[int, int, int], str]) -> str:
     """
     Returns the status of the game as a string.
@@ -643,59 +636,13 @@ def game_status(board: Dict[Tuple[int, int, int], str]) -> str:
     return f"Game status: {"over" if terminal_test(board) else "in progress"}\n" \
                 f"Score: {get_score(board)}"
 
-class GameState:
-    """Represents the complete game state an Abalone game."""
 
-    def __init__(self, player: str, board: Board):
-        """
-        Initialize a new game state.
-        
-        :param player: the colour of the current turns player
-        :param board: A Board object representing the initial board configuration
-        """
-        self.player = player
-        self.board = board
+def get_next_turn_colour(player_colour: str) -> str:
+    """
+    Returns the next player to moves colour. This can be used to get the opponent's marble colour.
 
-    def apply_move(self, move: Move | Tuple[int, int, int, str]):
-        """
-        Applies a move to the GameState, updating the board and player turn.
-
-        :param move: the Move object to apply
-        """
-        if isinstance(move, Move):
-            apply_move_obj(self.board, move)
-        elif isinstance(move, Tuple):
-            pass
-        # Swap player turn
-        self.player = GameState.get_next_turn_colour(self.player)
-
-    @staticmethod
-    def get_next_turn_colour(player_colour: str) -> str:
-        """
-        Returns the next player to moves colour.
-
-        :param player_colour: the colour of the current player
-
-        :return: the next marble to move as a str "b" or "w"
-        """
-        return Marble.WHITE.value if player_colour == Marble.BLACK.value else Marble.BLACK.value
-
-    def deep_copy(self):
-        """
-        Creates and returns a deepcopy for a GameState.
-
-        :return: a new GameState object
-        """
-        # Copy the original board
-        new_board = self.board.deep_copy()
-        
-        # Create the new GameState object, with the next player turn as the current player to move
-        new_game_state = GameState(GameState.get_next_turn_colour(self.player), new_board)
-
-        return new_game_state
-
-
-    def __str__(self):
-        return f"Game status: {"over" if self.terminal_test() else "in progress"}\n" \
-                f"Score: {self.get_score()}"
+    :param player_colour: the colour of the current player
+    :return: the next marble to move as a str "b" or "w"
+    """
+    return Marble.WHITE.value if player_colour == Marble.BLACK.value else Marble.BLACK.value
 

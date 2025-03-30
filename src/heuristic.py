@@ -6,7 +6,7 @@ import numpy as np
 from typing import Dict, Tuple, Set
 import board
 from moves import DIRECTIONS
-from state_space import GameState, get_score
+from state_space import get_score, get_next_turn_colour
 from enums import Marble
 from itertools import combinations
 
@@ -65,7 +65,7 @@ def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str])
 
     Positive values favor the current player, negative values favor the opponent.
     """
-    opponent_colour = GameState.get_next_turn_colour(player_colour)
+    opponent_colour = get_next_turn_colour(player_colour)
     score = get_score(board)
     return score[player_colour] - score[opponent_colour]
 
@@ -274,273 +274,273 @@ Leave it as an optional weighted term for testing.
 # Basic Functions (Prefixed with t_)
 # ---------------------------
 
-def t_distance_to_center(game_state: GameState) -> float:
-    """
-    Evaluates the average distance of the player's marbles from the board's center.
-
-    This function applies weighted distance calculations and provides a bonus for marbles closer to the center.
-
-    :param game_state: The current state of the game
-    :return: A heuristic score where lower values indicate a better position
-    """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items()
-                 if color == game_state.player]
-
-    if not positions:
-        return 0.0
-
-    total_score = 0.0
-    center_count = 0
-    for q, r, s in positions:
-        dist = (abs(q) + abs(r) + abs(s)) / 2  # Hexagonal distance
-        weight = 1.0 / (1 + dist)  # Decay factor
-        total_score += dist * weight
-
-        # Bonus for marbles close to the center (Distance <= 2)
-        if dist <= 2:
-            center_count += 1
-
-    avg_dist = total_score / len(positions)
-    center_bonus = center_count * 0.5  # Each center-positioned marble gets a bonus
-
-    return -avg_dist + center_bonus  # Negative because a smaller distance is better
-
-
-def t_euclidean_distance(pos1: Tuple[int, int, int],
-                         pos2: Tuple[int, int, int]) -> float:
-    """
-    Computes the Euclidean distance between two points in a hexagonal coordinate system.
-
-    :param pos1: First position as a tuple (q, r, s)
-    :param pos2: Second position as a tuple (q, r, s)
-    :return: The Euclidean distance between the two positions
-    """
-    return math.sqrt(
-        (pos2[0] - pos1[0]) ** 2 +
-        (pos2[1] - pos1[1]) ** 2 +
-        (pos2[2] - pos1[2]) ** 2
-    )
-
-
-def t_marbles_coherence(game_state: GameState) -> float:
-    """
-    Measures how closely grouped the player's marbles are using a covariance-based approach.
-
-    This function calculates the trace of the covariance matrix, which represents overall dispersion,
-    and the average nearest-neighbor distance, which represents local density.
-
-    :param game_state: The current state of the game
-    :return: A heuristic score where lower values indicate better cohesion
-    """
-    positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items()
-                 if color == game_state.player]
-
-    if len(positions) < 2:
-        return 0.0
-
-    # Compute covariance matrix trace (measuring dispersion)
-    pos_array = np.array(positions)
-    cov_matrix = np.cov(pos_array, rowvar=False)
-    trace = np.trace(cov_matrix)
-
-    # Compute average nearest neighbor distance
-    distances = []
-    for i in range(len(positions)):
-        min_dist = min(
-            t_euclidean_distance(positions[i], positions[j])
-            for j in range(len(positions)) if j != i
-        )
-        distances.append(min_dist)
-
-    avg_nn_dist = np.mean(distances)
-
-    return -trace - avg_nn_dist  # Lower values indicate better grouping
-
-
-# ---------------------------
-# Danger Detection (Prefixed with t_)
-# ---------------------------
-
-def t_marbles_in_danger(board_obj, player: str) -> int:
-    """
-    Identifies marbles that are in a vulnerable position (near an edge or surrounded by opponents).
-
-    Args:
-        board_obj: The current board state.
-        player: The player whose marbles are being evaluated.
-
-    Returns:
-        The number of marbles in a dangerous position.
-    """
-    opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
-    danger_count = 0
-
-    edge_positions = {
-        (q, r, s)
-        for q in range(-4, 5)
-        for r in range(-4, 5)
-        for s in range(-4, 5)
-        if q + r + s == 0 and (abs(q) == 4 or abs(r) == 4 or abs(s) == 4)
-    }
-
-    for (q, r, s), color in board_obj.marble_positions.items():
-        if color != player:
-            continue
-
-        # Quick edge check
-        on_edge = (q, r, s) in edge_positions
-
-        # Count neighboring opponent marbles
-        opponent_neighbors = 0
-        for dq, dr, ds in DIRECTIONS.values():
-            neighbor_pos = (q + dq, r + dr, s + ds)
-            if board_obj.marble_positions.get(neighbor_pos) == opponent:
-                opponent_neighbors += 1
-                # Early termination: if danger condition is met
-                if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
-                    break
-
-        # Check danger condition
-        if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
-            danger_count += 1
-
-    return danger_count
-
-
-# ---------------------------
-# Formation Detection (Prefixed with t_)
-# ---------------------------
-
-def t_is_triangle(pos1: Tuple[int, int, int],
-                  pos2: Tuple[int, int, int],
-                  pos3: Tuple[int, int, int]) -> bool:
-    """
-    Checks if three marbles form an equilateral triangle in hexagonal space.
-    Strict Equilateral Triangle Detection (Allows 10% Tolerance)
-
-    :param pos1: First marble position
-    :param pos2: Second marble position
-    :param pos3: Third marble position
-    :return: True if the three positions form an equilateral triangle, False otherwise
-    """
-    d1 = t_euclidean_distance(pos1, pos2)
-    d2 = t_euclidean_distance(pos1, pos3)
-    d3 = t_euclidean_distance(pos2, pos3)
-
-    return (
-            math.isclose(d1, d2, rel_tol=0.1) and
-            math.isclose(d1, d3, rel_tol=0.1) and
-            math.isclose(d2, d3, rel_tol=0.1)
-    )
-
-
-def t_detect_wedge(positions: List[Tuple[int, int, int]]) -> int:
-    """
-    Detects wedge formations, where three marbles are aligned in an arrow shape suitable for pushing.
-    (Three Marbles in a Straight Line with Distance of 1)
-
-    :param positions: List of marble positions
-    :return: Number of wedge formations detected
-    """
-    wedge_count = 0
-    direction_set = set(DIRECTIONS.values())
-    for trio in combinations(positions, 3):
-        sorted_trio = sorted(trio)
-        delta1 = (
-            sorted_trio[1][0] - sorted_trio[0][0],
-            sorted_trio[1][1] - sorted_trio[0][1],
-            sorted_trio[1][2] - sorted_trio[0][2]
-        )
-        delta2 = (
-            sorted_trio[2][0] - sorted_trio[1][0],
-            sorted_trio[2][1] - sorted_trio[1][1],
-            sorted_trio[2][2] - sorted_trio[1][2]
-        )
-        if delta1 == delta2 and delta1 in direction_set:
-            wedge_count += 1
-    return wedge_count
-
-
-def t_detect_chains(positions: List[Tuple[int, int, int]],
-                    min_length=3) -> int:
-    """
-    Detects linear formations of marbles, where marbles are aligned in a straight line.
-    (Linear Alignment of at Least min_length Marbles)
-
-    :param positions: List of marble positions
-    :param min_length: Minimum number of marbles required to form a chain
-    :return: Number of chains detected
-    """
-    chain_count = 0
-    visited = set()
-    pos_set = set(positions)
-
-    for pos in positions:
-        if pos in visited:
-            continue
-        # Checking chain length in six directions
-        for direction in DIRECTIONS.values():
-            current = pos
-            current_chain = []
-            while current in pos_set:
-                current_chain.append(current)
-                current = (
-                    current[0] + direction[0],
-                    current[1] + direction[1],
-                    current[2] + direction[2]
-                )
-            if len(current_chain) >= min_length:
-                chain_count += 1
-                visited.update(current_chain)
-    return chain_count
-
-
-# ---------------------------
-# Combined Heuristic Function
-# ---------------------------
-
-def t_heuristic(
-        game_state: GameState,
-        w_center: float = 1.0,
-        w_coherence: float = 0.8,
-        w_triangle: float = 1.2,
-        w_wedge: float = 1.5,
-        w_chain: float = 0.7,
-        w_danger: float = -1.3
-) -> float:
-    """
-    Computes a comprehensive heuristic score based on multiple evaluation factors.
-
-    Factors considered include:
-    - Distance to the board center (negative weight, closer is better)
-    - Marble cohesion (negative weight, more compact formations are better)
-    - Triangle formations (positive weight, beneficial formations)
-    - Wedge formations (positive weight, suitable for offensive moves)
-    - Chain formations (positive weight, useful for defense and mobility)
-    - Danger factor (negative weight, penalty for vulnerable marbles)
-
-    :param game_state: Current state of the game
-    :param w_center: Center Distance Weight (Negative, Smaller is Better)
-    :param w_coherence: Cohesion Weight (Negative)
-    :param w_triangle: Triangle Formation Bonus
-    :param w_wedge: Wedge Formation Bonus
-    :param w_chain: Chain Formation Defense Bonus
-    :param w_danger: Danger Penalty
-    :return: Heuristic evaluation score
-    """
-    # Compute Basic Metrics
-    positions = [pos for pos, color in game_state.board.marble_positions.items()
-                 if color == game_state.player]
-
-    # Example of Dynamic Weight Adjustment (Can be Adjusted Based on Game Phase)
-    # if game_state.score[game_state.player] >= 3: # Endgame Phase - Increase Danger Penalty
-    #     w_danger *= 2
-
-    return (
-            w_center * t_distance_to_center(game_state) +
-            w_coherence * t_marbles_coherence(game_state) +
-            w_triangle * sum(1 for c in combinations(positions, 3) if t_is_triangle(*c)) +
-            w_wedge * t_detect_wedge(positions) +
-            w_chain * t_detect_chains(positions) +
-            w_danger * t_marbles_in_danger(game_state.board, game_state.player)
-    )
+# def t_distance_to_center(game_state: GameState) -> float:
+#     """
+#     Evaluates the average distance of the player's marbles from the board's center.
+#
+#     This function applies weighted distance calculations and provides a bonus for marbles closer to the center.
+#
+#     :param game_state: The current state of the game
+#     :return: A heuristic score where lower values indicate a better position
+#     """
+#     positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items()
+#                  if color == game_state.player]
+#
+#     if not positions:
+#         return 0.0
+#
+#     total_score = 0.0
+#     center_count = 0
+#     for q, r, s in positions:
+#         dist = (abs(q) + abs(r) + abs(s)) / 2  # Hexagonal distance
+#         weight = 1.0 / (1 + dist)  # Decay factor
+#         total_score += dist * weight
+#
+#         # Bonus for marbles close to the center (Distance <= 2)
+#         if dist <= 2:
+#             center_count += 1
+#
+#     avg_dist = total_score / len(positions)
+#     center_bonus = center_count * 0.5  # Each center-positioned marble gets a bonus
+#
+#     return -avg_dist + center_bonus  # Negative because a smaller distance is better
+#
+#
+# def t_euclidean_distance(pos1: Tuple[int, int, int],
+#                          pos2: Tuple[int, int, int]) -> float:
+#     """
+#     Computes the Euclidean distance between two points in a hexagonal coordinate system.
+#
+#     :param pos1: First position as a tuple (q, r, s)
+#     :param pos2: Second position as a tuple (q, r, s)
+#     :return: The Euclidean distance between the two positions
+#     """
+#     return math.sqrt(
+#         (pos2[0] - pos1[0]) ** 2 +
+#         (pos2[1] - pos1[1]) ** 2 +
+#         (pos2[2] - pos1[2]) ** 2
+#     )
+#
+#
+# def t_marbles_coherence(game_state: GameState) -> float:
+#     """
+#     Measures how closely grouped the player's marbles are using a covariance-based approach.
+#
+#     This function calculates the trace of the covariance matrix, which represents overall dispersion,
+#     and the average nearest-neighbor distance, which represents local density.
+#
+#     :param game_state: The current state of the game
+#     :return: A heuristic score where lower values indicate better cohesion
+#     """
+#     positions = [(q, r, s) for (q, r, s), color in game_state.board.marble_positions.items()
+#                  if color == game_state.player]
+#
+#     if len(positions) < 2:
+#         return 0.0
+#
+#     # Compute covariance matrix trace (measuring dispersion)
+#     pos_array = np.array(positions)
+#     cov_matrix = np.cov(pos_array, rowvar=False)
+#     trace = np.trace(cov_matrix)
+#
+#     # Compute average nearest neighbor distance
+#     distances = []
+#     for i in range(len(positions)):
+#         min_dist = min(
+#             t_euclidean_distance(positions[i], positions[j])
+#             for j in range(len(positions)) if j != i
+#         )
+#         distances.append(min_dist)
+#
+#     avg_nn_dist = np.mean(distances)
+#
+#     return -trace - avg_nn_dist  # Lower values indicate better grouping
+#
+#
+# # ---------------------------
+# # Danger Detection (Prefixed with t_)
+# # ---------------------------
+#
+# def t_marbles_in_danger(board_obj, player: str) -> int:
+#     """
+#     Identifies marbles that are in a vulnerable position (near an edge or surrounded by opponents).
+#
+#     Args:
+#         board_obj: The current board state.
+#         player: The player whose marbles are being evaluated.
+#
+#     Returns:
+#         The number of marbles in a dangerous position.
+#     """
+#     opponent = Marble.WHITE.value if player == Marble.BLACK.value else Marble.BLACK.value
+#     danger_count = 0
+#
+#     edge_positions = {
+#         (q, r, s)
+#         for q in range(-4, 5)
+#         for r in range(-4, 5)
+#         for s in range(-4, 5)
+#         if q + r + s == 0 and (abs(q) == 4 or abs(r) == 4 or abs(s) == 4)
+#     }
+#
+#     for (q, r, s), color in board_obj.marble_positions.items():
+#         if color != player:
+#             continue
+#
+#         # Quick edge check
+#         on_edge = (q, r, s) in edge_positions
+#
+#         # Count neighboring opponent marbles
+#         opponent_neighbors = 0
+#         for dq, dr, ds in DIRECTIONS.values():
+#             neighbor_pos = (q + dq, r + dr, s + ds)
+#             if board_obj.marble_positions.get(neighbor_pos) == opponent:
+#                 opponent_neighbors += 1
+#                 # Early termination: if danger condition is met
+#                 if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
+#                     break
+#
+#         # Check danger condition
+#         if opponent_neighbors >= 2 or (on_edge and opponent_neighbors >= 1):
+#             danger_count += 1
+#
+#     return danger_count
+#
+#
+# # ---------------------------
+# # Formation Detection (Prefixed with t_)
+# # ---------------------------
+#
+# def t_is_triangle(pos1: Tuple[int, int, int],
+#                   pos2: Tuple[int, int, int],
+#                   pos3: Tuple[int, int, int]) -> bool:
+#     """
+#     Checks if three marbles form an equilateral triangle in hexagonal space.
+#     Strict Equilateral Triangle Detection (Allows 10% Tolerance)
+#
+#     :param pos1: First marble position
+#     :param pos2: Second marble position
+#     :param pos3: Third marble position
+#     :return: True if the three positions form an equilateral triangle, False otherwise
+#     """
+#     d1 = t_euclidean_distance(pos1, pos2)
+#     d2 = t_euclidean_distance(pos1, pos3)
+#     d3 = t_euclidean_distance(pos2, pos3)
+#
+#     return (
+#             math.isclose(d1, d2, rel_tol=0.1) and
+#             math.isclose(d1, d3, rel_tol=0.1) and
+#             math.isclose(d2, d3, rel_tol=0.1)
+#     )
+#
+#
+# def t_detect_wedge(positions: List[Tuple[int, int, int]]) -> int:
+#     """
+#     Detects wedge formations, where three marbles are aligned in an arrow shape suitable for pushing.
+#     (Three Marbles in a Straight Line with Distance of 1)
+#
+#     :param positions: List of marble positions
+#     :return: Number of wedge formations detected
+#     """
+#     wedge_count = 0
+#     direction_set = set(DIRECTIONS.values())
+#     for trio in combinations(positions, 3):
+#         sorted_trio = sorted(trio)
+#         delta1 = (
+#             sorted_trio[1][0] - sorted_trio[0][0],
+#             sorted_trio[1][1] - sorted_trio[0][1],
+#             sorted_trio[1][2] - sorted_trio[0][2]
+#         )
+#         delta2 = (
+#             sorted_trio[2][0] - sorted_trio[1][0],
+#             sorted_trio[2][1] - sorted_trio[1][1],
+#             sorted_trio[2][2] - sorted_trio[1][2]
+#         )
+#         if delta1 == delta2 and delta1 in direction_set:
+#             wedge_count += 1
+#     return wedge_count
+#
+#
+# def t_detect_chains(positions: List[Tuple[int, int, int]],
+#                     min_length=3) -> int:
+#     """
+#     Detects linear formations of marbles, where marbles are aligned in a straight line.
+#     (Linear Alignment of at Least min_length Marbles)
+#
+#     :param positions: List of marble positions
+#     :param min_length: Minimum number of marbles required to form a chain
+#     :return: Number of chains detected
+#     """
+#     chain_count = 0
+#     visited = set()
+#     pos_set = set(positions)
+#
+#     for pos in positions:
+#         if pos in visited:
+#             continue
+#         # Checking chain length in six directions
+#         for direction in DIRECTIONS.values():
+#             current = pos
+#             current_chain = []
+#             while current in pos_set:
+#                 current_chain.append(current)
+#                 current = (
+#                     current[0] + direction[0],
+#                     current[1] + direction[1],
+#                     current[2] + direction[2]
+#                 )
+#             if len(current_chain) >= min_length:
+#                 chain_count += 1
+#                 visited.update(current_chain)
+#     return chain_count
+#
+#
+# # ---------------------------
+# # Combined Heuristic Function
+# # ---------------------------
+#
+# def t_heuristic(
+#         game_state: GameState,
+#         w_center: float = 1.0,
+#         w_coherence: float = 0.8,
+#         w_triangle: float = 1.2,
+#         w_wedge: float = 1.5,
+#         w_chain: float = 0.7,
+#         w_danger: float = -1.3
+# ) -> float:
+#     """
+#     Computes a comprehensive heuristic score based on multiple evaluation factors.
+#
+#     Factors considered include:
+#     - Distance to the board center (negative weight, closer is better)
+#     - Marble cohesion (negative weight, more compact formations are better)
+#     - Triangle formations (positive weight, beneficial formations)
+#     - Wedge formations (positive weight, suitable for offensive moves)
+#     - Chain formations (positive weight, useful for defense and mobility)
+#     - Danger factor (negative weight, penalty for vulnerable marbles)
+#
+#     :param game_state: Current state of the game
+#     :param w_center: Center Distance Weight (Negative, Smaller is Better)
+#     :param w_coherence: Cohesion Weight (Negative)
+#     :param w_triangle: Triangle Formation Bonus
+#     :param w_wedge: Wedge Formation Bonus
+#     :param w_chain: Chain Formation Defense Bonus
+#     :param w_danger: Danger Penalty
+#     :return: Heuristic evaluation score
+#     """
+#     # Compute Basic Metrics
+#     positions = [pos for pos, color in game_state.board.marble_positions.items()
+#                  if color == game_state.player]
+#
+#     # Example of Dynamic Weight Adjustment (Can be Adjusted Based on Game Phase)
+#     # if game_state.score[game_state.player] >= 3: # Endgame Phase - Increase Danger Penalty
+#     #     w_danger *= 2
+#
+#     return (
+#             w_center * t_distance_to_center(game_state) +
+#             w_coherence * t_marbles_coherence(game_state) +
+#             w_triangle * sum(1 for c in combinations(positions, 3) if t_is_triangle(*c)) +
+#             w_wedge * t_detect_wedge(positions) +
+#             w_chain * t_detect_chains(positions) +
+#             w_danger * t_marbles_in_danger(game_state.board, game_state.player)
+#     )

@@ -1,6 +1,5 @@
 import hashlib
 from typing import Dict, Tuple, Optional
-from state_space import GameState
 
 class TranspositionEntry:
     """Represents an entry in the transposition table."""

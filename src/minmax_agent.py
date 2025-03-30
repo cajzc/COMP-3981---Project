@@ -1,5 +1,6 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status
+from numpy import empty
+from state_space import apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status, get_next_turn_colour
 from transposition_tables import TranspositionTable
 from typing import List, Tuple, Dict, Set
 from moves import Move
@@ -87,14 +88,14 @@ class MinimaxAgent:
         :param depth:  maximum search depth (default: 3)
         :param weights: heuristic component weights as a dict 
         """
-        self.board = board
         self.board_dict = board.marble_positions
         self.player_colour = player_colour.value
         self.time_limit = time_limit
         self.depth = depth
-        self.game_state = GameState(self.player_colour, board)
+        self.board = board.marble_positions
+        self.empty_positions = board.empty_positions
         self.current_move = True if self.player_colour == Marble.BLACK.value else False
-        self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
+        self.opponent_colour = get_next_turn_colour(self.player_colour)
         self.config = config
         self.transposition_table = TranspositionTable()
 
@@ -104,8 +105,8 @@ class MinimaxAgent:
         Starts the game of Abalone with the model against an opponent.
         """
         self._display_agent_configuration()
-        while not terminal_test(self.game_state.board.marble_positions):
-            self.game_state.board.print_board() # Debug
+        while not (terminal_test(self.board)):
+            Board.print_board(self.board, self.empty_positions) # Debug
             if self.current_move: # Player turn
                 print("\nPlayer Turn\n")
 
@@ -113,7 +114,7 @@ class MinimaxAgent:
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(
                     True, 
-                    generate_move(self.player_colour, self.game_state.board),
+                    generate_move_dict(self.player_colour, self.board, self.empty_positions),
                     self.config.h1,
                     self.config.h1_weights
                 )
@@ -125,7 +126,7 @@ class MinimaxAgent:
                     break
 
                 # Apply the move to the game state
-                self.game_state.apply_move(move_to_make)
+                apply_move_dict(self.board, self.empty_positions, move_to_make)
 
             # Opponent turn
             else:
@@ -138,19 +139,19 @@ class MinimaxAgent:
                 else:
                     move_to_make = self.iterative_deepening_search(
                         False, 
-                        generate_move(self.opponent_colour, self.game_state.board),
+                        generate_move_dict(self.opponent_colour, self.board, self.empty_positions),
                         self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
                         self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
                     )
                     if move_to_make:
-                        self.game_state.apply_move(move_to_make)
+                        apply_move_dict(self.board, self.empty_positions, move_to_make)
 
             self.current_move = not self.current_move # Alternate move
 
-            print(game_status(self.game_state.board.marble_positions)) # Debug
+            print(game_status(self.board)) # Debug
 
         print("Game over")
-        print(check_win(self.game_state.board.marble_positions), "won")
+        print(check_win(self.board), "won")
 
 
     def apply_opponent_move_random(self) -> bool:
@@ -162,7 +163,7 @@ class MinimaxAgent:
         move = self._get_opponent_move_random()
         if not move:
             return False
-        self.game_state.apply_move(move)
+        apply_move_dict(self.board, self.empty_positions, move)
         return True
 
 
@@ -171,7 +172,7 @@ class MinimaxAgent:
     def apply_opponent_move_input(self):
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
-        self.game_state.apply_move(move)
+        #apply_move_dict(self.board, self.empty_positions, move)
 
     
     def _get_opponent_move_random(self) -> Move | None:
@@ -180,7 +181,7 @@ class MinimaxAgent:
 
         :return: a randomly selected move for the opponent or None if there are no generated moves
         """
-        possible_opponent_moves = generate_move(self.opponent_colour, self.game_state.board)
+        possible_opponent_moves = generate_move_dict(self.opponent_colour, self.board, self.empty_positions)
         if len(possible_opponent_moves) == 0:
             return None
         r = random.randint(0, len(possible_opponent_moves) - 1)
@@ -230,8 +231,8 @@ class MinimaxAgent:
             # Visit every node (move)
             for move in moves:
                 # Create the resulting game state
-                board = self.game_state.board.marble_positions.copy()
-                empty_positions = self.game_state.board.empty_positions.copy()
+                board = self.board.copy()
+                empty_positions = self.empty_positions.copy()
                 apply_move_dict(board, empty_positions, move)
                 # result_game_state = self.game_state.deep_copy()
                 # apply_move_obj(result_game_state.board, move)
