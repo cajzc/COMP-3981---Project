@@ -1,9 +1,12 @@
 import math
-from typing import Dict, Tuple, Set, List
+from typing import Dict, Tuple, Set, List, Any
 
 import numpy as np
 
 from typing import Dict, Tuple, Set
+
+from numpy import floating
+
 import board
 from moves import DIRECTIONS
 from state_space import GameState, get_score
@@ -69,20 +72,19 @@ def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str])
     score = get_score(board)
     return score[player_colour] - score[opponent_colour]
 
-def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
+def distance_to_center(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> floating[Any]:
     """
     Calculate the average hex grid distance from the center (0,0,0) for the player's marbles.
 
     The hex grid distance for a position (q, r, s) from center is ( |q| + |r| + |s| ) / 2.
     """
-    positions = [(q, r, s) for (q, r, s), color in board.items() if color ==
-                 player_colour]
-    distances = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions]
-    return sum(distances) / len(distances)
+    positions = np.array([(q, r, s) for (q, r, s), color in board.items() if color == player_colour])
+    distances = np.sum(np.abs(positions), axis=1) / 2
+    return np.mean(distances)
 
 def hex_distance(p1,p2):
     """helper method to calculate the steps between two marbles"""
-    return max(abs(p1[0] - p2[0]), abs(p1[1] - p2[1]), abs(p1[2] - p2[2]))
+    return np.max(np.abs(p1 - p2), axis=1)
 
 def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> float:
     """
@@ -90,20 +92,10 @@ def marbles_coherence(player_colour: str, board: Dict[Tuple[int, int, int], str]
 
     This provides a measure of how spread out the marbles are from their mean position.
     """
-    positions = [(q, r, s) for (q, r, s), color
-                 in board.items()
-                 if color == player_colour]
-    if not positions:
-        return 0.0
-
-    mean_q = sum(q for q, r, s in positions) / len(positions)
-    mean_r = sum(r for q, r, s in positions) / len(positions)
-    mean_s = -mean_q - mean_r  # Ensure q + r + s = 0 in cube coordinates
-
-    mean_pos = (mean_q, mean_r, mean_s)
-    distances = [hex_distance((q, r, s), mean_pos) for q, r, s in positions]
-
-    return sum(distances) / len(distances)
+    positions = np.array([(q, r, s) for (q, r, s), color in board.items() if color == player_colour])
+    mean_pos = positions.mean(axis=0)
+    distances = np.max(np.abs(positions - mean_pos), axis=1)
+    return np.mean(distances)
 
 def euclidean_distance(pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]):
     """
