@@ -6,11 +6,26 @@ showCoord = true;
 showName = true;
 
 //Where all of the rows are stored.
-var rows = [array_create(5), array_create(6), array_create(7), array_create(8), array_create(9),
+rows = [array_create(5), array_create(6), array_create(7), array_create(8), array_create(9),
 			array_create(8), array_create(7), array_create(6), array_create(5)];
+			
+moveHistory = ds_list_create();
+
+enum rowLetters
+{
+	I,
+	H,
+	G,
+	F,
+	E,
+	D,
+	C,
+	B,
+	A
+}
 
 //Programmatically creates spaces to fill each row
-createRow = function createBoardRow(array, row, start_q, start_r, start_s, start_num){
+createRow = function(array, row, start_q, start_r, start_s, start_num){
 	/// @arg {array} the row to generate
 	/// @arg {row} the letter label given to this row
 	/// @arg {start_q} starting q coordinate
@@ -29,7 +44,7 @@ createRow = function createBoardRow(array, row, start_q, start_r, start_s, start
 	}
 }
 
-placeSpaces = function positionSpaces(array, start_x, start_y, padding){
+placeSpaces = function(array, start_x, start_y, padding){
 	/// @arg {array} the row to reposition
 	/// @arg {start_x} starting x coordinate, relative to the board
 	/// @arg {start_y} starting y coordinate, relative to the board
@@ -70,3 +85,72 @@ placeSpaces(rows[7], x + sprite_width * 4/20, y + sprite_height * 15/19, 1/3)
 
 createRow(rows[8], "A", -4, 4, 0, 1)
 placeSpaces(rows[8], x + sprite_width * 5/20, y + sprite_height * 17/19, 1/3)
+
+updateBoard = function(boardString){
+	drawBoard(boardString);
+	
+	//Add this board state to the move history.
+	ds_list_add(moveHistory, boardString);
+	turnCount++;
+}
+
+drawBoard = function(boardString) {
+	//Clean up the board first
+	clearBoard(rows)
+	//Use the comma as a delimiter to split the string up.
+	var spaceList = string_split(boardString, ",");
+	
+	for (var i = 0; i < array_length(spaceList); i++) {
+		//Make sure each move unit is at least 3 characters.
+		if(string_length(spaceList[i]) >= 3) {
+			//Get the space that is being modified.
+			var currentSpace = string_copy(spaceList[i], 1, 2);
+			var marbleColor = string_copy(spaceList[i], 3, 1);
+			
+			//Separate the row letter from the number to lookup the row.
+			var currentRow = rows[RowLookup(string_copy(currentSpace, 1, 1))];
+			
+			//Search for the correct space
+			for(var j = 0; j < array_length(currentRow); j++){
+				if(currentSpace == currentRow[j].name) {
+					//Create a marble at that space.
+					with(currentRow[j]) {
+						marble = instance_create_layer(x + sprite_width / 20 ,y + sprite_height / 20,"Marbles", Marble);
+						marble.colour = marbleColor;
+						marble.changeCoordinate(q,r,s);
+						marble.space = self;
+					}
+					//exit the inner loop.
+					break;
+				}
+			}
+		}
+	}	
+}
+
+clearBoard = function(rows) {
+	for(var i = 0; i < array_length(rows); i++) {
+		for(var j = 0; j < array_length(rows[i]); j++) {
+			instance_destroy(rows[i][j].marble);
+		}
+	}
+}
+
+saveBoardState = function() {
+	var boardState = "";
+	for(var i = 0; i < array_length(rows); i++) {
+		for(var j = 0; j < array_length(rows[i]); j++) {
+			if(rows[i][j].marble != noone) {
+				var currentSpace = rows[i][j];
+				//Create an entry for every space with a marble.
+				boardState = string_concat(boardState, currentSpace.name, currentSpace.marble.colour, ",");
+			}
+		}
+	}
+	//Remove the last trailing comma.
+	boardState = string_delete(boardState, string_length(boardState), 1);
+	
+	ds_list_add(moveHistory, boardState);
+	turnCount++;
+	show_debug_message(boardState);
+}

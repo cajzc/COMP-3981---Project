@@ -17,11 +17,18 @@
     {"name":"Timelines","order":8,"path":"folders/Timelines.yy",},
   ],
   "ResourceOrderSettings":[
+    {"name":"Gamemaster","order":4,"path":"objects/Gamemaster/Gamemaster.yy",},
     {"name":"Marble","order":2,"path":"objects/Marble/Marble.yy",},
+    {"name":"MoveReader","order":5,"path":"objects/MoveReader/MoveReader.yy",},
+    {"name":"SaveBoardState","order":7,"path":"objects/SaveBoardState/SaveBoardState.yy",},
     {"name":"Selector","order":3,"path":"objects/Selector/Selector.yy",},
     {"name":"Space","order":1,"path":"objects/Space/Space.yy",},
+    {"name":"Undo","order":8,"path":"objects/Undo/Undo.yy",},
     {"name":"BoardSpace","order":1,"path":"sprites/BoardSpace/BoardSpace.yy",},
     {"name":"MarbleBlackSprite","order":3,"path":"sprites/MarbleBlackSprite/MarbleBlackSprite.yy",},
     {"name":"MarbleWhiteSprite","order":2,"path":"sprites/MarbleWhiteSprite/MarbleWhiteSprite.yy",},
+    {"name":"NextTurnSprite","order":4,"path":"sprites/NextTurnSprite/NextTurnSprite.yy",},
+    {"name":"SaveBoardSprite","order":5,"path":"sprites/SaveBoardSprite/SaveBoardSprite.yy",},
+    {"name":"UndoSprite","order":6,"path":"sprites/UndoSprite/UndoSprite.yy",},
   ],
 }
