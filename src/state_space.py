@@ -521,8 +521,8 @@ def get_score(board: Dict[Tuple[int, int, int], str]):
 
     board_dict_values = board.values()
 
-    current_black_marbles = sum(1 for v in board_dict_values if v == Marble.BLACK.value)
-    current_white_marbles = sum(1 for v in board_dict_values if v == Marble.WHITE.value)
+    current_black_marbles = sum(1 for v in board_dict_values if v == "b")
+    current_white_marbles = sum(1 for v in board_dict_values if v == "w")
 
     black_score = INITIAL_WHITE_MARBLES - current_white_marbles  # Black's score = White marbles pushed off
     white_score = INITIAL_BLACK_MARBLES - current_black_marbles  # White's score = Black marbles pushed off

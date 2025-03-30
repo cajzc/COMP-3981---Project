@@ -2,9 +2,10 @@
 import os
 import sys
 from enum import Enum, auto
-from typing import Tuple, Set, List
+from typing import Tuple, Set, List, Dict
 from enums import Marble
 import copy
+from collections import defaultdict
 
 
 class BoardConfiguration(Enum):
@@ -272,9 +273,31 @@ class Board:
 
         return board
 
-    def print_board(self):
-        """Prints the board configuration to stdout as a hexagonal board."""
-        combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
+    @staticmethod
+    def generate_full_board(board):
+        keys = board.keys()
+        empty_positions = {
+                (q, r, s)
+                for q in range(-4, 5)
+                for r in range(-4, 5)
+                for s in range(-4, 5)
+                if q + r + s == 0 and (q, r, s) not in keys
+            }
+
+        return empty_positions 
+
+    @staticmethod
+    def print_board(board: Dict[Tuple[int, int, int], str]):
+        """
+        Prints the board configuration to stdout as a hexagonal board.
+
+        :param board: the board as a dictionary
+        :param empty_positions: remaining empty positions on the board
+        """
+
+
+        empty_positions = Board.generate_full_board(board)
+        combined = [(pos, board.get(pos, '.')) for pos in (set(board.keys()) | empty_positions)]
 
         # Sort first by r (descending), then by q (ascending)
         sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
@@ -284,10 +307,6 @@ class Board:
         MAX_ROW_SIZE = 17
         row_str = ""
 
-        """
-             . . . # 3
-        . . . . . . . # 7
-        """
         for (_, r, _), val in sorted_combined:
             if r != current_r:
             # Print previous row before moving to the next one
@@ -311,6 +330,14 @@ class Board:
             row_str = (MAX_ROW_SIZE - int(len(row_str)/2)) * " " + row_str
             print(row_str)
 
+
+
+
+
+
+
+        
+       
     def deep_copy(self) -> 'Board':
         """
         Creates and returns a deep copy of the current board.

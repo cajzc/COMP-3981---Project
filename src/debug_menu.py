@@ -58,13 +58,7 @@ class DebugMenu:
         config= DebugMenu.get_game_configuration()
         print()
 
-        agent = MinimaxAgent(
-            config.board,
-            config.player_colour,
-            config,
-            config.time_limit,
-            config.depth,
-        ) 
+        agent = MinimaxAgent(config) 
         if config.ai_human:
             print("Not yet implemented")
             return
@@ -224,13 +218,15 @@ class DebugMenu:
             if user_input in ["1", "2", "3", "4"]:
                 return AgentConfiguration(
                     player_colour,
-                    board,
+                    board.marble_positions,
+                    board.empty_positions,
                     depth,
                     time_limit,
                     True if user_input == "1" else False,
-                    True if user_input == "2" else False, # FIXME:
+                    True if user_input == "2" else False, 
                     True if user_input == "3" else False,
                     True if user_input == "4" else False,
+                    board, #FIXME: TESTING
                     DebugMenu.get_heuristic("Select first heuristic:"),
                     DebugMenu._get_weights(),
                     DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
