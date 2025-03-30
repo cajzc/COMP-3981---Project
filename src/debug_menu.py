@@ -37,7 +37,7 @@ class DebugMenu:
                 "(1) Run model\n"
                 "(2) Generate boards from .input file(s)\n"
                 "(3) Check if .board files are equal\n"
-                "(4) Exit\n"
+                "(4) Exit"
             )
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
@@ -56,6 +56,7 @@ class DebugMenu:
     @staticmethod
     def _run_model():
         config= DebugMenu.get_game_configuration()
+        print()
 
         agent = MinimaxAgent(
             config.board,
@@ -64,12 +65,10 @@ class DebugMenu:
             config.time_limit,
             config.depth,
         ) 
-        if config.ai_same_heuristic or config.ai_diff_heuristic:
-            agent.run_game_heuristic()
-        elif config.ai_human:
+        if config.ai_human:
             print("Not yet implemented")
-        elif config.ai_random:
-            agent.run_random()
+            return
+        agent.run_game()
 
     
     @staticmethod
@@ -84,7 +83,7 @@ class DebugMenu:
                 "Enter the board configuration\n"
                 "(1) Default\n"
                 "(2) Belgian Daisy\n"
-                "(3) German Daisy\n"
+                "(3) German Daisy"
             )
 
             user_input = input("Enter: ").strip(",.?! ")
@@ -202,10 +201,15 @@ class DebugMenu:
         - AI vs Human
         - AI vs Random
         """
+        print()
         board = DebugMenu._get_board_configuration()
+        print()
         player_colour = DebugMenu._get_player_colour()
+        print()
         time_limit = DebugMenu._get_time_limit()
+        print()
         depth = DebugMenu._get_depth()
+        print()
 
         while True:
             print(
@@ -215,6 +219,7 @@ class DebugMenu:
                 "(4) AI vs Random\n"
             )
             user_input = input("Enter the Game Mode: ").strip()
+            print()
             
             if user_input in ["1", "2", "3", "4"]:
                 return AgentConfiguration(
@@ -226,9 +231,9 @@ class DebugMenu:
                     True if user_input == "2" else False, # FIXME:
                     True if user_input == "3" else False,
                     True if user_input == "4" else False,
-                    DebugMenu.get_heuristic("Select first heuristic"),
+                    DebugMenu.get_heuristic("Select first heuristic:"),
                     DebugMenu._get_weights(),
-                    DebugMenu.get_heuristic("Select second heuristic") if user_input == "2" else None,
+                    DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
                     DebugMenu._get_weights() if user_input == "2" else None
                 )
             else:
@@ -240,7 +245,7 @@ class DebugMenu:
         Prompts the user to select a heuristic function, returning it.
         """
         while True:
-            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic")
+            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic\n")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
                 return heuristic
