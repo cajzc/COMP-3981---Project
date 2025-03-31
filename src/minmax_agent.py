@@ -209,8 +209,8 @@ class MinimaxAgent:
         self.transposition_table.clear()
         best_move = None
 
+        best_score = -math.inf
         for depth in range(1, self.depth + 1):
-            best_score = -math.inf
             current_best_move = None
 
             # Generate moves for current depth
@@ -233,7 +233,7 @@ class MinimaxAgent:
             )
 
             # 3) Keep the top 20 non-push moves
-            top_non_push = non_push_moves_sorted[:20]
+            top_non_push = non_push_moves_sorted[:10]
 
             # 4) Combine them back. This ensures *all push moves* stay in the final list.
             moves = push_moves + top_non_push
@@ -249,13 +249,13 @@ class MinimaxAgent:
                     heuristic,
                     args,
                 )
-
                 if score > best_score:
                     best_score = score
                     current_best_move = move
 
             if current_best_move is not None:
                 best_move = current_best_move
+        print("Best score:", best_score)
 
         return best_move
 

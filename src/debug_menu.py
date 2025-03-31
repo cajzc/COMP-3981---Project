@@ -118,7 +118,7 @@ class DebugMenu:
                 continue
 
     @staticmethod
-    def _get_weights() -> List[str]:
+    def _get_weights() -> list[float]:
         """
         Prompts the user to input custom weights, or use defaults if no input is provided.
 
@@ -128,10 +128,10 @@ class DebugMenu:
         default_weights = {
             'center_distance': -0.5,
             'coherence': -0.3,
-            'danger': -1.0,
-            'opponent_break': 0.8,
-            'score': 2.0,
-            'triangle_formation': 1.0
+            # 'danger': -1.0,
+            # 'opponent_break': 0.8,
+            'score': -5.0,
+            # 'triangle_formation': 1.0
         }
 
         weights = []

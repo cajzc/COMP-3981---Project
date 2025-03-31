@@ -8,22 +8,18 @@ from enums import Marble
 from itertools import combinations
 
 
-def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wsc: int) -> float:
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wsc: float) -> float:
     """ add the score diff to the heuristic """
     return (wdc*distance_to_center(player_colour, board)
             + wmc*marbles_coherence(player_colour, board)
             + wsc*score_difference(player_colour, board))
 
-def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
+def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wt: float) -> float:
     """
     Implementation for a heuristic function that uses the following evaluation functions:
     - Distance to centre
     - Marble coherence
-    - Triangular formation
-
-    :param wdc: weight for the distance to centre evaluation
-    :param wmc: weight for the marble coherence evaluation
-    :param wt: weight for the distance to triangle formation
+    - Distance to center
     """
     return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board) + wt*triangle_formation(player_colour, board)
 
@@ -43,11 +39,12 @@ def b_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc:
             + wmc*marbles_coherence(player_colour, board)
             + wes*marble_edge_safety(player_colour, board))
 
-def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wsc: int) -> float:
+def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wsc: float) -> (
+        float):
     """ add the score diff to the heuristic """
     return (wdc*distance_to_center(player_colour, board)
             + wmc*marbles_coherence(player_colour, board)
-            - wsc*score_difference(player_colour, board))
+            + wsc*score_difference(player_colour, board))
 
 def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
     """
