@@ -323,7 +323,7 @@ class MinimaxAgent:
 
             v = max(v, self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
-                board,
+                new_board,
                 depth-1,
                 alpha,  #important fix from Yiming
                 beta,   #important fix from Yiming
@@ -387,7 +387,7 @@ class MinimaxAgent:
 
             v = min(v, self.max_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
-                board,
+                new_board,
                 depth-1,
                 alpha,
                 beta,
