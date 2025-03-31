@@ -344,7 +344,8 @@ class MinimaxAgent:
                 return v
             alpha = max(alpha, v)
 
-        self.transposition_table.store(player_colour, board, v, depth, 'exact' if v > alpha else 'upper')
+        flag = 'exact' if alpha < v < beta else 'upper' #important fixing from Yiming
+        self.transposition_table.store(player_colour, board, v, depth, flag)
         return v
 
 
@@ -408,7 +409,8 @@ class MinimaxAgent:
                 return v
             beta = min(beta, v)
 
-        self.transposition_table.store(player_colour, board, v, depth, 'exact' if v < beta else 'lower')
+        flag = 'exact' if alpha < v < beta else 'lower'
+        self.transposition_table.store(player_colour, board, v, depth, flag)
 
         return v
 

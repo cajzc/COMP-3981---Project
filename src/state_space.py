@@ -44,36 +44,24 @@ def get_single_moves_dict(player: str, marble_positions: Dict[Tuple[int, int, in
 def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
                              groups: List[Tuple[str, List[Tuple[int, int, int, str]]]]) -> List[Move]:
     moves = []
-    opponent = Marble.BLACK.value if player == Marble.WHITE.value else Marble.WHITE.value
-    groups = get_moveable_groups_dict(player, board)
-
+    opponent = 'w' if player == 'b' else 'b'
     for direction, group in groups:
         dq, dr, ds = DIRECTIONS[direction]
         last = group[-1]
-        dest = (last[0] + dq, last[1] + dr, last[2] + ds)
+        next_pos = (last[0] + dq, last[1] + dr, last[2] + ds)
 
-        # Check emptiness dynamically
-        if is_empty(dest, board):
+        if is_empty(next_pos, board):
             dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
             moves.append(Move(player, direction, "inline", group, dest_positions))
-
-        elif board.get(dest) == opponent:
-            opponent_positions = [dest]
-            no_adjacent = True
-            for i in range(1, 3):
-                next_dest = (dest[0] + dq * i, dest[1] + dr * i, dest[2] + ds * i)
-                if board.get(next_dest) == opponent:
-                    opponent_positions.append(next_dest)
-                elif board.get(next_dest) == player:
-                    no_adjacent = False
-                    break
-                else:
-                    break
-
-            if len(group) > len(opponent_positions) and no_adjacent:
+        elif board.get(next_pos) == opponent:
+            opponent_positions = []
+            current_pos = next_pos
+            while board.get(current_pos) == opponent:
+                opponent_positions.append(current_pos)
+                current_pos = (current_pos[0] + dq, current_pos[1] + dr, current_pos[2] + ds)
+            if len(group) > len(opponent_positions) and is_empty(current_pos, board):
                 dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
-                moves.append(Move(player, direction, "push", group, dest_positions,
-                                  True, False,
+                moves.append(Move(player, direction, "push", group, dest_positions, True, False,
                                   [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
     return moves
 
@@ -122,25 +110,12 @@ def get_side_step_moves_dict(player: str, board: Dict[Tuple[int, int, int], str]
     using precomputed groups passed from the main move-generation function.
     """
     moves = []
-
     for inline_direction, group in groups:
         for side_direction in get_side_step_directions(inline_direction):
             dq, dr, ds = DIRECTIONS[side_direction]
-            dest_positions = [
-                (m[0] + dq, m[1] + dr, m[2] + ds, player)
-                for m in group
-            ]
+            dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
             if all(is_empty((pos[0], pos[1], pos[2]), board) for pos in dest_positions):
-                move_obj = Move(
-                    player=player,
-                    direction=side_direction,
-                    move_type="side_step",
-                    moved_marbles=group,
-                    dest_positions=dest_positions,
-                    push=False
-                )
-                moves.append(move_obj)
-
+                moves.append(Move(player, side_direction, "side_step", group, dest_positions))
     return moves
 
 
