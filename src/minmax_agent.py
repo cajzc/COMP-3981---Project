@@ -1,11 +1,10 @@
 """ this agent will use all the modules to generate a best move"""
 from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status
 from transposition_tables import TranspositionTable
-from typing import List, Tuple, Dict, Set
+from typing import Tuple, Dict, List
 from moves import Move
 import  math
-import time 
-from heuristic import heuristic, c_heuristic
+import time
 from enums import Marble
 from board import Board
 import random
@@ -112,8 +111,7 @@ class MinimaxAgent:
                 s = time.time() # Debug
                 # Get the next move 
                 move_to_make = self.iterative_deepening_search(
-                    True, 
-                    generate_move(self.player_colour, self.game_state.board),
+                    True,
                     self.config.h1,
                     self.config.h1_weights
                 )
@@ -137,8 +135,7 @@ class MinimaxAgent:
                         break
                 else:
                     move_to_make = self.iterative_deepening_search(
-                        False, 
-                        generate_move(self.opponent_colour, self.game_state.board),
+                        False,
                         self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
                         self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
                     )
@@ -208,43 +205,57 @@ class MinimaxAgent:
             else:
                 return opponent_move
 
-
-    def iterative_deepening_search(self, is_player: bool, moves: List[Move], heuristic, args) -> Move | None:
-        """
-        Runs an iterative deepening search using the mini-max algorithm
-        with a heuristic function to determine the best move to take
-        for the agent, returning the best move for the agent to take.
-
-        :param is_player: True if mini max should be ran for the player, False if it should be ran for the opponent
-        :param moves: a List of the moves to run iterative deepening and mini max on
-        :param heuristic: the heuristic function to use
-        :param args: the weights of the heuristic
-        :return: the move for the agent to take as a Move object
-        """
+    def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
         self.transposition_table.clear()
         best_move = None
-        best_score = -math.inf
-        
-        # Iterative search
-        for depth in range(1, self.depth + 1): 
-            # Visit every node (move)
+
+        for depth in range(1, self.depth + 1):
+            best_score = -math.inf
+            current_best_move = None
+
+            # Generate moves for current depth
+            moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
+
+            # 1) Separate pushes from non-pushes
+            push_moves = [mv for mv in moves if mv.push]
+            non_push_moves = [mv for mv in moves if not mv.push]
+
+            # 2) Sort the non-push moves by your quick heuristic
+            non_push_moves_sorted = sorted(
+                non_push_moves,
+                key=lambda m: self.quick_heuristic_eval(
+                    m,
+                    self.player_colour if is_player else self.opponent_colour,
+                    heuristic,
+                    args
+                ),
+                reverse=True
+            )
+
+            # 3) Keep the top 20 non-push moves
+            top_non_push = non_push_moves_sorted[:20]
+
+            # 4) Combine them back. This ensures *all push moves* stay in the final list.
+            moves = push_moves + top_non_push
+
             for move in moves:
-                # Create the resulting game state
-                board = self.game_state.board.marble_positions.copy()
-                apply_move_dict(board, move)
-                # result_game_state = self.game_state.deep_copy()
-                # apply_move_obj(result_game_state.board, move)
+                new_board = self.board.copy()
+                apply_move_dict(new_board, move)
 
                 score = self.mini_max(
-                    not is_player, # Switch turn
-                    board,
+                    not is_player,
+                    new_board,
                     depth,
                     heuristic,
                     args,
-                    )
+                )
+
                 if score > best_score:
                     best_score = score
-                    best_move = move
+                    current_best_move = move
+
+            if current_best_move is not None:
+                best_move = current_best_move
 
         return best_move
 
@@ -321,11 +332,9 @@ class MinimaxAgent:
         v = -math.inf
         moves_generated = generate_move_dict(player_colour, board)
         for move in moves_generated:
-
             # Create the resulting game state
             new_board = board.copy()
             apply_move_dict(new_board, move)
-
 
             v = max(v, self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
@@ -342,9 +351,9 @@ class MinimaxAgent:
                 return v
             alpha = max(alpha, v)
 
-        self.transposition_table.store(player_colour, board, v, depth, 'exact' if v > alpha else 'upper')
+        flag = 'exact' if alpha < v < beta else 'upper' #important fixing from Yiming
+        self.transposition_table.store(player_colour, board, v, depth, flag)
         return v
-
 
     def min_value(
             self,
@@ -406,9 +415,18 @@ class MinimaxAgent:
                 return v
             beta = min(beta, v)
 
-        self.transposition_table.store(player_colour, board, v, depth, 'exact' if v < beta else 'lower')
+        flag = 'exact' if alpha < v < beta else 'lower'
+        self.transposition_table.store(player_colour, board, v, depth, flag)
 
         return v
+
+    def quick_heuristic_eval(self, move: Move, player_colour: str, heuristic, args):
+        """
+        Quickly evaluates a move using the heuristic without recursion.
+        """
+        temp_board = self.board.copy()
+        apply_move_dict(temp_board, move)
+        return heuristic(player_colour, temp_board, *args)
 
     def _display_agent_configuration(self):
         """

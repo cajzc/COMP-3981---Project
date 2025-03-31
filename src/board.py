@@ -320,3 +320,7 @@ class Board:
         new_board.empty_positions = copy.deepcopy(self.empty_positions)
         return new_board
 
+    def copy(self):
+        new_board = self.marble_positions.copy()
+        return new_board
+

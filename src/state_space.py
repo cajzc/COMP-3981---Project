@@ -42,39 +42,46 @@ def get_single_moves_dict(player: str, marble_positions: Dict[Tuple[int, int, in
     return moves
 
 def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
-                             groups: List[Tuple[str, List[Tuple[int, int, int, str]]]]) -> List[Move]:
+                          groups: List[Tuple[str, List[Tuple[int, int, int, str]]]]) -> List[Move]:
     moves = []
-    opponent = Marble.BLACK.value if player == Marble.WHITE.value else Marble.WHITE.value
-    groups = get_moveable_groups_dict(player, board)
+    opponent = 'w' if player == 'b' else 'b'
 
     for direction, group in groups:
         dq, dr, ds = DIRECTIONS[direction]
-        last = group[-1]
-        dest = (last[0] + dq, last[1] + dr, last[2] + ds)
+        next_pos = (group[-1][0] + dq, group[-1][1] + dr, group[-1][2] + ds)
 
-        # Check emptiness dynamically
-        if is_empty(dest, board):
+        # Early pruning Rule 1: Off-board or own marble ahead
+        if not is_empty(next_pos, board) and board.get(next_pos) != opponent:
+            continue  # prune immediately
+
+        # Empty next position: valid inline move, no further checks needed
+        if is_empty(next_pos, board):
             dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
             moves.append(Move(player, direction, "inline", group, dest_positions))
+            continue
 
-        elif board.get(dest) == opponent:
-            opponent_positions = [dest]
-            no_adjacent = True
-            for i in range(1, 3):
-                next_dest = (dest[0] + dq * i, dest[1] + dr * i, dest[2] + ds * i)
-                if board.get(next_dest) == opponent:
-                    opponent_positions.append(next_dest)
-                elif board.get(next_dest) == player:
-                    no_adjacent = False
-                    break
-                else:
-                    break
+        # Potential push move: opponent marble immediately ahead
+        opponent_positions = []
+        current = next_pos
 
-            if len(group) > len(opponent_positions) and no_adjacent:
-                dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
-                moves.append(Move(player, direction, "push", group, dest_positions,
-                                  True, False,
-                                  [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
+        # Early pruning Rule 2: Quickly evaluate if pushing is impossible
+        for _ in range(len(group)):
+            if board.get(current) == opponent:
+                opponent_positions.append(current)
+                current = (current[0] + dq, current[1] + dr, current[2] + ds)
+            else:
+                break
+
+        # Clearly prune if push is not valid
+        if len(opponent_positions) >= len(group) or board.get(current) == player:
+            continue  # prune invalid push
+
+        # Valid push move found
+        dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+        moves.append(Move(player, direction, "push", group, dest_positions,
+                          True, False,
+                          [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
+
     return moves
 
 

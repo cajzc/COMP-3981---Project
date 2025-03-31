@@ -1,28 +1,18 @@
 import math
-from typing import Dict, Tuple, Set, List
-
+from typing import List
 import numpy as np
-
-from typing import Dict, Tuple, Set
-import board
+from typing import Dict, Tuple
 from moves import DIRECTIONS
 from state_space import GameState, get_score
 from enums import Marble
 from itertools import combinations
 
 
-def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int ) -> float:
-    """
-    Implementation for a heuristic function that uses the following evaluation functions:
-    - Distance to centre
-    - Marble coherence
-    - Triangular formation
-
-    :param wdc: weight for the distance to centre evaluation
-    :param wmc: weight for the marble coherence evaluation
-    """
-    return wdc*distance_to_center(player_colour, board) + wmc*marbles_coherence(player_colour, board)
-
+def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wsc: int) -> float:
+    """ add the score diff to the heuristic """
+    return (wdc*distance_to_center(player_colour, board)
+            + wmc*marbles_coherence(player_colour, board)
+            + wsc*score_difference(player_colour, board))
 
 def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: int, wmc: int, wt: int) -> float:
     """
@@ -57,7 +47,7 @@ def yz_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc
     """ add the score diff to the heuristic """
     return (wdc*distance_to_center(player_colour, board)
             + wmc*marbles_coherence(player_colour, board)
-            + wsc*score_difference(player_colour, board))
+            - wsc*score_difference(player_colour, board))
 
 def score_difference(player_colour: str, board: Dict[Tuple[int, int, int], str]) -> int:
     """
