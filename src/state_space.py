@@ -42,27 +42,46 @@ def get_single_moves_dict(player: str, marble_positions: Dict[Tuple[int, int, in
     return moves
 
 def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
-                             groups: List[Tuple[str, List[Tuple[int, int, int, str]]]]) -> List[Move]:
+                          groups: List[Tuple[str, List[Tuple[int, int, int, str]]]]) -> List[Move]:
     moves = []
     opponent = 'w' if player == 'b' else 'b'
+
     for direction, group in groups:
         dq, dr, ds = DIRECTIONS[direction]
-        last = group[-1]
-        next_pos = (last[0] + dq, last[1] + dr, last[2] + ds)
+        next_pos = (group[-1][0] + dq, group[-1][1] + dr, group[-1][2] + ds)
 
+        # Early pruning Rule 1: Off-board or own marble ahead
+        if not is_empty(next_pos, board) and board.get(next_pos) != opponent:
+            continue  # prune immediately
+
+        # Empty next position: valid inline move, no further checks needed
         if is_empty(next_pos, board):
             dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
             moves.append(Move(player, direction, "inline", group, dest_positions))
-        elif board.get(next_pos) == opponent:
-            opponent_positions = []
-            current_pos = next_pos
-            while board.get(current_pos) == opponent:
-                opponent_positions.append(current_pos)
-                current_pos = (current_pos[0] + dq, current_pos[1] + dr, current_pos[2] + ds)
-            if len(group) > len(opponent_positions) and is_empty(current_pos, board):
-                dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
-                moves.append(Move(player, direction, "push", group, dest_positions, True, False,
-                                  [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
+            continue
+
+        # Potential push move: opponent marble immediately ahead
+        opponent_positions = []
+        current = next_pos
+
+        # Early pruning Rule 2: Quickly evaluate if pushing is impossible
+        for _ in range(len(group)):
+            if board.get(current) == opponent:
+                opponent_positions.append(current)
+                current = (current[0] + dq, current[1] + dr, current[2] + ds)
+            else:
+                break
+
+        # Clearly prune if push is not valid
+        if len(opponent_positions) >= len(group) or board.get(current) == player:
+            continue  # prune invalid push
+
+        # Valid push move found
+        dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+        moves.append(Move(player, direction, "push", group, dest_positions,
+                          True, False,
+                          [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
+
     return moves
 
 
@@ -110,12 +129,25 @@ def get_side_step_moves_dict(player: str, board: Dict[Tuple[int, int, int], str]
     using precomputed groups passed from the main move-generation function.
     """
     moves = []
+
     for inline_direction, group in groups:
         for side_direction in get_side_step_directions(inline_direction):
             dq, dr, ds = DIRECTIONS[side_direction]
-            dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
+            dest_positions = [
+                (m[0] + dq, m[1] + dr, m[2] + ds, player)
+                for m in group
+            ]
             if all(is_empty((pos[0], pos[1], pos[2]), board) for pos in dest_positions):
-                moves.append(Move(player, side_direction, "side_step", group, dest_positions))
+                move_obj = Move(
+                    player=player,
+                    direction=side_direction,
+                    move_type="side_step",
+                    moved_marbles=group,
+                    dest_positions=dest_positions,
+                    push=False
+                )
+                moves.append(move_obj)
+
     return moves
 
 
@@ -496,8 +528,8 @@ def get_score(board: Dict[Tuple[int, int, int], str]):
 
     board_dict_values = board.values()
 
-    current_black_marbles = sum(1 for v in board_dict_values if v == "b")
-    current_white_marbles = sum(1 for v in board_dict_values if v == "w")
+    current_black_marbles = sum(1 for v in board_dict_values if v == Marble.BLACK.value)
+    current_white_marbles = sum(1 for v in board_dict_values if v == Marble.WHITE.value)
 
     black_score = INITIAL_WHITE_MARBLES - current_white_marbles  # Black's score = White marbles pushed off
     white_score = INITIAL_BLACK_MARBLES - current_black_marbles  # White's score = Black marbles pushed off
@@ -550,12 +582,59 @@ def game_status(board: Dict[Tuple[int, int, int], str]) -> str:
     return f"Game status: {"over" if terminal_test(board) else "in progress"}\n" \
                 f"Score: {get_score(board)}"
 
-def get_next_turn_colour(player_colour: str) -> str:
-    """
-    Returns the next player to moves colour.
+class GameState:
+    """Represents the complete game state an Abalone game."""
 
-    :param player_colour: the colour of the current player
-    :return: the next marble to move as a str "b" or "w"
-    """
-    return Marble.WHITE.value if player_colour == Marble.BLACK.value else Marble.BLACK.value
+    def __init__(self, player: str, board: Board):
+        """
+        Initialize a new game state.
+        
+        :param player: the colour of the current turns player
+        :param board: A Board object representing the initial board configuration
+        """
+        self.player = player
+        self.board = board
+
+    def apply_move(self, move: Move | Tuple[int, int, int, str]):
+        """
+        Applies a move to the GameState, updating the board and player turn.
+
+        :param move: the Move object to apply
+        """
+        if isinstance(move, Move):
+            apply_move_obj(self.board, move)
+        elif isinstance(move, Tuple):
+            pass
+        # Swap player turn
+        self.player = GameState.get_next_turn_colour(self.player)
+
+    @staticmethod
+    def get_next_turn_colour(player_colour: str) -> str:
+        """
+        Returns the next player to moves colour.
+
+        :param player_colour: the colour of the current player
+
+        :return: the next marble to move as a str "b" or "w"
+        """
+        return Marble.WHITE.value if player_colour == Marble.BLACK.value else Marble.BLACK.value
+
+    def deep_copy(self):
+        """
+        Creates and returns a deepcopy for a GameState.
+
+        :return: a new GameState object
+        """
+        # Copy the original board
+        new_board = self.board.deep_copy()
+        
+        # Create the new GameState object, with the next player turn as the current player to move
+        new_game_state = GameState(GameState.get_next_turn_colour(self.player), new_board)
+
+        return new_game_state
+
+
+    def __str__(self):
+        return f"Game status: {"over" if self.terminal_test() else "in progress"}\n" \
+                f"Score: {self.get_score()}"
 

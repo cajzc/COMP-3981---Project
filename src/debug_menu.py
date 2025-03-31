@@ -58,7 +58,13 @@ class DebugMenu:
         config= DebugMenu.get_game_configuration()
         print()
 
-        agent = MinimaxAgent(config) 
+        agent = MinimaxAgent(
+            config.board,
+            config.player_colour,
+            config,
+            config.time_limit,
+            config.depth,
+        ) 
         if config.ai_human:
             print("Not yet implemented")
             return
@@ -112,7 +118,7 @@ class DebugMenu:
                 continue
 
     @staticmethod
-    def _get_weights() -> List[str]:
+    def _get_weights() -> list[float]:
         """
         Prompts the user to input custom weights, or use defaults if no input is provided.
 
@@ -122,10 +128,10 @@ class DebugMenu:
         default_weights = {
             'center_distance': -0.5,
             'coherence': -0.3,
-            'danger': -1.0,
-            'opponent_break': 0.8,
-            'score': 2.0,
-            'triangle_formation': 1.0
+            # 'danger': -1.0,
+            # 'opponent_break': 0.8,
+            'score': -5.0,
+            # 'triangle_formation': 1.0
         }
 
         weights = []
@@ -218,11 +224,11 @@ class DebugMenu:
             if user_input in ["1", "2", "3", "4"]:
                 return AgentConfiguration(
                     player_colour,
-                    board.marble_positions,
+                    board,
                     depth,
                     time_limit,
                     True if user_input == "1" else False,
-                    True if user_input == "2" else False, 
+                    True if user_input == "2" else False, # FIXME:
                     True if user_input == "3" else False,
                     True if user_input == "4" else False,
                     DebugMenu.get_heuristic("Select first heuristic:"),
