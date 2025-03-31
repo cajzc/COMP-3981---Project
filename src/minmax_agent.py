@@ -18,7 +18,6 @@ class AgentConfiguration:
     def __init__(self,
                  player_colour: Marble,
                  board: Dict[Tuple[int, int, int], str], 
-                 empty_positions: Set[Tuple[int, int, int]],
                  depth: int,
                  time_limit: int,
                  ai_same_heuristic: bool,
@@ -36,7 +35,6 @@ class AgentConfiguration:
 
         :param player_colour: The color of the player's marbles (BLACK or WHITE)
         :param board: the board as a dictionary
-        :param empty_positions: remaining empty positions on the board
         :param depth: maximum search depth for the minimax algorithm
         :param time_limit: Maximum time in seconds allowed for move calculation
         :param ai_same_heuristic: True if the model should run ai vs its own heuristic
@@ -50,7 +48,6 @@ class AgentConfiguration:
         """
         self.player_colour = player_colour
         self.board = board
-        self.empty_positions = empty_positions
         self.depth = depth
         self.time_limit = time_limit
         self.ai_human = ai_human
@@ -84,7 +81,6 @@ class MinimaxAgent:
         :param weights: heuristic component weights as a dict 
         """
         self.board = config.board
-        self.empty_positions = config.empty_positions
         self.player_colour = config.player_colour.value
         self.time_limit = config.time_limit
         self.depth = config.depth

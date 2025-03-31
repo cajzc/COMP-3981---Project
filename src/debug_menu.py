@@ -219,7 +219,6 @@ class DebugMenu:
                 return AgentConfiguration(
                     player_colour,
                     board.marble_positions,
-                    board.empty_positions,
                     depth,
                     time_limit,
                     True if user_input == "1" else False,
