@@ -323,7 +323,7 @@ class MinimaxAgent:
 
             v = max(v, self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
-                new_board,
+                board,
                 depth-1,
                 alpha,  #important fix from Yiming
                 beta,   #important fix from Yiming
@@ -332,7 +332,7 @@ class MinimaxAgent:
             ))
 
             if v >= beta:
-                self.transposition_table.store(player_colour, new_board, v, depth, 'lower')
+                self.transposition_table.store(player_colour, board, v, depth, 'lower')
                 return v
             alpha = max(alpha, v)
 
@@ -387,7 +387,7 @@ class MinimaxAgent:
 
             v = min(v, self.max_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
-                new_board,
+                board,
                 depth-1,
                 alpha,
                 beta,
@@ -396,7 +396,7 @@ class MinimaxAgent:
                 )
             )
             if v <= alpha:
-                self.transposition_table.store(player_colour, new_board, v, depth, 'upper')
+                self.transposition_table.store(player_colour, board, v, depth, 'upper')
                 return v
             beta = min(beta, v)
 
