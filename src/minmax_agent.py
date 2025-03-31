@@ -1,5 +1,5 @@
 """ this agent will use all the modules to generate a best move"""
-from state_space import apply_move_dict, terminal_test, generate_move_dict, check_win, game_status 
+from state_space import apply_move_dict, terminal_test, generate_move_dict, check_win, game_status
 from transposition_tables import TranspositionTable
 from typing import List, Tuple, Dict, Set
 from moves import Move
@@ -215,29 +215,41 @@ class MinimaxAgent:
         """
         self.transposition_table.clear()
         best_move = None
-        best_score = -math.inf
-        
-        # Iterative search
-        for depth in range(1, self.depth + 1): 
-            # Visit every node (move)
+
+        for depth in range(1, self.depth + 1):
+            best_score = -math.inf
+            current_best_move = None
+
+            # Generate moves for current depth
+            moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board)
+
+            # Early pruning: keep only top 20 moves based on heuristic evaluation
+            moves = sorted(
+                moves,
+                key=lambda m: self.quick_heuristic_eval(m, heuristic, args),
+                reverse=True
+            )[:20]
+
             for move in moves:
-                # Create the resulting game state
                 new_board = self.board.copy()
                 apply_move_dict(new_board, move)
 
                 score = self.mini_max(
-                    not is_player, # Switch turn
+                    not is_player,
                     new_board,
                     depth,
                     heuristic,
                     args,
-                    )
+                )
+
                 if score > best_score:
                     best_score = score
-                    best_move = move
+                    current_best_move = move
+
+            if current_best_move is not None:
+                best_move = current_best_move
 
         return best_move
-
 
     def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], depth: int, heuristic, args) -> float:
         """
@@ -415,3 +427,10 @@ class MinimaxAgent:
         print("-------------\n")
         input("Enter to begin")
 
+    def quick_heuristic_eval(self, move,heuristic, args):
+        """
+        Quickly evaluates a move using the heuristic without recursion.
+        """
+        temp_board = self.board.copy()
+        apply_move_dict(temp_board, move)
+        return heuristic(self.player_colour, temp_board, *args)
