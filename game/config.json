@@ -3,11 +3,13 @@
     "player1": {
         "color": "w",
         "move_limit": 30,
-        "time_limit": 10
+        "time_limit": 10,
+        "first_move": true
     },
     "player2": {
         "color": "b",
         "move_limit": 30,
-        "time_limit": 10
+        "time_limit": 10,
+        "first_move": true
     }
 }
