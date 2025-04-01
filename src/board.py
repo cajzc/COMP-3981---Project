@@ -21,7 +21,7 @@ class Board:
         self.empty_positions = set((q,r,s) for q in range(-4,5)
                                            for r in range(-4,5)
                                            for s in range(-4,5)
-                                           if q+r+s == 0)
+                                          if q+r+s == 0)
 
 
     def reset_board(self):

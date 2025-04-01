@@ -618,14 +618,9 @@ class DebugMenu:
             board = DebugMenu._get_board_from_file(data)
             player1_heuristic = DebugMenu._get_heuristic()
             player1_weights = DebugMenu._get_weights()
-
             player1_configuration = DebugMenu._create_configuration(data, 1, player1_heuristic, player1_weights)
-
             player2_configuration = DebugMenu._create_configuration(data, 2)
-
-
             depth = DebugMenu._get_depth()
-            game_mode = DebugMenu._get_game_mode()
 
             if board is None:
                 return None
@@ -641,7 +636,7 @@ class DebugMenu:
                 board,
                 player1_configuration,
                 player2_configuration,
-                game_mode,
+                GameMode.HUMAN, # Application will always be agent vs Human
                 depth
             )
 

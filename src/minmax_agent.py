@@ -19,7 +19,6 @@ class AgentConfiguration:
                  colour: Marble,
                  move_limit: int,
                  time_limit: int,
-                 first_move: bool,
                  heuristic=None,
                  heuristic_weights=None,
                  ):
@@ -30,14 +29,12 @@ class AgentConfiguration:
         :param colour: The color of the player's marbles ('b' or 'w')
         :param move_limit: maximum allowed moves per game
         :param time_limit: maximum time in seconds allowed for move calculation
-        :param first_move: True if this player has the first move
         :param heuristic: the heuristic function to use for evaluation
         :param heuristic_weights: weights for the heuristic function
         """
         self.colour = colour
         self.move_limit = move_limit
         self.time_limit = time_limit
-        self.first_move = first_move
         self.heuristic = heuristic
         self.heuristic_weights = heuristic_weights
 
@@ -73,16 +70,14 @@ class MinimaxAgent:
         self.player_colour = player_config.colour.value
         self.heuristic = player_config.heuristic
         self.heuristic_weights = player_config.heuristic_weights
-        self.player_has_first_move = player_config.first_move
         self.player_move_limit = player_config.move_limit
         self.player_time_limit = player_config.time_limit
-        self.current_move = self.player_has_first_move
+        self.current_move = True if self.player_colour == Marble.BLACK else False # Determine if the player has the first turn in the game
 
         # Opponent config
         self.opponent_colour = opponent_config.colour.value
         self.opponent_heuristic = opponent_config.heuristic
         self.opponent_heuristic_weights = opponent_config.heuristic_weights
-        self.opponent_has_first_move = opponent_config.first_move
         self.opponent_move_limit = opponent_config.move_limit
         self.opponent_time_limit = opponent_config.time_limit
 
