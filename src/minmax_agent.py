@@ -255,6 +255,7 @@ class MinimaxAgent:
 
             if current_best_move is not None:
                 best_move = current_best_move
+            print(best_score,best_move)
         print("Best score:", best_score)
 
         return best_move
