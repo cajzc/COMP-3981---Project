@@ -7,7 +7,7 @@ class Marble(Enum):
     BLACK = "b"
     WHITE = "w"
 
-class GameModes(Enum):
+class GameMode(Enum):
     """Represents the gamemodes."""
     HUMAN = auto()
     RANDOM = auto()
