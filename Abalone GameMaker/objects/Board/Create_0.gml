@@ -1,3 +1,4 @@
+/// @desc Creates the board + its functions.
 globalvar showCoord;
 globalvar showName;
 
