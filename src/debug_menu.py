@@ -62,9 +62,16 @@ class DebugMenu:
 
     @staticmethod
     def _run_game_maker():
+        # Create the configuration
         agent = DebugMenu._create_mini_max_agent_from_file()
-        agent.run_game()
-        pass
+        if agent is None:
+            print("Error creating agent. Returning to menu")
+            return
+
+        # Display the configuration
+        DebugMenu._display_game_configuration(agent)
+        # agent.run_game()
+        # pass
 
 
     @staticmethod
@@ -194,7 +201,7 @@ class DebugMenu:
         :return: the depth of the search
         """
         while True:
-            user_input = input(f"Enter the search depth (Enter `-1` for no depth. Enter <Enter> to use a default of 3: ").strip()
+            user_input = input(f"Enter the search depth (Enter `-1` for no depth. Enter <Enter> to use a default of 3): ").strip()
             if not user_input:  # No input, use default value
                 return 3
             try:
@@ -550,6 +557,10 @@ class DebugMenu:
 
         :returns: the MinimaxAgent object if no error, else None
         """
+        #TODO: This should do polling
+        if not os.path.exists(DebugMenu.CONFIGURATION_FILE):
+            print(f"Configuration file {DebugMenu.CONFIGURATION_FILE} not found")
+            return None
         with open(DebugMenu.CONFIGURATION_FILE, "r") as file:
 
             data = json.load(file)
@@ -611,33 +622,86 @@ class DebugMenu:
 
 
     @staticmethod
-    def _create_configuration(file, player_colour:int) -> Optional[AgentConfiguration]:
+    def _create_configuration(file, player_number:int) -> Optional[AgentConfiguration]:
         """
         Given a configuration json file and a player's colour, returns a single AgentConfiguration object.
         
         :param file: the configuration json file to read from
-        :param player_colour: the number of the player to read
+        :param player_number: the number of the player to read
         :returns: the configuration object if no error, else None
         """
 
         try:
-            config = file[f"player{player_colour}"]
+            config = file[f"player{player_number}"]
             color = config["color"]
             if color not in ["w", "b"]: # Invalid format
                 raise KeyError
             move_limit = config["move_limit"]
             time_limit = config["time_limit"]
             first_move = config["first_move"]
-        except KeyError:
-            print(f"Error reading player{player_colour} configuration")
+            player_colour = Marble(color)
+        except (KeyError, ValueError) as e:
+            print(f"Error reading player{player_number} configuration, {e}")
             return None
 
         return AgentConfiguration(
-            Marble(player_colour),
+            player_colour,
             move_limit,
             time_limit,
             first_move
 
         )
 
+
+    @staticmethod
+    def _display_game_configuration(agent: MinimaxAgent):
+        """
+        Prints the configuration of the game.
+
+        :param agent: the agent of the game to print configuration
+        """
+
+        print("\nGame Configuration")
+        print("-------------")
+        print("Depth:", agent.depth)
+        print("Game Mode:", agent.game_mode)
+        print("Board:", agent.board)
+        first_move = "Agent" if agent.player_has_first_move else "Opponent"
+        print("First move:", first_move)
+
+        print("-------------")
+        print("Agent Configuration")
+        print("-------------")
+        print("Colour:", agent.player_colour)
+        print("Time Limit:", agent.player_time_limit)
+        print("Move Limit:", agent.player_move_limit)
+        if agent.heuristic and agent.heuristic_weights is not None:
+            print("Heuristic:", agent.heuristic.__name__)
+            print("Weights:", agent.heuristic_weights)
+
+        print("-------------")
+        print("Opponent Configuration")
+        print("-------------")
+        print("Colour:", agent.opponent_colour)
+        print("Time Limit:", agent.opponent_time_limit)
+        print("Move Limit:", agent.opponent_move_limit)
+        if agent.opponent_heuristic and agent.opponent_heuristic_weights is not None:
+            print("Heuristic:", agent.opponent_heuristic.__name__)
+            print("Weights:", agent.opponent_heuristic_weights)
+
+
+def _display_agent_configuration(self):
+        """
+        Displays the configuration of the agent, prompting a user to enter to begin the game.
+        """
+        print("\nCONFIGURATION")
+        print("-------------")
+        print("Depth: ", self.depth)
+        print("Heuristic 1:", self.config.h1.__name__)
+        print("Weights:", self.config.h1_weights)
+        if self.config.h2:
+            print("Heuristic 2:", self.config.h2.__name__)
+            print("Weights:", self.config.h2_weights)
+        print("-------------\n")
+        input("Enter to begin")
 
