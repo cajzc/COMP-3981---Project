@@ -7,6 +7,7 @@ import state_space
 from minmax_agent import MinimaxAgent, AgentConfiguration
 from enums import Marble
 from heuristic import c_heuristic, b_heuristic, heuristic, yz_heuristic
+import json
 
 
 class DebugMenu:
@@ -25,6 +26,8 @@ class DebugMenu:
     TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
     VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
+    CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "game", "config.json")
+
 
     @staticmethod
     def options():
@@ -488,4 +491,27 @@ class DebugMenu:
         DebugMenu.write_to_board_file(file.strip(".input"), board_states)
    
         print(f"Moves saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.move\nBoard saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.board\n")
+
+
+    @staticmethod
+    def create_mini_max_agent_from_file() -> MinimaxAgent:
+        """Creates a minimax agent with player and opponent configuratios from a json file."""
+        pass
+
+
+    @staticmethod
+    def load_configurations_from_file() -> AgentConfiguration:
+        """Loads a single player's configuration."""
+        with open(DebugMenu.CONFIGURATION_FILE, "r") as file:
+            data = json.load(file)
+        pass
+
+    @staticmethod
+    def create_configuration(file, player_colour:int)
+        """
+        Given a configuration json file and a player's colour, returns a single AgentConfiguration object.
+        """
+        pass
+
+
 
