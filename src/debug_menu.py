@@ -1,11 +1,11 @@
 """Houses a menu for debugging and testing the model."""
 
 import os, sys
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Optional, Any
 from board import Board, BoardConfiguration
 import state_space 
 from minmax_agent import MinimaxAgent, AgentConfiguration
-from enums import Marble
+from enums import Marble, GameMode
 from heuristic import c_heuristic, b_heuristic, heuristic, yz_heuristic
 import json
 
@@ -37,27 +37,38 @@ class DebugMenu:
                 "\nAgent debugging screen\n"
                 "----------------------\n"
                 "Options\n"
-                "(1) Run model\n"
-                "(2) Generate boards from .input file(s)\n"
-                "(3) Check if .board files are equal\n"
-                "(4) Exit"
+                "(1) Run model in Game Maker\n"
+                "(2) Run model in Terminal\n"
+                "(3) Generate boards from .input file(s)\n"
+                "(4) Check if .board files are equal\n"
+                "(5) Exit"
             )
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
                 case "1":
-                    DebugMenu._run_model()
+                    DebugMenu._run_game_maker()
                 case "2":
-                    DebugMenu._handle_input_files()
+                    DebugMenu._run_terminal()
+                    pass
                 case "3":
-                    DebugMenu._handle_board_files()
+                    DebugMenu._handle_input_files()
                 case "4":
+                    DebugMenu._handle_board_files()
+                case "5":
                     print("Exiting program...")
                     break
                 case _:
                     print("Invalid selection")
 
     @staticmethod
-    def _run_model():
+    def _run_game_maker():
+        agent = DebugMenu._create_mini_max_agent_from_file()
+        agent.run_game()
+        pass
+
+
+    @staticmethod
+    def _run_terminal():
         config= DebugMenu.get_game_configuration()
         print()
 
@@ -183,17 +194,46 @@ class DebugMenu:
         :return: the depth of the search
         """
         while True:
-            user_input = input(f"Enter the search depth (default 1): ").strip()
+            user_input = input(f"Enter the search depth (Enter `-1` for no depth. Enter <Enter> to use a default of 3: ").strip()
             if not user_input:  # No input, use default value
-                return 1
+                return 3
             try:
                 depth = int(user_input)
-                if depth > 0:
+                if depth == -1 or depth > 0:
                     return depth
                 else:
-                    print("Depth must be a positive integer. Please try again.")
+                    print("Invalid depth. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a valid number for the depth.")
+
+
+    @staticmethod
+    def _get_game_mode() -> GameMode:
+        """
+        Prompts the user to select a game mode.
+
+        :return: the selected GameMode as an enum
+        """
+        print("Select a game mode:\n"
+            "1. Human\n"
+            "2. Random\n"
+            "3. Different Heuristic\n"
+            "4. Same Heuristic")
+
+        while True:
+            user_input = input("Enter: ").strip()
+
+            match user_input:
+                case "1":
+                    return GameMode.HUMAN
+                case "2":
+                    return GameMode.RANDOM
+                case "3":
+                    return GameMode.DIFF_HEURISTIC
+                case "4":
+                    return GameMode.SAME_HEURISTIC
+                case _:
+                    print("Invalid choice. Please enter a number between 1 and 4.")
 
     @staticmethod
     def get_game_configuration() -> AgentConfiguration:
@@ -494,24 +534,110 @@ class DebugMenu:
 
 
     @staticmethod
-    def create_mini_max_agent_from_file() -> MinimaxAgent:
-        """Creates a minimax agent with player and opponent configuratios from a json file."""
-        pass
+    def _create_mini_max_agent_from_file() -> Optional[MinimaxAgent]:
+        """
+        Creates a minimax agent with player and opponent configuratios from a json file.
+
+        :returns: the MinimaxAgent object if no error, else None
+        """
+        return DebugMenu._load_configurations_from_file()
 
 
     @staticmethod
-    def load_configurations_from_file() -> AgentConfiguration:
-        """Loads a single player's configuration."""
+    def _load_configurations_from_file() -> Optional[MinimaxAgent]:
+        """
+        Loads a single player's configuration. Returning the Agent object.
+
+        :returns: the MinimaxAgent object if no error, else None
+        """
         with open(DebugMenu.CONFIGURATION_FILE, "r") as file:
+
             data = json.load(file)
-        pass
+
+            board = DebugMenu._get_board_from_file(data)
+            player1_configuration = DebugMenu._create_configuration(data, 1)
+            player2_configuration = DebugMenu._create_configuration(data, 2)
+
+            depth = DebugMenu._get_depth()
+            game_mode = DebugMenu._get_game_mode()
+
+            if board is None:
+                return None
+
+            if player1_configuration is None:
+                return None
+
+            if player2_configuration is None:
+                return None
+
+
+            return MinimaxAgent(
+                board,
+                player1_configuration,
+                player2_configuration,
+                game_mode,
+                depth
+            )
+
+
 
     @staticmethod
-    def create_configuration(file, player_colour:int)
+    def _get_board_from_file(file) -> Optional[Board]:
+        """
+        Returns a setup Board object given a file input.
+
+        :returns: the Board object if no error, else None
+        """
+
+        try:
+            layout = file["initial_board_layout"]
+        except KeyError:
+            print(f"No attribute `initial_board_layout` in file")
+            return None
+
+        match layout:
+            case "standard":
+                board = Board.create_board(BoardConfiguration.DEFAULT)
+            case "belgian":
+                board = Board.create_board(BoardConfiguration.BELGIAN)
+            case "german":
+                board = Board.create_board(BoardConfiguration.GERMAN)
+            case _:
+                print(f"Error reading attribute `initial_board_layout` from {DebugMenu.CONFIGURATION_FILE}. Cannot parse {layout}")
+                return None
+
+        return board
+
+
+
+    @staticmethod
+    def _create_configuration(file, player_colour:int) -> Optional[AgentConfiguration]:
         """
         Given a configuration json file and a player's colour, returns a single AgentConfiguration object.
+        
+        :param file: the configuration json file to read from
+        :param player_colour: the number of the player to read
+        :returns: the configuration object if no error, else None
         """
-        pass
 
+        try:
+            config = file[f"player{player_colour}"]
+            color = config["color"]
+            if color not in ["w", "b"]: # Invalid format
+                raise KeyError
+            move_limit = config["move_limit"]
+            time_limit = config["time_limit"]
+            first_move = config["first_move"]
+        except KeyError:
+            print(f"Error reading player{player_colour} configuration")
+            return None
+
+        return AgentConfiguration(
+            Marble(player_colour),
+            move_limit,
+            time_limit,
+            first_move
+
+        )
 
 
