@@ -13,19 +13,6 @@ moveHistory = ds_list_create();
 
 gamemaster = instance_find(Gamemaster, 0);
 
-enum rowLetters
-{
-	I,
-	H,
-	G,
-	F,
-	E,
-	D,
-	C,
-	B,
-	A
-}
-
 //Programmatically creates spaces to fill each row
 createRow = function(array, row, start_q, start_r, start_s, start_num){
 	/// @arg {array} the row to generate
@@ -88,6 +75,7 @@ placeSpaces(rows[7], x + sprite_width * 4/20, y + sprite_height * 15/19, 1/3)
 createRow(rows[8], "A", -4, 4, 0, 1)
 placeSpaces(rows[8], x + sprite_width * 5/20, y + sprite_height * 17/19, 1/3)
 
+/// @desc Processes a turn using a boardstring
 updateBoard = function(boardString){
 	drawBoard(boardString);
 	
@@ -96,9 +84,11 @@ updateBoard = function(boardString){
 	//Add this board state to the move history.
 	ds_list_insert(moveHistory, turnCount - 1, boardString);
 	
+	//Cut off any moves that happened in turns after this point.
 	TrimList(moveHistory, turnCount);
 }
 
+/// @desc Purely draws the board.
 drawBoard = function(boardString) {
 	//Clean up the board first
 	clearBoard(rows)
@@ -133,6 +123,7 @@ drawBoard = function(boardString) {
 	}	
 }
 
+/// @desc clears all marbles off the board.
 clearBoard = function(rows) {
 	for(var i = 0; i < array_length(rows); i++) {
 		for(var j = 0; j < array_length(rows[i]); j++) {
@@ -141,6 +132,7 @@ clearBoard = function(rows) {
 	}
 }
 
+/// @desc Saves the current state of the board
 saveBoardState = function() {
 	var boardState = "";
 	for(var i = 0; i < array_length(rows); i++) {
@@ -156,8 +148,9 @@ saveBoardState = function() {
 	boardState = string_delete(boardState, string_length(boardState), 1);
 	
 	gamemaster.endTurn();
+	//Record to move history
 	ds_list_insert(moveHistory, turnCount - 1, boardState);
-	
+	//Cut off any future moves that would've happened after this point.
 	TrimList(moveHistory,turnCount);
 	
 	show_debug_message(boardState);
