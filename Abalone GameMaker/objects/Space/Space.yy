@@ -10,8 +10,8 @@
   "name":"Space",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"GameVisuals",
+    "path":"folders/Objects/GameScreen/GameVisuals.yy",
   },
   "parentObjectId":null,
   "persistent":false,

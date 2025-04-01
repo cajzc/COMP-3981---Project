@@ -1,6 +1,8 @@
 if (selected[0] != noone) {
-	selected[0].x = x + sprite_width / 20;
-	selected[0].y = y + sprite_height / 20;
+	marble = selected[0]
+	marble.x = x + sprite_width / 20;
+	marble.y = y + sprite_height / 20;
 	
-	selected[0].changeCoordinate(q,r,s);
+	marble.changeCoordinate(q,r,s);
+	marble.changeTile(self);
 }

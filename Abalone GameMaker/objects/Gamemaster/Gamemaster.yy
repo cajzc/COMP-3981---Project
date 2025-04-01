@@ -8,8 +8,8 @@
   "name":"Gamemaster",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"GameLogic",
+    "path":"folders/Objects/GameScreen/GameLogic.yy",
   },
   "parentObjectId":null,
   "persistent":false,

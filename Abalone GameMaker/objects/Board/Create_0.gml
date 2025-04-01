@@ -11,6 +11,8 @@ rows = [array_create(5), array_create(6), array_create(7), array_create(8), arra
 			
 moveHistory = ds_list_create();
 
+gamemaster = instance_find(Gamemaster, 0);
+
 enum rowLetters
 {
 	I,
@@ -89,9 +91,12 @@ placeSpaces(rows[8], x + sprite_width * 5/20, y + sprite_height * 17/19, 1/3)
 updateBoard = function(boardString){
 	drawBoard(boardString);
 	
+	gamemaster.endTurn();
+	
 	//Add this board state to the move history.
-	ds_list_add(moveHistory, boardString);
-	turnCount++;
+	ds_list_insert(moveHistory, turnCount - 1, boardString);
+	
+	TrimList(moveHistory, turnCount);
 }
 
 drawBoard = function(boardString) {
@@ -116,7 +121,7 @@ drawBoard = function(boardString) {
 					//Create a marble at that space.
 					with(currentRow[j]) {
 						marble = instance_create_layer(x + sprite_width / 20 ,y + sprite_height / 20,"Marbles", Marble);
-						marble.colour = marbleColor;
+						marble.setColour(marbleColor);
 						marble.changeCoordinate(q,r,s);
 						marble.space = self;
 					}
@@ -150,7 +155,10 @@ saveBoardState = function() {
 	//Remove the last trailing comma.
 	boardState = string_delete(boardState, string_length(boardState), 1);
 	
-	ds_list_add(moveHistory, boardState);
-	turnCount++;
+	gamemaster.endTurn();
+	ds_list_insert(moveHistory, turnCount - 1, boardState);
+	
+	TrimList(moveHistory,turnCount);
+	
 	show_debug_message(boardState);
 }

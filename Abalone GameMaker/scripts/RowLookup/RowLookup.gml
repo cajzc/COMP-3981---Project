@@ -9,5 +9,6 @@ function RowLookup(letter){
 		case "C": return 6;
 		case "B": return 7;
 		case "A": return 8;
+		default: return 0;
 	}
 }

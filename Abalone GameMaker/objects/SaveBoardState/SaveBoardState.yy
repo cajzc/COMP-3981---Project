@@ -9,8 +9,8 @@
   "name":"SaveBoardState",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"GameUI",
+    "path":"folders/Objects/GameScreen/GameUI.yy",
   },
   "parentObjectId":null,
   "persistent":false,
