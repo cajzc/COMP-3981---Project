@@ -61,9 +61,7 @@ class DebugMenu:
         agent = MinimaxAgent(
             config.board,
             config.player_colour,
-            config,
-            config.time_limit,
-            config.depth,
+            config
         ) 
         if config.ai_human:
             print("Not yet implemented")

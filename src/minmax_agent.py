@@ -74,10 +74,7 @@ class MinimaxAgent:
     def __init__(self,
                  board: Board,
                  player_colour: Marble,
-                 config: AgentConfiguration,
-                 time_limit=5,
-                 depth=3,
-                 weights=None):
+                 config: AgentConfiguration):
         """
         Initialize minimax agent with search parameters
 
@@ -89,8 +86,8 @@ class MinimaxAgent:
         self.board = board
         self.board_dict = board.marble_positions
         self.player_colour = player_colour.value
-        self.time_limit = time_limit
-        self.depth = depth
+        self.time_limit = config.time_limit
+        self.depth = config.depth
         self.game_state = GameState(self.player_colour, board)
         self.current_move = True if self.player_colour == Marble.BLACK.value else False
         self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
