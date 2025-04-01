@@ -87,10 +87,8 @@ class DebugMenu:
         # Display the configuration
         DebugMenu._display_game_configuration(agent)
         agent.run_game()
-        # pass
 
 
-    # FIXME:
     @staticmethod
     def _run_terminal():
         # Create the configuration
@@ -99,7 +97,6 @@ class DebugMenu:
         # Display the configuration
         DebugMenu._display_game_configuration(agent)
         agent.run_game()
-
 
     
     @staticmethod
@@ -305,7 +302,7 @@ class DebugMenu:
             opponent_colour = GameState.get_next_turn_colour(agent_config_p1.colour.value)
             agent_config_p2 = (
                 DebugMenu._get_agent_configuration_input(heuristic_p2, weights_p2, opponent_colour)
-                if condition else DebugMenu._get_agent_configuration_input(player_colour=opponent_colour)
+                if condition else DebugMenu._get_agent_configuration_input(player_colour=Marble(opponent_colour))
             )
             
             return MinimaxAgent(board, agent_config_p1, agent_config_p2, game_mode)
