@@ -72,7 +72,7 @@ class MinimaxAgent:
         self.heuristic_weights = player_config.heuristic_weights
         self.player_move_limit = player_config.move_limit
         self.player_time_limit = player_config.time_limit
-        self.current_move = True if self.player_colour == Marble.BLACK else False # Determine if the player has the first turn in the game
+        self.current_move = True if self.player_colour == Marble.BLACK.value else False # Determine if the player has the first turn in the game
 
         # Opponent config
         self.opponent_colour = opponent_config.colour.value
@@ -94,8 +94,24 @@ class MinimaxAgent:
     def run_game(self):
         """
         Starts the game of Abalone with the model against an opponent.
+        If this is the player's first move, a random move is selected.
         """
+        print(game_status(self.game_state.board.marble_positions)) # Debug
+        # First move logic
+        player_first_move = True
+        while player_first_move:
+            if self.current_move: # Players first move, this will be random
+                self._player_first_turn_random()
+                player_first_move = False # Player has ran their first move
+                print("Random first turn: Applied")
+            else:
+                self._opponent_turn()
 
+            self.current_move = not self.current_move # Alternate move
+
+            print(game_status(self.game_state.board.marble_positions)) # Debug
+
+        # Game loop
         while not terminal_test(self.game_state.board.marble_positions):
 
             self.game_state.board.print_board() # Debug
@@ -143,13 +159,20 @@ class MinimaxAgent:
             case GameMode.SAME_HEURISTIC:
                 self._opponent_turn_heuristic()
 
-            
+
+    def _player_first_turn_random(self):
+        """Selects and applies a random move from the player."""
+        move_to_make = self._get_random_move(self.player_colour)
+        if move_to_make:
+            self.game_state.apply_move(move_to_make)
+       
 
     def _opponent_turn_random(self):
         """Simulates an opponent that makes random moves."""
-        move_to_make = self._get_opponent_move_random()
+        move_to_make = self._get_random_move(self.opponent_colour)
         if move_to_make:
             self.game_state.apply_move(move_to_make)
+
 
     def _opponent_turn_heuristic(self):
         """Simulates an opponent that uses their own heuristic."""
@@ -162,40 +185,25 @@ class MinimaxAgent:
             self.game_state.apply_move(move_to_make)
 
 
-
-    def apply_opponent_move_random(self) -> bool:
-        """
-        Applies a randomly generated opponent move to the game state.
-
-        :return: True if the move was applied, False if not and the game is over
-        """
-        move = self._get_opponent_move_random()
-        if not move:
-            return False
-        self.game_state.apply_move(move)
-        return True
-
-
-
-
     def apply_opponent_move_input(self):
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
         self.game_state.apply_move(move)
 
     
-    def _get_opponent_move_random(self) -> Move | None:
+    def _get_random_move(self, player_colour: str) -> Move | None:
         """
         Generates all possible moves for the opponent, returning a randomly selected one.
 
-        :return: a randomly selected move for the opponent or None if there are no generated moves
+        :param player_colour: the colour of the player who will make the random move
+        :return: a randomly selected move for the player or None if there are no generated moves
         """
-        possible_opponent_moves = generate_move(self.opponent_colour, self.game_state.board)
-        if len(possible_opponent_moves) == 0:
+        possible_moves = generate_move(player_colour, self.game_state.board)
+        if len(possible_moves) == 0:
             return None
-        r = random.randint(0, len(possible_opponent_moves) - 1)
-        opponent_move = possible_opponent_moves[r]
-        return opponent_move
+        r = random.randint(0, len(possible_moves) - 1)
+        random_move = possible_moves[r]
+        return random_move
 
 
     # FIXME: This should return a Move object
