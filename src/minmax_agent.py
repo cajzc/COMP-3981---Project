@@ -28,19 +28,20 @@ class AgentConfiguration:
         A configuration for an abalone playing agent.
 
         :param colour: The color of the player's marbles ('b' or 'w')
-        :param time_limit: maximum allowed moves per game
+        :param move_limit: maximum allowed moves per game
         :param time_limit: maximum time in seconds allowed for move calculation
         :param first_move: True if this player has the first move
         :param heuristic: the heuristic function to use for evaluation
         :param heuristic_weights: weights for the heuristic function
         """
         self.colour = colour
+        self.move_limit = move_limit
         self.time_limit = time_limit
+        self.first_move = first_move
         self.heuristic = heuristic
         self.heuristic_weights = heuristic_weights
-        self.first_move = first_move
 
-
+    
 class MinimaxAgent:
     """
     Game-playing agent using Minimax algorithm with alpha-beta pruning
@@ -57,7 +58,7 @@ class MinimaxAgent:
                  player_config: AgentConfiguration,
                  opponent_config: AgentConfiguration,
                  game_mode: GameMode,
-                 depth=3,
+                 depth = 3
                  ):
         """
         Initialize minimax agent with search parameters
@@ -66,19 +67,24 @@ class MinimaxAgent:
         :param player_config: the configuration of the Model 
         :param opponent_config: the configuration of the opponent
         :param game_mode: the game mode to play, as an enum
-        :param depth:  maximum search depth (default: 3)
+        :param depth: maximum search depth (default: 3). A depth of -1 is valid and is considered an "infinite" depth. This depth makes the model continue the search until time runs out
         """
         # Player config
         self.player_colour = player_config.colour.value
         self.heuristic = player_config.heuristic
         self.heuristic_weights = player_config.heuristic_weights
         self.player_has_first_move = player_config.first_move
+        self.player_move_limit = player_config.move_limit
+        self.player_time_limit = player_config.time_limit
+        self.current_move = self.player_has_first_move
 
         # Opponent config
         self.opponent_colour = opponent_config.colour.value
         self.opponent_heuristic = opponent_config.heuristic
         self.opponent_heuristic_weights = opponent_config.heuristic_weights
         self.opponent_has_first_move = opponent_config.first_move
+        self.opponent_move_limit = opponent_config.move_limit
+        self.opponent_time_limit = opponent_config.time_limit
 
         # Game config
         self.board = board
@@ -89,7 +95,6 @@ class MinimaxAgent:
         self.transposition_table = TranspositionTable()
         self.game_mode = game_mode
         
-
 
     def run_game(self):
         """
@@ -441,18 +446,4 @@ class MinimaxAgent:
         apply_move_dict(temp_board, move)
         return heuristic(player_colour, temp_board, *args)
 
-    def _display_agent_configuration(self):
-        """
-        Displays the configuration of the agent, prompting a user to enter to begin the game.
-        """
-        print("\nCONFIGURATION")
-        print("-------------")
-        print("Depth: ", self.depth)
-        print("Heuristic 1:", self.config.h1.__name__)
-        print("Weights:", self.config.h1_weights)
-        if self.config.h2:
-            print("Heuristic 2:", self.config.h2.__name__)
-            print("Weights:", self.config.h2_weights)
-        print("-------------\n")
-        input("Enter to begin")
-
+    

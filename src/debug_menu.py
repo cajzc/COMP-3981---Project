@@ -37,11 +37,33 @@ class DebugMenu:
                 "\nAgent debugging screen\n"
                 "----------------------\n"
                 "Options\n"
-                "(1) Run model in Game Maker\n"
-                "(2) Run model in Terminal\n"
-                "(3) Generate boards from .input file(s)\n"
-                "(4) Check if .board files are equal\n"
-                "(5) Exit"
+                "(1) Run Model\n"
+                "(2) Generate boards from .input file(s)\n"
+                "(3) Check if .board files are equal\n"
+                "(4) Exit"
+            )
+            user_input = input("Enter: ").strip(",.?! ")
+            match user_input:
+                case "1":
+                    DebugMenu._run_game_maker()
+                case "2":
+                    DebugMenu._handle_input_files()
+                case "3":
+                    DebugMenu._handle_board_files()
+                case "4":
+                    print("Exiting program...")
+                    break
+                case _:
+                    print("Invalid selection")
+
+    @staticmethod
+    def run_game():
+        """Runs the Abalone agent in either Application mode (GameMaker) or Debugging mode (Terminal)"""
+        while True:
+            print(
+                "Select the Mode to Run in\n"
+                "(1) Game Maker\n"
+                "(2) Terminal\n"
             )
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
@@ -49,16 +71,9 @@ class DebugMenu:
                     DebugMenu._run_game_maker()
                 case "2":
                     DebugMenu._run_terminal()
-                    pass
-                case "3":
-                    DebugMenu._handle_input_files()
-                case "4":
-                    DebugMenu._handle_board_files()
-                case "5":
-                    print("Exiting program...")
-                    break
                 case _:
                     print("Invalid selection")
+
 
     @staticmethod
     def _run_game_maker():
@@ -70,10 +85,11 @@ class DebugMenu:
 
         # Display the configuration
         DebugMenu._display_game_configuration(agent)
-        # agent.run_game()
+        agent.run_game()
         # pass
 
 
+    # FIXME:
     @staticmethod
     def _run_terminal():
         config= DebugMenu.get_game_configuration()
@@ -281,21 +297,22 @@ class DebugMenu:
                     True if user_input == "2" else False, # FIXME:
                     True if user_input == "3" else False,
                     True if user_input == "4" else False,
-                    DebugMenu.get_heuristic("Select first heuristic:"),
+                    DebugMenu._get_heuristic(),
                     DebugMenu._get_weights(),
-                    DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
+                    DebugMenu._get_heuristic() if user_input == "2" else None,
                     DebugMenu._get_weights() if user_input == "2" else None
                 )
             else:
                 print("Invalid selection. Please try again.")
 
     @staticmethod
-    def get_heuristic(prompt: str):
+    def _get_heuristic():
         """
         Prompts the user to select a heuristic function, returning it.
         """
         while True:
-            print(f"{prompt}\n(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic\n")
+            print("\nEnter the agent's heuristic:\n")
+            print(f"(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic\n")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
                 return heuristic
@@ -566,8 +583,13 @@ class DebugMenu:
             data = json.load(file)
 
             board = DebugMenu._get_board_from_file(data)
-            player1_configuration = DebugMenu._create_configuration(data, 1)
+            player1_heuristic = DebugMenu._get_heuristic()
+            player1_weights = DebugMenu._get_weights()
+
+            player1_configuration = DebugMenu._create_configuration(data, 1, player1_heuristic, player1_weights)
+
             player2_configuration = DebugMenu._create_configuration(data, 2)
+
 
             depth = DebugMenu._get_depth()
             game_mode = DebugMenu._get_game_mode()
@@ -622,12 +644,14 @@ class DebugMenu:
 
 
     @staticmethod
-    def _create_configuration(file, player_number:int) -> Optional[AgentConfiguration]:
+    def _create_configuration(file, player_number:int, heuristic=None, heuristic_weights=None) -> Optional[AgentConfiguration]:
         """
         Given a configuration json file and a player's colour, returns a single AgentConfiguration object.
         
         :param file: the configuration json file to read from
         :param player_number: the number of the player to read
+        :param heuristic: an optional heuristic to pass in
+        :param heuristic_weights: an optional set of weights for a heuristic
         :returns: the configuration object if no error, else None
         """
 
@@ -648,8 +672,9 @@ class DebugMenu:
             player_colour,
             move_limit,
             time_limit,
-            first_move
-
+            first_move,
+            heuristic,
+            heuristic_weights
         )
 
 
@@ -688,6 +713,8 @@ class DebugMenu:
         if agent.opponent_heuristic and agent.opponent_heuristic_weights is not None:
             print("Heuristic:", agent.opponent_heuristic.__name__)
             print("Weights:", agent.opponent_heuristic_weights)
+
+        print()
 
 
 def _display_agent_configuration(self):
