@@ -5,7 +5,7 @@ from typing import Tuple, Dict, List
 from moves import Move
 import  math
 import time
-from enums import Marble
+from enums import Marble, GameMode
 from board import Board
 import random
 
@@ -16,48 +16,29 @@ class AgentConfiguration:
 
 
     def __init__(self,
-                 player_colour: Marble,
-                 board: Board,
-                 depth: int,
+                 colour: Marble,
+                 move_limit: int,
                  time_limit: int,
-                 ai_same_heuristic: bool,
-                 ai_diff_heuristic: bool,
-                 ai_human: bool,
-                 ai_random: bool,
-                 h1,
-                 h1_weights,
-                 h2= None,
-                 h2_weights= None
+                 first_move: bool,
+                 heuristic=None,
+                 heuristic_weights=None,
                  ):
 
         """
         A configuration for an abalone playing agent.
 
-        :param player_colour: The color of the player's marbles (BLACK or WHITE)
-        :param board: the game board instance
-        :param depth: maximum search depth for the minimax algorithm
-        :param time_limit: Maximum time in seconds allowed for move calculation
-        :param ai_same_heuristic: True if the model should run ai vs its own heuristic
-        :param ai_diff_heuristic: True if the model should run two different heuristics
-        :param ai_human: True if the model should run ai vs human (user input)
-        :param ai_random: True if the model should run ai vs random moves
-        :param h1: First heuristic function to use for evaluation
-        :param h1_weights: Weights for the first heuristic function
-        :param h2: Second heuristic function to use for evaluation (when using different heuristics)
-        :param h2_weights: Weights for the second heuristic function
+        :param colour: The color of the player's marbles ('b' or 'w')
+        :param time_limit: maximum allowed moves per game
+        :param time_limit: maximum time in seconds allowed for move calculation
+        :param first_move: True if this player has the first move
+        :param heuristic: the heuristic function to use for evaluation
+        :param heuristic_weights: weights for the heuristic function
         """
-        self.player_colour = player_colour
-        self.board = board
-        self.depth = depth
+        self.colour = colour
         self.time_limit = time_limit
-        self.ai_human = ai_human
-        self.ai_same_heuristic = ai_same_heuristic
-        self.ai_diff_heuristic = ai_diff_heuristic
-        self.ai_random = ai_random
-        self.h1 = h1
-        self.h2 = h2
-        self.h1_weights = h1_weights
-        self.h2_weights = h2_weights
+        self.heuristic = heuristic
+        self.heuristic_weights = heuristic_weights
+        self.first_move = first_move
 
 
 class MinimaxAgent:
@@ -73,74 +54,57 @@ class MinimaxAgent:
 
     def __init__(self,
                  board: Board,
-                 player_colour: Marble,
-                 config: AgentConfiguration,
-                 time_limit=5,
+                 player_config: AgentConfiguration,
+                 opponent_config: AgentConfiguration,
+                 game_mode: GameMode,
                  depth=3,
-                 weights=None):
+                 ):
         """
         Initialize minimax agent with search parameters
 
-        :param board: the initial configuration of the Abalone game board
-        :param player_colour: the colour of the player as an enum
+        :param board: the initial configuration of the Abalone game board as a Board object
+        :param player_config: the configuration of the Model 
+        :param opponent_config: the configuration of the opponent
+        :param game_mode: the game mode to play, as an enum
         :param depth:  maximum search depth (default: 3)
-        :param weights: heuristic component weights as a dict 
         """
+        # Player config
+        self.player_colour = player_config.colour.value
+        self.heuristic = player_config.heuristic
+        self.heuristic_weights = player_config.heuristic_weights
+        self.player_has_first_move = player_config.first_move
+
+        # Opponent config
+        self.opponent_colour = opponent_config.colour.value
+        self.opponent_heuristic = opponent_config.heuristic
+        self.opponent_heuristic_weights = opponent_config.heuristic_weights
+        self.opponent_has_first_move = opponent_config.first_move
+
+        # Game config
         self.board = board
         self.board_dict = board.marble_positions
-        self.player_colour = player_colour.value
-        self.time_limit = time_limit
+        self.time_limit = player_config.time_limit
         self.depth = depth
         self.game_state = GameState(self.player_colour, board)
-        self.current_move = True if self.player_colour == Marble.BLACK.value else False
-        self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
-        self.config = config
         self.transposition_table = TranspositionTable()
-
+        self.game_mode = game_mode
         
+
+
     def run_game(self):
         """
         Starts the game of Abalone with the model against an opponent.
         """
-        self._display_agent_configuration()
+
         while not terminal_test(self.game_state.board.marble_positions):
+
             self.game_state.board.print_board() # Debug
-            if self.current_move: # Player turn
-                print("\nPlayer Turn\n")
 
-                s = time.time() # Debug
-                # Get the next move 
-                move_to_make = self.iterative_deepening_search(
-                    True,
-                    self.config.h1,
-                    self.config.h1_weights
-                )
-                e = time.time() # Debug
-                print(f"Time to generate move of depth {self.depth}: ", e-s) # Debug
+            if self.current_move: 
+                self._player_turn()
 
-                # Terminal state reached
-                if move_to_make is None:
-                    break
-
-                # Apply the move to the game state
-                self.game_state.apply_move(move_to_make)
-
-            # Opponent turn
             else:
-                print("\nOpponent Turn\n")
-                if self.config.ai_random:
-                    print("\nOpponent Turn\n")
-                    applied_move = self.apply_opponent_move_random()
-                    if not applied_move:
-                        break
-                else:
-                    move_to_make = self.iterative_deepening_search(
-                        False,
-                        self.config.h2 if self.config.ai_diff_heuristic else self.config.h1,
-                        self.config.h2_weights if self.config.ai_diff_heuristic else self.config.h1_weights,
-                    )
-                    if move_to_make:
-                        self.game_state.apply_move(move_to_make)
+                self._opponent_turn() 
 
             self.current_move = not self.current_move # Alternate move
 
@@ -148,6 +112,55 @@ class MinimaxAgent:
 
         print("Game over")
         print(check_win(self.game_state.board.marble_positions), "won")
+
+
+    def _player_turn(self):
+        """Handles the agent (player) turn logic."""
+        print("\nPlayer Turn\n")
+        start = time.time()
+        move_to_make = self.iterative_deepening_search(
+            True,
+            self.heuristic,
+            self.heuristic_weights
+        )
+        if move_to_make:
+            self.game_state.apply_move(move_to_make)
+        end = time.time()
+        print(f"Time to make move at depth {self.depth}: {end - start}")
+
+
+    def _opponent_turn(self):
+        """Handles the opponent turn logic."""
+        print("\nOpponent Turn\n")
+
+        match self.game_mode:
+            case GameMode.HUMAN:
+                print("In development...")
+            case GameMode.RANDOM:
+                self._opponent_turn_random()
+            case GameMode.DIFF_HEURISTIC:
+                self._opponent_turn_heuristic()
+            case GameMode.SAME_HEURISTIC:
+                self._opponent_turn_heuristic()
+
+            
+
+    def _opponent_turn_random(self):
+        """Simulates an opponent that makes random moves."""
+        move_to_make = self._get_opponent_move_random()
+        if move_to_make:
+            self.game_state.apply_move(move_to_make)
+
+    def _opponent_turn_heuristic(self):
+        """Simulates an opponent that uses their own heuristic."""
+        move_to_make = self.iterative_deepening_search(
+                False,
+                self.opponent_heuristic,
+                self.opponent_heuristic_weights
+            )
+        if move_to_make:
+            self.game_state.apply_move(move_to_make)
+
 
 
     def apply_opponent_move_random(self) -> bool:
