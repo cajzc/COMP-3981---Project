@@ -3,11 +3,12 @@
 import os, sys
 from typing import List, Set, Tuple, Dict, Optional, Any
 from board import Board, BoardConfiguration
-import state_space 
+from state_space import GameState
 from minmax_agent import MinimaxAgent, AgentConfiguration
 from enums import Marble, GameMode
 from heuristic import c_heuristic, b_heuristic, heuristic, yz_heuristic
 import json
+import state_space
 
 
 class DebugMenu:
@@ -45,7 +46,7 @@ class DebugMenu:
             user_input = input("Enter: ").strip(",.?! ")
             match user_input:
                 case "1":
-                    DebugMenu._run_game_maker()
+                    DebugMenu.run_game()
                 case "2":
                     DebugMenu._handle_input_files()
                 case "3":
@@ -61,7 +62,7 @@ class DebugMenu:
         """Runs the Abalone agent in either Application mode (GameMaker) or Debugging mode (Terminal)"""
         while True:
             print(
-                "Select the Mode to Run in\n"
+                "\nSelect the Mode to Run in\n"
                 "(1) Game Maker\n"
                 "(2) Terminal\n"
             )
@@ -92,20 +93,13 @@ class DebugMenu:
     # FIXME:
     @staticmethod
     def _run_terminal():
-        config= DebugMenu.get_game_configuration()
-        print()
+        # Create the configuration
+        agent = DebugMenu._get_game_configuration_input()
 
-        agent = MinimaxAgent(
-            config.board,
-            config.player_colour,
-            config,
-            config.time_limit,
-            config.depth,
-        ) 
-        if config.ai_human:
-            print("Not yet implemented")
-            return
+        # Display the configuration
+        DebugMenu._display_game_configuration(agent)
         agent.run_game()
+
 
     
     @staticmethod
@@ -137,28 +131,26 @@ class DebugMenu:
                     continue
 
     @staticmethod
-    def _get_player_colour() -> Marble:
+    def _get_player_colour(player_num = 1) -> Marble:
         """
-        Prompts the user to select the player turn ('b' or 'w'), returning the colour they select as an enum.
+        Prompts the user to select the colour for the given player (1 or 2, where 1 is agent), returning the colour they select as an enum.
 
         :return: a Marble object
         """
         while True:
-            player = input("Enter the player turn ('b' for black or 'w' for white, default 'b'): ").strip().lower()
-            print("Note only select 'b' as of the development state") # TODO:
-            if not player:  # No input, use default value 'b'
-                return Marble("b")
-            elif player in ["b", "w"]:
+            player = input(f"Enter the marble colour for player {player_num} ('b' or 'w'): ").strip().lower()
+            if player in ["b", "w"]:
                 return Marble(player)
             else:
                 print("Invalid selection. Please enter 'b' for black or 'w' for white.")
                 continue
 
     @staticmethod
-    def _get_weights() -> list[float]:
+    def _get_weights(player_num = 1) -> list[float]:
         """
         Prompts the user to input custom weights, or use defaults if no input is provided.
-
+        
+        :param player_num: the number of the player to set the weights for. Default player 1 (agent)
         :return: a dictionary of weights
         """
 
@@ -173,7 +165,7 @@ class DebugMenu:
 
         weights = []
 
-        print("Enter weights for the following parameters (Enter -1 to omit the weight. Enter <Enter> to use default values)")
+        print(f"Enter weights for the following parameters for player {player_num} (Enter -1 to omit the weight. Enter <Enter> to use default values)")
         for key, default_value in default_weights.items():
             user_input_weight = input(f"{key} (default {default_value}): ").strip()
             if user_input_weight == "-1": # Skip the weight
@@ -189,6 +181,7 @@ class DebugMenu:
 
         return weights
 
+
     @staticmethod
     def _get_time_limit() -> int:
         """
@@ -197,7 +190,7 @@ class DebugMenu:
         :return: the time limit as an int
         """
         while True:
-            user_input = input(f"Enter the time limit in seconds (default 5): ").strip()
+            user_input = input(f"Enter the time limit per move in seconds (default 5): ").strip()
             if not user_input:  # No input, use default value
                 return 5
             try:
@@ -208,6 +201,27 @@ class DebugMenu:
                     print("Time limit must be a positive integer. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a valid number for the time limit.")
+
+
+    @staticmethod
+    def _get_move_limit() -> int:
+        """
+        Prompts the user to input the move limit.
+    
+        :return: the move limit as an int
+        """
+        while True:
+            user_input = input(f"Enter the move limit (default 20): ").strip()
+            if not user_input:  # No input, use default value
+                return 20
+            try:
+                move_limit = int(user_input)
+                if move_limit > 0:
+                    return move_limit
+                else:
+                    print("Move limit must be a positive integer. Please try again.")
+            except ValueError:
+                print("Invalid input. Please enter a valid number for the move limit.")
 
     @staticmethod
     def _get_depth() -> int:
@@ -238,10 +252,10 @@ class DebugMenu:
         :return: the selected GameMode as an enum
         """
         print("Select a game mode:\n"
-            "1. Human\n"
-            "2. Random\n"
-            "3. Different Heuristic\n"
-            "4. Same Heuristic")
+            "1. AI vs Human\n"
+            "2. AI vs Random\n"
+            "3. AI vs AI (Different Heuristic)\n"
+            "4. AI vs AI (Same Heuristic)")
 
         while True:
             user_input = input("Enter: ").strip()
@@ -258,8 +272,10 @@ class DebugMenu:
                 case _:
                     print("Invalid choice. Please enter a number between 1 and 4.")
 
+
+
     @staticmethod
-    def get_game_configuration() -> AgentConfiguration:
+    def _get_game_configuration_input() -> MinimaxAgent:
         """
         Prompts a user for the game configuration.
         - AI vs AI (same heuristic)
@@ -270,48 +286,65 @@ class DebugMenu:
         print()
         board = DebugMenu._get_board_configuration()
         print()
-        player_colour = DebugMenu._get_player_colour()
-        print()
-        time_limit = DebugMenu._get_time_limit()
-        print()
-        depth = DebugMenu._get_depth()
-        print()
 
         while True:
-            print(
-                "(1) AI vs AI (Same Heuristic)\n"
-                "(2) AI vs AI (Different Heuristic)\n"
-                "(3) AI vs Human\n"
-                "(4) AI vs Random\n"
-            )
-            user_input = input("Enter the Game Mode: ").strip()
+            game_mode = DebugMenu._get_game_mode()
             print()
+
+            # Player 1 configs
+            print("\nEnter player 1 (agent) configs")
+            heuristic_p1 = DebugMenu._get_heuristic()
+            weights_p1 = DebugMenu._get_weights()
+            agent_config_p1 = DebugMenu._get_agent_configuration_input(heuristic_p1, weights_p1)
+
+            # Player 2 configs
+            print("\nEnter player 2 (opponent) configs")
+            condition = game_mode == GameMode.SAME_HEURISTIC or game_mode == GameMode.DIFF_HEURISTIC 
+            heuristic_p2 = DebugMenu._get_heuristic(2) if condition else heuristic_p1 
+            weights_p2 = DebugMenu._get_weights(2) if condition else None
+            opponent_colour = GameState.get_next_turn_colour(agent_config_p1.colour.value)
+            agent_config_p2 = (
+                DebugMenu._get_agent_configuration_input(heuristic_p2, weights_p2, opponent_colour)
+                if condition else DebugMenu._get_agent_configuration_input(player_colour=opponent_colour)
+            )
             
-            if user_input in ["1", "2", "3", "4"]:
-                return AgentConfiguration(
-                    player_colour,
-                    board,
-                    depth,
-                    time_limit,
-                    True if user_input == "1" else False,
-                    True if user_input == "2" else False, # FIXME:
-                    True if user_input == "3" else False,
-                    True if user_input == "4" else False,
-                    DebugMenu._get_heuristic(),
-                    DebugMenu._get_weights(),
-                    DebugMenu._get_heuristic() if user_input == "2" else None,
-                    DebugMenu._get_weights() if user_input == "2" else None
-                )
-            else:
-                print("Invalid selection. Please try again.")
+            return MinimaxAgent(board, agent_config_p1, agent_config_p2, game_mode)
+
+
 
     @staticmethod
-    def _get_heuristic():
+    def _get_agent_configuration_input(heuristic=None, weights=None, player_colour=None) -> AgentConfiguration:
+        """
+        Prompts a user for an agent configuration via cmd input.
+        
+        :param heuristic: the heuristic function to use
+        :param weights: the weights for the heuristic function 
+        :param player_colour: the colour of the player
+        :returns: the configured AgentConfiguration object
+        """
+        if player_colour is None:
+            player_colour = DebugMenu._get_player_colour()
+        time_limit = DebugMenu._get_time_limit()
+        move_limit = DebugMenu._get_move_limit()
+        return AgentConfiguration(
+            player_colour,
+            move_limit,
+            time_limit,
+            heuristic,
+            weights
+
+        )
+
+
+    @staticmethod
+    def _get_heuristic(player_num = 1):
         """
         Prompts the user to select a heuristic function, returning it.
+
+        :param player_num: the number of the player to set the heuristic function for. Default 1 (agent)
         """
         while True:
-            print("\nEnter the agent's heuristic:\n")
+            print(f"\nEnter player {player_num}'s heuristic:\n")
             print(f"(1) Main heuristic\n(2) c_heuristic\n(3) b_heuristic\n(4) yz_heuristic\n")
             heuristic_input = input("Enter your choice: ").strip()
             if heuristic_input == "1":
@@ -662,7 +695,6 @@ class DebugMenu:
                 raise KeyError
             move_limit = config["move_limit"]
             time_limit = config["time_limit"]
-            first_move = config["first_move"]
             player_colour = Marble(color)
         except (KeyError, ValueError) as e:
             print(f"Error reading player{player_number} configuration, {e}")
@@ -672,7 +704,6 @@ class DebugMenu:
             player_colour,
             move_limit,
             time_limit,
-            first_move,
             heuristic,
             heuristic_weights
         )
@@ -691,7 +722,7 @@ class DebugMenu:
         print("Depth:", agent.depth)
         print("Game Mode:", agent.game_mode)
         print("Board:", agent.board)
-        first_move = "Agent" if agent.player_has_first_move else "Opponent"
+        first_move = "Agent" if agent.player_colour == Marble.BLACK else "Opponent"
         print("First move:", first_move)
 
         print("-------------")
@@ -715,6 +746,7 @@ class DebugMenu:
             print("Weights:", agent.opponent_heuristic_weights)
 
         print()
+        input("Enter to begin")
 
 
 def _display_agent_configuration(self):
