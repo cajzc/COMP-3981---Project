@@ -253,7 +253,7 @@ class MinimaxAgent:
                 score = self.mini_max(
                     not is_player,
                     new_board,
-                    depth - 1,
+                    depth,
                     heuristic,
                     args,
                 )
