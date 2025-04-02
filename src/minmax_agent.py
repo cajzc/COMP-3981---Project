@@ -87,7 +87,7 @@ class MinimaxAgent:
         self.board = board
         self.board_dict = board.marble_positions
         self.time_limit = player_config.time_limit
-        self.depth = depth
+        self.depth = 10**9 if depth == -1 else depth # Set an "infinite" depth 
         self.game_state = GameState(self.player_colour, board)
         self.transposition_table = TranspositionTable()
         self.game_mode = game_mode
@@ -137,18 +137,21 @@ class MinimaxAgent:
         print("\nPlayer Turn\n")
         start = time.time()
 
+
         best_move_queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
         search_process.start()
         search_process.join(timeout=self.time_limit)
+        time.sleep(self.time_limit)
         if search_process.is_alive():
-            print("Time limit of {self.time_limit} exceeded. Using best move at depth: ")
             search_process.terminate()
             search_process.join()
 
         try:
-            best_move = best_move_queue.get_nowait()
+            best_move, depth = best_move_queue.get_nowait()
+            print(f"Using best move at depth: {depth}")
         except queue.Empty:
+            print("Empty queue")
             best_move = None
 
 
@@ -157,7 +160,6 @@ class MinimaxAgent:
             self._output_game_state(str(best_move), self.game_state.board.to_string_board()) # Output the data to the file
         end = time.time()
 
-        print(f"Time to make move at depth {self.depth}: {end - start}")
 
 
     def _opponent_turn(self):
@@ -305,6 +307,9 @@ class MinimaxAgent:
 
             if current_best_move is not None:
                 best_move = current_best_move
+                while not best_move_queue.empty(): # Clear the current queue
+                    best_move_queue.get_nowait()
+                best_move_queue.put((best_move, depth)) # Add the best move and depth to the queue
         print("Best score:", best_score)
 
         return best_move
