@@ -1,0 +1,14 @@
+{
+  "initial_board_layout":"standard",
+  "gameMode":"cpu",
+  "player2":{
+    "color":"w",
+    "move_limit":30.0,
+    "time_limit":5.0
+  },
+  "player1":{
+    "color":"b",
+    "move_limit":30.0,
+    "time_limit":5.0
+  }
+}

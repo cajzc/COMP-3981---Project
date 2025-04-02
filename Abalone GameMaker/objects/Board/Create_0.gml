@@ -121,7 +121,10 @@ drawBoard = function(boardString) {
 				}
 			}
 		}
-	}	
+	}
+	var file = file_text_open_write(inFile);
+	file_text_write_string(file, boardString);
+	file_text_close(file);
 }
 
 /// @desc clears all marbles off the board.
@@ -154,5 +157,7 @@ saveBoardState = function() {
 	//Cut off any future moves that would've happened after this point.
 	TrimList(moveHistory,turnCount);
 	
-	show_debug_message(boardState);
+	var file = file_text_open_write(inFile);
+	file_text_write_string(file, boardState);
+	file_text_close(file);
 }

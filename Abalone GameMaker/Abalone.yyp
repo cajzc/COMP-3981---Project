@@ -71,6 +71,7 @@
     {"id":{"name":"MoveLimitText","path":"objects/MoveLimitText/MoveLimitText.yy",},},
     {"id":{"name":"MoveReader","path":"objects/MoveReader/MoveReader.yy",},},
     {"id":{"name":"MoveTextField","path":"objects/MoveTextField/MoveTextField.yy",},},
+    {"id":{"name":"Player1","path":"objects/Player1/Player1.yy",},},
     {"id":{"name":"PlayerBlack","path":"objects/PlayerBlack/PlayerBlack.yy",},},
     {"id":{"name":"PlayerWhite","path":"objects/PlayerWhite/PlayerWhite.yy",},},
     {"id":{"name":"Redo","path":"objects/Redo/Redo.yy",},},

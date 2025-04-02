@@ -46,6 +46,7 @@
     {"name":"MoveLimit","order":6,"path":"objects/MoveLimit/MoveLimit.yy",},
     {"name":"MoveLimitText","order":8,"path":"objects/MoveLimitText/MoveLimitText.yy",},
     {"name":"MoveTextField","order":5,"path":"objects/MoveTextField/MoveTextField.yy",},
+    {"name":"Player1","order":7,"path":"objects/Player1/Player1.yy",},
     {"name":"PlayerWhite","order":1,"path":"objects/PlayerWhite/PlayerWhite.yy",},
     {"name":"Redo","order":1,"path":"objects/Redo/Redo.yy",},
     {"name":"SaveBoardState","order":2,"path":"objects/SaveBoardState/SaveBoardState.yy",},
