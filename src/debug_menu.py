@@ -53,19 +53,27 @@ class DebugMenu:
                 case _:
                     print("Invalid selection")
 
+    # @staticmethod
+    # def _run_model():
+    #     config= DebugMenu.get_game_configuration()
+    #
+    #     agent = MinimaxAgent(
+    #         config.board,
+    #         config.player_colour,
+    #         config
+    #     )
+    #     if config.ai_human:
+    #         print("Not yet implemented")
+    #         return
+    #     agent.run_game()
+
     @staticmethod
     def _run_model():
-        config= DebugMenu.get_game_configuration()
+        config = DebugMenu.get_game_configuration()
         print()
-
-        agent = MinimaxAgent(
-            config.board,
-            config.player_colour,
-            config
-        ) 
-        if config.ai_human:
-            print("Not yet implemented")
-            return
+        # Instantiate the agent with board and configuration (which now includes human and AI sides)
+        agent = MinimaxAgent(config.board, config)
+        # Run the game loop (which handles human input and AI moves)
         agent.run_game()
 
     
@@ -97,23 +105,39 @@ class DebugMenu:
                     print("Invalid selection. Please try again.")
                     continue
 
+    # @staticmethod
+    # def _get_player_colour() -> Marble:
+    #     """
+    #     Prompts the user to select the player turn ('b' or 'w'), returning the colour they select as an enum.
+    #
+    #     :return: a Marble object
+    #     """
+    #     while True:
+    #         player = input("Enter the player turn ('b' for black or 'w' for white, default 'b'): ").strip().lower()
+    #         print("Note only select 'b' as of the development state") # TODO:
+    #         if not player:  # No input, use default value 'b'
+    #             return Marble("b")
+    #         elif player in ["b", "w"]:
+    #             return Marble(player)
+    #         else:
+    #             print("Invalid selection. Please enter 'b' for black or 'w' for white.")
+    #             continue
+
+    #implement vs human
     @staticmethod
     def _get_player_colour() -> Marble:
         """
-        Prompts the user to select the player turn ('b' or 'w'), returning the colour they select as an enum.
-
-        :return: a Marble object
+        Prompts the user to select the player turn ('b' for black or 'w' for white).
+        Returns the chosen colour as a Marble enum.
         """
         while True:
             player = input("Enter the player turn ('b' for black or 'w' for white, default 'b'): ").strip().lower()
-            print("Note only select 'b' as of the development state") # TODO:
-            if not player:  # No input, use default value 'b'
+            if not player:  # default to black
                 return Marble("b")
             elif player in ["b", "w"]:
                 return Marble(player)
             else:
                 print("Invalid selection. Please enter 'b' for black or 'w' for white.")
-                continue
 
     @staticmethod
     def _get_weights() -> list[float]:
@@ -190,52 +214,78 @@ class DebugMenu:
             except ValueError:
                 print("Invalid input. Please enter a valid number for the depth.")
 
+    # @staticmethod
+    # def get_game_configuration() -> AgentConfiguration:
+    #     """
+    #     Prompts a user for the game configuration.
+    #     - AI vs AI (same heuristic)
+    #     - AI vs AI (different heuristics)
+    #     - AI vs Human
+    #     - AI vs Random
+    #     """
+    #     print()
+    #     board = DebugMenu._get_board_configuration()
+    #     print()
+    #     player_colour = DebugMenu._get_player_colour()
+    #     print()
+    #     time_limit = DebugMenu._get_time_limit()
+    #     print()
+    #     depth = DebugMenu._get_depth()
+    #     print()
+    #
+    #     while True:
+    #         print(
+    #             "(1) AI vs AI (Same Heuristic)\n"
+    #             "(2) AI vs AI (Different Heuristic)\n"
+    #             "(3) AI vs Human\n"
+    #             "(4) AI vs Random\n"
+    #         )
+    #         user_input = input("Enter the Game Mode: ").strip()
+    #         print()
+    #
+    #         if user_input in ["1", "2", "3", "4"]:
+    #             return AgentConfiguration(
+    #                 player_colour,
+    #                 board,
+    #                 depth,
+    #                 time_limit,
+    #                 True if user_input == "1" else False,
+    #                 True if user_input == "2" else False, # FIXME:
+    #                 True if user_input == "3" else False,
+    #                 True if user_input == "4" else False,
+    #                 DebugMenu.get_heuristic("Select first heuristic:"),
+    #                 DebugMenu._get_weights(),
+    #                 DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
+    #                 DebugMenu._get_weights() if user_input == "2" else None
+    #             )
+    #         else:
+    #             print("Invalid selection. Please try again.")
+
+    # vs human version
     @staticmethod
     def get_game_configuration() -> AgentConfiguration:
-        """
-        Prompts a user for the game configuration.
-        - AI vs AI (same heuristic)
-        - AI vs AI (different heuristics)
-        - AI vs Human
-        - AI vs Random
-        """
-        print()
         board = DebugMenu._get_board_configuration()
         print()
-        player_colour = DebugMenu._get_player_colour()
+        print("Choose your side:")
+        human_colour = DebugMenu._get_player_colour()  # returns Marble("b") or Marble("w")
+        print(f"You chose: {human_colour.value}")
         print()
         time_limit = DebugMenu._get_time_limit()
         print()
         depth = DebugMenu._get_depth()
         print()
 
-        while True:
-            print(
-                "(1) AI vs AI (Same Heuristic)\n"
-                "(2) AI vs AI (Different Heuristic)\n"
-                "(3) AI vs Human\n"
-                "(4) AI vs Random\n"
-            )
-            user_input = input("Enter the Game Mode: ").strip()
-            print()
-            
-            if user_input in ["1", "2", "3", "4"]:
-                return AgentConfiguration(
-                    player_colour,
-                    board,
-                    depth,
-                    time_limit,
-                    True if user_input == "1" else False,
-                    True if user_input == "2" else False, # FIXME:
-                    True if user_input == "3" else False,
-                    True if user_input == "4" else False,
-                    DebugMenu.get_heuristic("Select first heuristic:"),
-                    DebugMenu._get_weights(),
-                    DebugMenu.get_heuristic("Select second heuristic:") if user_input == "2" else None,
-                    DebugMenu._get_weights() if user_input == "2" else None
-                )
-            else:
-                print("Invalid selection. Please try again.")
+        # For human play, set ai_human=True; adjust flags as needed.
+        return AgentConfiguration(
+            human_colour,
+            board,
+            depth,
+            time_limit,
+            ai_human=True,
+            ai_random=False,
+            h1=heuristic,  # or whichever heuristic you use
+            h1_weights=[-0.5, -0.3, 2.0]  # adjust weights as desired
+        )
 
     @staticmethod
     def get_heuristic(prompt: str):
