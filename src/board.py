@@ -5,7 +5,7 @@ from enum import Enum, auto
 from typing import Tuple, Set, List
 from enums import Marble
 import copy
-
+from file_paths import FilePaths
 
 class BoardConfiguration(Enum):
     """Represents initial board configurations as an enum."""
@@ -272,6 +272,32 @@ class Board:
 
         return board
 
+    def set_empty_positions(self):
+        """
+        Derives the empty board positions, setting it to the board objects state. 
+        """
+        keys = self.marble_positions.keys()
+        empty_positions = {
+                (q, r, s)
+                for q in range(-4, 5)
+                for r in range(-4, 5)
+                for s in range(-4, 5)
+                if q + r + s == 0 and (q, r, s) not in keys
+            }
+        self.empty_positions = empty_positions
+
+
+    def update_board_from_str(self, board_str: str):
+        """
+        Given an input string in the format: `C5b,A2w,...`, parses every line, updating it's marble positions dictionary and empty positions
+        """
+        self.reset_board()
+        for notation in board_str.split(","):
+            q, r, s, colour = Board.convert_marble_notation(notation)
+            self.marble_positions[(q, r, s)] = colour
+        self.set_empty_positions()
+
+
     def print_board(self):
         """Prints the board configuration to stdout as a hexagonal board."""
         combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
@@ -324,3 +350,4 @@ class Board:
         new_board = self.marble_positions.copy()
         return new_board
 
+    
