@@ -213,27 +213,38 @@ class MinimaxAgent:
             # Generate moves for current depth
             moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
 
-            # 1) Separate pushes from non-pushes
-            push_moves = [mv for mv in moves if mv.push]
-            non_push_moves = [mv for mv in moves if not mv.push]
+            # # 1) Separate pushes from non-pushes
+            # push_moves = [mv for mv in moves if mv.push]
+            # non_push_moves = [mv for mv in moves if not mv.push]
+            #
+            # # 2) Sort the non-push moves by your quick heuristic
+            # non_push_moves_sorted = sorted(
+            #     non_push_moves,
+            #     key=lambda m: self.quick_heuristic_eval(
+            #         m,
+            #         self.player_colour if is_player else self.opponent_colour,
+            #         heuristic,
+            #         args
+            #     ),
+            #     reverse=True
+            # )
+            #
+            # # 3) Keep the top 20 non-push moves
+            # top_non_push = non_push_moves_sorted[:10]
+            #
+            # # 4) Combine them back. This ensures *all push moves* stay in the final list.
+            # moves = push_moves + top_non_push
 
-            # 2) Sort the non-push moves by your quick heuristic
-            non_push_moves_sorted = sorted(
-                non_push_moves,
-                key=lambda m: self.quick_heuristic_eval(
-                    m,
-                    self.player_colour if is_player else self.opponent_colour,
-                    heuristic,
-                    args
-                ),
-                reverse=True
-            )
-
-            # 3) Keep the top 20 non-push moves
-            top_non_push = non_push_moves_sorted[:10]
-
-            # 4) Combine them back. This ensures *all push moves* stay in the final list.
-            moves = push_moves + top_non_push
+            # moves = sorted(
+            #     moves,
+            #     key=lambda m: self.quick_heuristic_eval(
+            #         m,
+            #         self.player_colour if is_player else self.opponent_colour,
+            #         heuristic,
+            #         args
+            #     ),
+            #     reverse=True
+            # )[:20]
 
             for move in moves:
                 new_board = self.board.copy()
@@ -323,7 +334,7 @@ class MinimaxAgent:
                 return entry.value
 
         if depth == 0 or terminal_test(board):
-            value = heuristic(player_colour, board, *args)
+            value = heuristic(board, *args)
             self.transposition_table.store(player_colour, board, value, depth, 'exact')
             return value
 
@@ -385,7 +396,7 @@ class MinimaxAgent:
                 return entry.value
 
         if depth == 0 or terminal_test(board):
-            value = heuristic(player_colour, board, *args)
+            value = heuristic(board, *args)
             self.transposition_table.store(player_colour, board, value, depth, 'exact')
             return value
 
@@ -424,7 +435,7 @@ class MinimaxAgent:
         """
         temp_board = self.board.copy()
         apply_move_dict(temp_board, move)
-        return heuristic(player_colour, temp_board, *args)
+        return heuristic(temp_board, *args)
 
     def _display_agent_configuration(self):
         """

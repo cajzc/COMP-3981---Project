@@ -124,11 +124,11 @@ class DebugMenu:
         """
 
         default_weights = {
-            'center_distance': -0.5,
-            'coherence': -0.3,
+            'center_distance': 0.5,
+            'coherence': 0.3,
             # 'danger': -1.0,
             # 'opponent_break': 0.8,
-            'score': -5.0,
+            'score': 2.0,
             # 'triangle_formation': 1.0
         }
 
