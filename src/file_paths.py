@@ -1,4 +1,5 @@
 """Houses file paths and directories."""
+from contextlib import AbstractAsyncContextManager
 import os
 import sys
 from enum import Enum
@@ -18,14 +19,16 @@ class FilePaths(Enum):
     # Main dir
     # GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
 
+    ABALONE_DIR = os.path.join(PROJECT_ROOT, "Abalone", "Abalone.exe")
+
     # Exe
-    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "Abalone", "Abalone.exe")
+    GAME_MAKER_EXE = os.path.join(ABALONE_DIR, "Abalone.exe")
 
     # Files
-    CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "config.json")
-    MOVES = os.path.join(PROJECT_ROOT, "moves.txt")
-    BOARD_INPUT = os.path.join(PROJECT_ROOT, "board_input.txt") # Where the agent reads its' moves (from the gui)
-    BOARD_OUTPUT = os.path.join(PROJECT_ROOT, "board_output.txt") # Where the agent writes its' moves (to the gui)
+    CONFIGURATION_FILE = os.path.join(ABALONE_DIR, "AbaloneConfig.json")
+    MOVES = os.path.join(ABALONE_DIR, "moves.txt")
+    BOARD_INPUT = os.path.join(ABALONE_DIR, "board_input.txt") # Where the agent reads its' moves (from the gui)
+    BOARD_OUTPUT = os.path.join(ABALONE_DIR, "board_output.txt") # Where the agent writes its' moves (to the gui)
 
 
 
