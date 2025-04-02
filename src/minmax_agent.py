@@ -9,6 +9,7 @@ from enums import Marble, GameMode
 from board import Board
 import random
 from file_paths import *
+import multiprocessing, queue
 
 class AgentConfiguration:
     """
@@ -135,15 +136,27 @@ class MinimaxAgent:
         """Handles the agent (player) turn logic."""
         print("\nPlayer Turn\n")
         start = time.time()
-        move_to_make = self.iterative_deepening_search(
-            True,
-            self.heuristic,
-            self.heuristic_weights
-        )
-        if move_to_make:
-            self.game_state.apply_move(move_to_make) # Update the board configuration
-            self._output_game_state(str(move_to_make), self.game_state.board.to_string_board()) # Output the data to the file
+
+        best_move_queue = multiprocessing.Queue()
+        search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
+        search_process.start()
+        search_process.join(timeout=self.time_limit)
+        if search_process.is_alive():
+            print("Time limit of {self.time_limit} exceeded. Using best move at depth: ")
+            search_process.terminate()
+            search_process.join()
+
+        try:
+            best_move = best_move_queue.get_nowait()
+        except queue.Empty:
+            best_move = None
+
+
+        if best_move:
+            self.game_state.apply_move(best_move) # Update the board configuration
+            self._output_game_state(str(best_move), self.game_state.board.to_string_board()) # Output the data to the file
         end = time.time()
+
         print(f"Time to make move at depth {self.depth}: {end - start}")
 
 
@@ -154,7 +167,7 @@ class MinimaxAgent:
         match self.game_mode:
             case GameMode.HUMAN:
                 board_str = read_from_output_game_file(FilePaths.BOARD_INPUT)
-                self.board.update_board_from_str(board_str) # NOTE: Update the board configuration from str
+                self.board.update_board_from_str(board_str) # NOTE: Updates the board configuration from str
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
@@ -192,6 +205,7 @@ class MinimaxAgent:
     def _opponent_turn_heuristic(self):
         """Simulates an opponent that uses their own heuristic."""
         move_to_make = self.iterative_deepening_search(
+                None,
                 False,
                 self.opponent_heuristic,
                 self.opponent_heuristic_weights
@@ -241,7 +255,7 @@ class MinimaxAgent:
             else:
                 return opponent_move
 
-    def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
+    def iterative_deepening_search(self, best_move_queue, is_player: bool, heuristic, args) -> Move | None:
         self.transposition_table.clear()
         best_move = None
 
