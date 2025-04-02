@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ClickedWithin",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ClickedWithin",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
