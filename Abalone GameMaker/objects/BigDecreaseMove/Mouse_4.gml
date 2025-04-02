@@ -1,0 +1,1 @@
+config.moveLimit -= 5;

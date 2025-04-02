@@ -26,3 +26,8 @@ rollback = function() {
 	
 	turnCount--;
 }
+
+config = instance_find(ConfigHandler, 0);
+board = instance_find(Board, 0);
+
+board.updateBoard(config.boardString);

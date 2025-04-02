@@ -1,0 +1,1 @@
+config = instance_find(ConfigHandler, 0);
