@@ -2,7 +2,8 @@
 import os
 import sys
 from enum import Enum
-
+import time
+from typing import Tuple
 
 class FilePaths(Enum):
     """Represents the file paths for the running program."""
@@ -30,15 +31,31 @@ def write_to_output_game_file(file_path: FilePaths, data: str):
         file.write(data)
 
 
-def read_from_output_game_file(file_path: FilePaths) -> str:
+def read_from_output_game_file(file_path: FilePaths, last_modified_time) -> Tuple[str, float]:
     """
     Reads a game state from an output .txt file. Reads the single first line.
 
     This might be used to read the output board configuration from the GUI, in the format C5b, ...
+
+    :param file_path: the path of the file to read from as an enum
+    :param last_modified_time: the last time the file has been read from
+    :returns: the data in the file as a str and the timestamp from which it was modified
     """
-    try:
-        with open(file_path.value, "r") as file:
-            return file.readline().strip()
-    except FileNotFoundError:
-        return ""
+    # Wait for the file to be created
+    while not os.path.exists(file_path.value):
+        print(f"File {file_path.value} not found.")
+        time.sleep(0.1)
+
+    # Wait for the file to be modified
+    while True:
+        current_modified_time = os.path.getmtime(file_path.value)
+        print(f"Waiting for modifications to {file_path.value}.")
+
+        if current_modified_time != last_modified_time:
+            last_modified_time = current_modified_time
+
+            with open(file_path.value, "r") as file:
+                return (file.readline().strip(), last_modified_time)
+
+        time.sleep(0.1)
 
