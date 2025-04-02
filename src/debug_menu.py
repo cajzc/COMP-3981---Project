@@ -9,6 +9,7 @@ from enums import Marble, GameMode
 from heuristic import c_heuristic, b_heuristic, heuristic, yz_heuristic
 import json
 import state_space
+from file_paths import FilePaths
 
 
 class DebugMenu:
@@ -18,17 +19,6 @@ class DebugMenu:
     - Generating moves from a .input file to a file
     - Generating moves from a given board representation (i.e., default, belgian, german) to a file
     """
-
-    # Get the project root directory and test file paths
-    if getattr(sys, 'frozen', False):  # Running as a PyInstaller EXE
-        PROJECT_ROOT = os.path.dirname(os.path.abspath(sys.executable))
-    else:  # Running as a regular Python script
-        PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    TEST_INPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "input")
-    VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
-    TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
-    CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "game", "config.json")
-
 
     @staticmethod
     def options():
@@ -364,7 +354,7 @@ class DebugMenu:
         :param moves: an array of generated moves
         """
         print("file name", file_name)
-        path = os.path.join(DebugMenu.TEST_OUTPUT_FILES_DIR, f"{file_name}.move")
+        path = os.path.join(FilePaths.TEST_OUTPUT_FILES_DIR.value, f"{file_name}.move")
 
         with open(path, "w", encoding="utf-8") as move_file:
             for move in moves:
@@ -372,7 +362,7 @@ class DebugMenu:
 
     @staticmethod
     def write_to_board_file(file_name: str, states: List[str]):
-        path = os.path.join(DebugMenu.TEST_OUTPUT_FILES_DIR, f"{file_name}.board")
+        path = os.path.join(FilePaths.TEST_OUTPUT_FILES_DIR.value, f"{file_name}.board")
         with open(path, "w", encoding="utf-8") as state_file:
             for state in states:
                 state_file.write(state + "\n")
@@ -385,7 +375,7 @@ class DebugMenu:
         :param board: Board dictionary {(x, y): 'b'/'w'/'N'}.
         :param colour: the starting player's colour
         """
-        path = os.path.join(DebugMenu.TEST_INPUT_FILES_DIR, f"{file_name}.input")
+        path = os.path.join(FilePaths.TEST_INPUT_FILES_DIR.value, f"{file_name}.input")
         with open(path, "w", encoding="utf-8") as input_file:
             input_file.write(colour + "\n")
             for line in Board.to_string_board(board):
@@ -398,8 +388,8 @@ class DebugMenu:
         
         :param file_name: the file path of both files to check
         """
-        output_file = os.path.join(DebugMenu.TEST_OUTPUT_FILES_DIR, file_name)
-        valid_output_file = os.path.join(DebugMenu.VALID_OUTPUT_FILES_DIR, file_name)
+        output_file = os.path.join(FilePaths.TEST_OUTPUT_FILES_DIR.value, file_name)
+        valid_output_file = os.path.join(FilePaths.VALID_OUTPUT_FILES_DIR.value, file_name)
         with open(output_file, 'r') as output, open(valid_output_file, 'r') as valid_output:
             output = {line.strip() for line in output.readlines()}
             valid_output = {line.strip() for line in valid_output.readlines()}
@@ -430,7 +420,7 @@ class DebugMenu:
             if user_input.lower() == "q":
                 break
             
-            if not DebugMenu._validate_file(user_input, "input", DebugMenu.TEST_INPUT_FILES_DIR): 
+            if not DebugMenu._validate_file(user_input, "input", FilePaths.TEST_INPUT_FILES_DIR.value): 
                 continue
 
             # Add valid filename to the list
@@ -497,7 +487,7 @@ class DebugMenu:
             user_input = input("Enter the .board file to compare. (File names to compare should be equal) (Enter q to quit): ")
             if user_input == "q":
                 break
-            if not DebugMenu._validate_file(user_input, "board", DebugMenu.TEST_OUTPUT_FILES_DIR, DebugMenu.VALID_OUTPUT_FILES_DIR): 
+            if not DebugMenu._validate_file(user_input, "board", FilePaths.TEST_OUTPUT_FILES_DIR.value, FilePaths.VALID_OUTPUT_FILES_DIR.value): 
                 continue
 
             eq, board = DebugMenu.boards_equal(user_input)
@@ -517,7 +507,7 @@ class DebugMenu:
         :param file_name: the .input file to read from
         :return: the player and a Board object with new positions
         """
-        path = os.path.join(DebugMenu.TEST_INPUT_FILES_DIR, file_name)
+        path = os.path.join(FilePaths.TEST_INPUT_FILES_DIR.value, file_name)
         with open(path, "r", encoding="utf-8") as f:
             player = f.readline().strip()
             marbles = f.readline().strip().split(',')
@@ -551,7 +541,7 @@ class DebugMenu:
         DebugMenu.write_to_move_file(file.strip(".input"), all_moves)
     
         # Apply each move and write new board states
-        move_file_path = os.path.join(DebugMenu.TEST_OUTPUT_FILES_DIR, f"{file.strip(".input")}.move")
+        move_file_path = os.path.join(FilePaths.TEST_OUTPUT_FILES_DIR.value, f"{file.strip(".input")}.move")
         board_states = []
         with open(move_file_path, "r", encoding="utf-8") as f:
             move_lines = f.read().strip().splitlines()
@@ -559,7 +549,7 @@ class DebugMenu:
 
         for move in move_lines:
             # Create a fresh board from Test2.input.
-            path = os.path.join(DebugMenu.TEST_INPUT_FILES_DIR, file)
+            path = os.path.join(FilePaths.TEST_INPUT_FILES_DIR.value, file)
             with open(path, "r", encoding="utf-8") as f:
                 player = f.readline().strip()
                 marbles = f.readline().strip().split(',')
@@ -584,7 +574,7 @@ class DebugMenu:
         # Write resulting board to file
         DebugMenu.write_to_board_file(file.strip(".input"), board_states)
    
-        print(f"Moves saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.move\nBoard saved to {DebugMenu.TEST_OUTPUT_FILES_DIR + "/" + file.strip(".input")}.board\n")
+        print(f"Moves saved to {FilePaths.TEST_OUTPUT_FILES_DIR.value + "/" + file.strip(".input")}.move\nBoard saved to {FilePaths.TEST_OUTPUT_FILES_DIR.value + "/" + file.strip(".input")}.board\n")
 
 
     @staticmethod
@@ -605,10 +595,10 @@ class DebugMenu:
         :returns: the MinimaxAgent object if no error, else None
         """
         #TODO: This should do polling
-        if not os.path.exists(DebugMenu.CONFIGURATION_FILE):
-            print(f"Configuration file {DebugMenu.CONFIGURATION_FILE} not found")
+        if not os.path.exists(FilePaths.CONFIGURATION_FILE.value):
+            print(f"Configuration file {FilePaths.CONFIGURATION_FILE.value} not found")
             return None
-        with open(DebugMenu.CONFIGURATION_FILE, "r") as file:
+        with open(FilePaths.CONFIGURATION_FILE.value, "r") as file:
 
             data = json.load(file)
 
@@ -661,7 +651,7 @@ class DebugMenu:
             case "german":
                 board = Board.create_board(BoardConfiguration.GERMAN)
             case _:
-                print(f"Error reading attribute `initial_board_layout` from {DebugMenu.CONFIGURATION_FILE}. Cannot parse {layout}")
+                print(f"Error reading attribute `initial_board_layout` from {FilePaths.CONFIGURATION_FILE.value}. Cannot parse {layout}")
                 return None
 
         return board
