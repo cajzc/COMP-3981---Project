@@ -15,13 +15,18 @@ class FilePaths(Enum):
     VALID_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "valid_output")
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
-    GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone")
-    CONFIGURATION_FILE = os.path.join(GAME_OUTPUT, "config.json")
-    MOVES = os.path.join(GAME_OUTPUT, "moves.txt")
-    BOARD_INPUT = os.path.join(GAME_OUTPUT, "board_input.txt") # Where the agent reads its' moves (from the gui)
-    BOARD_OUTPUT = os.path.join(GAME_OUTPUT, "board_output.txt") # Where the agent writes its' moves (to the gui)
+    # Main dir
+    GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
 
-    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "Abalone.exe") # FIXME: The exe
+    # Exe
+    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "game_maker", "game_maker.exe") 
+
+    # Files
+    CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "config.json")
+    MOVES = os.path.join(PROJECT_ROOT, "moves.txt")
+    BOARD_INPUT = os.path.join(PROJECT_ROOT, "board_input.txt") # Where the agent reads its' moves (from the gui)
+    BOARD_OUTPUT = os.path.join(PROJECT_ROOT, "board_output.txt") # Where the agent writes its' moves (to the gui)
+
 
 
 def write_to_output_game_file(file_path: FilePaths, data: str):
