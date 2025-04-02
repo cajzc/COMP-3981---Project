@@ -701,9 +701,9 @@ class DebugMenu:
 
         print("\nGame Configuration")
         print("-------------")
-        print("Depth:", agent.depth)
+        depth = "Infinite" if agent.depth == 10**9 else agent.depth
+        print("Depth:", depth)
         print("Game Mode:", agent.game_mode)
-        print("Board:", agent.board)
         first_move = "Agent" if agent.player_colour == Marble.BLACK else "Opponent"
         print("First move:", first_move)
 
