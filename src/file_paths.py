@@ -19,7 +19,7 @@ class FilePaths(Enum):
     GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
 
     # Exe
-    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "game_maker", "game_maker.exe") 
+    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "Abalone GameMaker", "Abalone", "Abalone.exe")
 
     # Files
     CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "config.json")
