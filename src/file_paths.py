@@ -36,7 +36,7 @@ def write_to_output_game_file(file_path: FilePaths, data: str):
 
     This might be used to write the ai's generated move, or current board state in the format C5b, ...
     """
-    with open(file_path.value, "w") as file:
+    with open(file_path.value, "w", encoding="utf-8") as file:
         file.write(data)
 
 
@@ -63,7 +63,7 @@ def read_from_output_game_file(file_path: FilePaths, last_modified_time) -> Tupl
         if current_modified_time != last_modified_time:
             last_modified_time = current_modified_time
 
-            with open(file_path.value, "r") as file:
+            with open(file_path.value, "r", encoding="utf-8") as file:
                 return (file.readline().strip(), last_modified_time)
 
         time.sleep(0.1)
