@@ -142,7 +142,7 @@ class MinimaxAgent:
         )
         if move_to_make:
             self.game_state.apply_move(move_to_make) # Update the board configuration
-            self._output_game_state(str(move_to_make), str(self.game_state.board)) # Output the data to the file
+            self._output_game_state(str(move_to_make), self.game_state.board.to_string_board()) # Output the data to the file
         end = time.time()
         print(f"Time to make move at depth {self.depth}: {end - start}")
 
@@ -154,6 +154,7 @@ class MinimaxAgent:
         match self.game_mode:
             case GameMode.HUMAN:
                 # Update the board configuration here
+                pass
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
@@ -178,7 +179,7 @@ class MinimaxAgent:
         move_to_make = self._get_random_move(self.player_colour)
         if move_to_make:
             self.game_state.apply_move(move_to_make)
-            self._output_game_state(str(move_to_make), str(self.board))
+            self._output_game_state(str(move_to_make), self.board.to_string_board())
        
 
     def _opponent_turn_random(self):
