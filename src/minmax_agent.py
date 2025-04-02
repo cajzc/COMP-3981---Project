@@ -8,6 +8,7 @@ import time
 from enums import Marble, GameMode
 from board import Board
 import random
+from file_paths import *
 
 class AgentConfiguration:
     """
@@ -140,7 +141,8 @@ class MinimaxAgent:
             self.heuristic_weights
         )
         if move_to_make:
-            self.game_state.apply_move(move_to_make)
+            self.game_state.apply_move(move_to_make) # Update the board configuration
+            self._output_game_state(str(move_to_make), str(self.game_state.board)) # Output the data to the file
         end = time.time()
         print(f"Time to make move at depth {self.depth}: {end - start}")
 
@@ -151,7 +153,7 @@ class MinimaxAgent:
 
         match self.game_mode:
             case GameMode.HUMAN:
-                print("In development...")
+                # Update the board configuration here
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
@@ -160,11 +162,23 @@ class MinimaxAgent:
                 self._opponent_turn_heuristic()
 
 
+    def _output_game_state(self, move: str, board_state: str):
+        """
+        Outputs the current game state of the agent, including: Move and Board configuration.
+
+        :param move: the move string in the format: (0,0,0,b)→(1,0,-1,b)
+        :param board_state: the board state in the format C5b, A2w, ...
+        """
+        write_to_output_game_file(FilePaths.MOVES, move) 
+        write_to_output_game_file(FilePaths.BOARD_OUTPUT, board_state) 
+
+
     def _player_first_turn_random(self):
         """Selects and applies a random move from the player."""
         move_to_make = self._get_random_move(self.player_colour)
         if move_to_make:
             self.game_state.apply_move(move_to_make)
+            self._output_game_state(str(move_to_make), str(self.board))
        
 
     def _opponent_turn_random(self):
@@ -188,7 +202,7 @@ class MinimaxAgent:
     def apply_opponent_move_input(self):
         """Applies the move to the game state. This assumes the opponents move is a valid one."""
         move = self._get_opponent_move_input()
-        self.game_state.apply_move(move)
+        #self.game_state.apply_move(move)
 
     
     def _get_random_move(self, player_colour: str) -> Move | None:
@@ -198,7 +212,7 @@ class MinimaxAgent:
         :param player_colour: the colour of the player who will make the random move
         :return: a randomly selected move for the player or None if there are no generated moves
         """
-        possible_moves = generate_move(player_colour, self.game_state.board)
+        possible_moves = generate_move(player_colour, self.board)
         if len(possible_moves) == 0:
             return None
         r = random.randint(0, len(possible_moves) - 1)
