@@ -70,7 +70,9 @@ class DebugMenu:
     @staticmethod
     def _run_game_maker():
         # Run the exe
-        DebugMenu._run_game_maker_exe()
+        if not DebugMenu._run_game_maker_exe():
+            print("Error creating agent. Returning to menu")
+            return
 
         # Create the configuration
         agent = DebugMenu._create_mini_max_agent_from_file()
@@ -122,10 +124,18 @@ class DebugMenu:
                     continue
 
     @staticmethod
-    def _run_game_maker_exe():
-        """Runs the game maker executable file."""
+    def _run_game_maker_exe() -> bool:
+        """
+        Runs the game maker executable file.
+        
+        :returns: True if no error running the exe else False
+        """
+        if not os.path.exists(FilePaths.GAME_MAKER_EXE.value):
+            print(f"Could not find file: {FilePaths.GAME_MAKER_EXE.value}")
+            return False
         print(f"Running game maker executable {FilePaths.GAME_MAKER_EXE.value}")
         os.system(FilePaths.GAME_MAKER_EXE.value)
+        return True
 
     @staticmethod
     def _get_player_colour(player_num = 1) -> Marble:
