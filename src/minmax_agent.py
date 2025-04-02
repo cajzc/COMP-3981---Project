@@ -137,15 +137,16 @@ class MinimaxAgent:
         print("\nPlayer Turn\n")
         start = time.time()
 
-
+        # Add a queue for moves, run the iterative deepening search 
         best_move_queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
         search_process.start()
         search_process.join(timeout=self.time_limit)
-        time.sleep(self.time_limit)
+
         if search_process.is_alive():
             search_process.terminate()
             search_process.join()
+        search_process.close()
 
         try:
             best_move, depth = best_move_queue.get_nowait()
@@ -153,12 +154,15 @@ class MinimaxAgent:
         except queue.Empty:
             print("Empty queue")
             best_move = None
-
+            depth = None
 
         if best_move:
             self.game_state.apply_move(best_move) # Update the board configuration
             self._output_game_state(str(best_move), self.game_state.board.to_string_board()) # Output the data to the file
+
         end = time.time()
+        if depth:
+            print(f"Using best move at depth: {depth}. Elapsed time: {end-start}")
 
 
 
