@@ -15,8 +15,8 @@ class FilePaths(Enum):
     GAME_OUTPUT = os.path.join(PROJECT_ROOT, "game")
     CONFIGURATION_FILE = os.path.join(GAME_OUTPUT, "config.json")
     MOVES = os.path.join(GAME_OUTPUT, "moves.txt")
-    BOARD_INPUT = os.path.join(GAME_OUTPUT, "board_input.txt")
-    BOARD_OUTPUT = os.path.join(GAME_OUTPUT, "board_output.txt")
+    BOARD_INPUT = os.path.join(GAME_OUTPUT, "board_input.txt") # Where the agent reads its' moves (from the gui)
+    BOARD_OUTPUT = os.path.join(GAME_OUTPUT, "board_output.txt") # Where the agent writes its' moves (to the gui)
 
 
 def write_to_output_game_file(file_path: FilePaths, data: str):
