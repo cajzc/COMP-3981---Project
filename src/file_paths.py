@@ -19,7 +19,7 @@ class FilePaths(Enum):
     # Main dir
     # GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
 
-    ABALONE_DIR = os.path.join(PROJECT_ROOT, "Abalone", "Abalone.exe")
+    ABALONE_DIR = os.path.join(PROJECT_ROOT, "Abalone")
 
     # Exe
     GAME_MAKER_EXE = os.path.join(ABALONE_DIR, "Abalone.exe")
