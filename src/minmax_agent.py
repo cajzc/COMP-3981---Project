@@ -202,54 +202,95 @@ class MinimaxAgent:
             else:
                 return opponent_move
 
+    # def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
+    #     self.transposition_table.clear()
+    #     best_move = None
+    #
+    #     best_score = -math.inf
+    #     for depth in range(1, self.depth + 1):
+    #         current_best_move = None
+    #
+    #         # Generate moves for current depth
+    #         moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
+    #
+    #         # # 1) Separate pushes from non-pushes
+    #         # push_moves = [mv for mv in moves if mv.push]
+    #         # non_push_moves = [mv for mv in moves if not mv.push]
+    #         #
+    #         # # 2) Sort the non-push moves by your quick heuristic
+    #         # non_push_moves_sorted = sorted(
+    #         #     non_push_moves,
+    #         #     key=lambda m: self.quick_heuristic_eval(
+    #         #         m,
+    #         #         self.player_colour if is_player else self.opponent_colour,
+    #         #         heuristic,
+    #         #         args
+    #         #     ),
+    #         #     reverse=True
+    #         # )
+    #         #
+    #         # # 3) Keep the top 20 non-push moves
+    #         # top_non_push = non_push_moves_sorted[:10]
+    #         #
+    #         # # 4) Combine them back. This ensures *all push moves* stay in the final list.
+    #         # moves = push_moves + top_non_push
+    #
+    #         # moves = sorted(
+    #         #     moves,
+    #         #     key=lambda m: self.quick_heuristic_eval(
+    #         #         m,
+    #         #         self.player_colour if is_player else self.opponent_colour,
+    #         #         heuristic,
+    #         #         args
+    #         #     ),
+    #         #     reverse=True
+    #         # )[:20]
+    #
+    #         for move in moves:
+    #             new_board = self.board.copy()
+    #             apply_move_dict(new_board, move)
+    #
+    #             score = self.mini_max(
+    #                 not is_player,
+    #                 new_board,
+    #                 depth,
+    #                 heuristic,
+    #                 args,
+    #             )
+    #             if score > best_score:
+    #                 best_score = score
+    #                 current_best_move = move
+    #
+    #         if current_best_move is not None:
+    #             best_move = current_best_move
+    #         print(best_score,best_move)
+    #     print("Best score:", best_score)
+    #
+    #     return best_move
+
     def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
         self.transposition_table.clear()
         best_move = None
+        start_time = time.time()
 
-        best_score = -math.inf
+        # Iterate from depth 1 up to self.depth
         for depth in range(1, self.depth + 1):
             current_best_move = None
-
-            # Generate moves for current depth
-            moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
-
-            # # 1) Separate pushes from non-pushes
-            # push_moves = [mv for mv in moves if mv.push]
-            # non_push_moves = [mv for mv in moves if not mv.push]
-            #
-            # # 2) Sort the non-push moves by your quick heuristic
-            # non_push_moves_sorted = sorted(
-            #     non_push_moves,
-            #     key=lambda m: self.quick_heuristic_eval(
-            #         m,
-            #         self.player_colour if is_player else self.opponent_colour,
-            #         heuristic,
-            #         args
-            #     ),
-            #     reverse=True
-            # )
-            #
-            # # 3) Keep the top 20 non-push moves
-            # top_non_push = non_push_moves_sorted[:10]
-            #
-            # # 4) Combine them back. This ensures *all push moves* stay in the final list.
-            # moves = push_moves + top_non_push
-
-            # moves = sorted(
-            #     moves,
-            #     key=lambda m: self.quick_heuristic_eval(
-            #         m,
-            #         self.player_colour if is_player else self.opponent_colour,
-            #         heuristic,
-            #         args
-            #     ),
-            #     reverse=True
-            # )[:20]
+            current_best_score = -math.inf
+            inner_complete = True  # Flag to check if the entire depth was completed
+            moves = generate_move_dict(
+                self.player_colour if is_player else self.opponent_colour,
+                self.board.marble_positions
+            )
 
             for move in moves:
+                # Check time before starting evaluation of each move.
+                if time.time() - start_time >= self.time_limit:
+                    inner_complete = False
+                    break
+
                 new_board = self.board.copy()
                 apply_move_dict(new_board, move)
-
                 score = self.mini_max(
                     not is_player,
                     new_board,
@@ -257,17 +298,20 @@ class MinimaxAgent:
                     heuristic,
                     args,
                 )
-                if score > best_score:
-                    best_score = score
+                if score > current_best_score:
+                    current_best_score = score
                     current_best_move = move
 
-            if current_best_move is not None:
-                best_move = current_best_move
-            print(best_score,best_move)
-        print("Best score:", best_score)
+            # If we did not complete the current depth iteration due to time, exit.
+            if not inner_complete:
+                break
 
+            # Update best_move with the move found at this fully completed depth.
+            best_move = current_best_move
+            print(f"Depth {depth} score: {current_best_score}, move: {best_move}")
+
+        print("Best move from deepest completed iteration:", best_move)
         return best_move
-
 
     def mini_max(self, is_player: bool, board: Dict[Tuple[int, int, int], str], depth: int, heuristic, args) -> float:
         """
