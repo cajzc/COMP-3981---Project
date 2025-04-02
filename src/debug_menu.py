@@ -133,8 +133,8 @@ class DebugMenu:
         if not os.path.exists(FilePaths.GAME_MAKER_EXE.value):
             print(f"Could not find file: {FilePaths.GAME_MAKER_EXE.value}")
             return False
-        print(f"Running game maker executable {FilePaths.GAME_MAKER_EXE.value}")
-        os.system(FilePaths.GAME_MAKER_EXE.value)
+        # print(f"Running game maker executable {FilePaths.GAME_MAKER_EXE.value}")
+        # os.system(FilePaths.GAME_MAKER_EXE.value)
         return True
 
     @staticmethod
