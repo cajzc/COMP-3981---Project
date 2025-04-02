@@ -10,6 +10,7 @@ from heuristic import c_heuristic, b_heuristic, heuristic, yz_heuristic
 import json
 import state_space
 from file_paths import FilePaths
+import time
 
 
 class DebugMenu:
@@ -68,6 +69,8 @@ class DebugMenu:
 
     @staticmethod
     def _run_game_maker():
+        
+
         # Create the configuration
         agent = DebugMenu._create_mini_max_agent_from_file()
         if agent is None:
@@ -116,6 +119,12 @@ class DebugMenu:
                 case _:
                     print("Invalid selection. Please try again.")
                     continue
+
+    @staticmethod
+    def _run_game_maker_exe():
+        """Runs the game maker executable file."""
+        print(f"Running game maker executable {FilePaths.GAME_MAKER_EXE.value}")
+        os.system(FilePaths.GAME_MAKER_EXE.value)
 
     @staticmethod
     def _get_player_colour(player_num = 1) -> Marble:
@@ -594,12 +603,13 @@ class DebugMenu:
 
         :returns: the MinimaxAgent object if no error, else None
         """
-        #TODO: This should do polling
-        if not os.path.exists(FilePaths.CONFIGURATION_FILE.value):
+        while not os.path.exists(FilePaths.CONFIGURATION_FILE.value):
             print(f"Configuration file {FilePaths.CONFIGURATION_FILE.value} not found")
-            return None
-        with open(FilePaths.CONFIGURATION_FILE.value, "r") as file:
+            print("Sleeping...")
+            time.sleep(0.1)
+        print("Configuration file detected! Proceeding")
 
+        with open(FilePaths.CONFIGURATION_FILE.value, "r") as file:
             data = json.load(file)
 
             board = DebugMenu._get_board_from_file(data)
