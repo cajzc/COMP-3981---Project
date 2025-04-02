@@ -153,8 +153,8 @@ class MinimaxAgent:
 
         match self.game_mode:
             case GameMode.HUMAN:
-                # Update the board configuration here
-                pass
+                board_str = read_from_output_game_file(FilePaths.BOARD_INPUT)
+                self.board.update_board_from_str(board_str) # NOTE: Update the board configuration from str
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
