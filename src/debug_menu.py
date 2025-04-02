@@ -69,7 +69,8 @@ class DebugMenu:
 
     @staticmethod
     def _run_game_maker():
-        
+        # Run the exe
+        DebugMenu._run_game_maker_exe()
 
         # Create the configuration
         agent = DebugMenu._create_mini_max_agent_from_file()
@@ -627,7 +628,6 @@ class DebugMenu:
 
             if player2_configuration is None:
                 return None
-
 
             return MinimaxAgent(
                 board,
