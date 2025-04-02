@@ -16,10 +16,10 @@ class FilePaths(Enum):
     TEST_OUTPUT_FILES_DIR = os.path.join(PROJECT_ROOT, "test_files", "output")
 
     # Main dir
-    GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
+    # GAME_OUTPUT = os.path.join(PROJECT_ROOT, "Abalone GameMaker")
 
     # Exe
-    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "Abalone GameMaker", "Abalone", "Abalone.exe")
+    GAME_MAKER_EXE = os.path.join(PROJECT_ROOT, "Abalone.exe")
 
     # Files
     CONFIGURATION_FILE = os.path.join(PROJECT_ROOT, "config.json")
