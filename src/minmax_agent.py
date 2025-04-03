@@ -177,6 +177,7 @@ class MinimaxAgent:
                 board_str, last_read_board_time = read_from_output_game_file(FilePaths.BOARD_INPUT, self.last_read_board_file)
                 self.last_read_board_file = last_read_board_time
                 self.board.update_board_from_str(board_str) # NOTE: Updates the board configuration from str
+                print("Updated board")
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
