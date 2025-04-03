@@ -1,13 +1,13 @@
 if(!fileOpen) {
-	//If the file has not been read yet, ask the user.
-	if(fileName == "") fileName = get_open_filename("any", "");
-	
 	//If it exists, begin reading from it.
 	if(file_exists(fileName)){
 		file = file_text_open_read(fileName);
 		fileOpen = true;
 		doubleClick = true;
 		alarm[0] = 15;
+	} else {
+		//If the file has not been read yet, ask the user.
+		fileName = get_open_filename("any", "");
 	}
 }
 
