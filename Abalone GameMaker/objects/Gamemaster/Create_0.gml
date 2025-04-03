@@ -45,6 +45,7 @@ reset = function() {
 	board.reset();
 	player1.reset();
 	player2.reset();
+	selected[0] = noone;
 	
 	//Pause the game.
 	running = false;

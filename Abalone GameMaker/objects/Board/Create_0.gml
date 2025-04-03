@@ -132,6 +132,7 @@ clearBoard = function(rows) {
 	for(var i = 0; i < array_length(rows); i++) {
 		for(var j = 0; j < array_length(rows[i]); j++) {
 			instance_destroy(rows[i][j].marble);
+			rows[i][j].marble = noone;
 		}
 	}
 }
@@ -149,6 +150,7 @@ saveBoardState = function() {
 		}
 	}
 	//Remove the last trailing comma.
+	if(string_length(boardState) > 3)
 	boardState = string_delete(boardState, string_length(boardState), 1);
 	
 	gamemaster.endTurn();
