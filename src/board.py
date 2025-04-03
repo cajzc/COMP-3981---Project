@@ -41,8 +41,8 @@ class Board:
         Creates a standard Abalone board with black marbles on the bottom
         (rows A–C) and white marbles on top (rows G–I).
         """
-        # Black marble initial positions (bottom 3 rows)
-        black_marble_initial_pos = [
+        # White marble initial positions (top 3 rows)
+        white_marble_initial_pos = [
             # Row G (r=-2), cols 4..6 => q=-1..1
             (0, -2, 2), (1, -2, 1), (2, -2, 0),
             # Row H (r=-3), cols 4..9 => q=-1..4
@@ -51,8 +51,8 @@ class Board:
             (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
         ]       
 
-        # White marble initial positions (top 3 rows)
-        white_marble_initial_pos = [
+        # Black marble initial positions (bottom 3 rows)
+        black_marble_initial_pos = [
             # Row A (r=+4), cols 1..5 => q=-4..0, s=-q-r
             (-4, 4, 0), (-3, 4, -1), (-2, 4, -2), (-1, 4, -3), (0, 4, -4),
             # Row B (r=+3), cols 1..6 => q=-4..1
