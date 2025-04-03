@@ -14,6 +14,7 @@ setColour = function(colour) {
 changeTile = function(newSpace) {
 	space.marble = noone;
 	space = newSpace;
+	space.marble = id;
 }
 
 space = noone;

@@ -6,6 +6,8 @@ if(!fileOpen) {
 	if(file_exists(fileName)){
 		file = file_text_open_read(fileName);
 		fileOpen = true;
+		doubleClick = true;
+		alarm[0] = 15;
 	}
 }
 
