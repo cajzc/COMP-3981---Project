@@ -192,6 +192,11 @@ class MinimaxAgent:
         # Set current_move flag: if the current player is the AI's colour, then True.
         self.current_move = (starting_player == self.player_colour)
 
+        self.time_limit = config.time_limit
+        self.opponent_colour = Marble.BLACK.value if self.player_colour == Marble.WHITE.value else Marble.WHITE.value
+        self.depth = config.depth
+        self.transposition_table = TranspositionTable()
+
     def run_game(self):
         """
         Game loop that alternates turns. If the current player is the human's side, prompt for input;

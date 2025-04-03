@@ -43,22 +43,22 @@ class Board:
         """
         # Black marble initial positions (bottom 3 rows)
         black_marble_initial_pos = [
-            # Row G (r=-2), cols 4..6 => q=-1..1
-            (0, -2, 2), (1, -2, 1), (2, -2, 0),
-            # Row H (r=-3), cols 4..9 => q=-1..4
-            (-1, -3, 4), (0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0), (4, -3, -1),
-            # Row I (r=-4), cols 5..9 => q=0..4
-            (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
-        ]       
-
-        # White marble initial positions (top 3 rows)
-        white_marble_initial_pos = [
             # Row A (r=+4), cols 1..5 => q=-4..0, s=-q-r
             (-4, 4, 0), (-3, 4, -1), (-2, 4, -2), (-1, 4, -3), (0, 4, -4),
             # Row B (r=+3), cols 1..6 => q=-4..1
             (-4, 3, 1), (-3, 3, 0), (-2, 3, -1), (-1, 3, -2), (0, 3, -3), (1, 3, -4),
             # Row C (r=+2), cols 4..6 => q=-1..1
             (-2, 2, 0), (-1, 2, -1), (0, 2, -2)
+        ]       
+
+        # White marble initial positions (top 3 rows)
+        white_marble_initial_pos = [
+            # Row G (r=-2), cols 4..6 => q=-1..1
+            (0, -2, 2), (1, -2, 1), (2, -2, 0),
+            # Row H (r=-3), cols 4..9 => q=-1..4
+            (-1, -3, 4), (0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0), (4, -3, -1),
+            # Row I (r=-4), cols 5..9 => q=0..4
+            (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
         ]
        
                 
@@ -277,7 +277,7 @@ class Board:
         combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
 
         # Sort first by r (descending), then by q (ascending)
-        sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
+        sorted_combined = sorted(combined, key=lambda x: (x[0][1], x[0][0]))
         
         current_r = None
         row_values = []
