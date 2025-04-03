@@ -193,8 +193,9 @@ class MinimaxAgent:
         :param move: the move string in the format: (0,0,0,b)→(1,0,-1,b)
         :param board_state: the board state in the format C5b, A2w, ...
         """
-        write_to_output_game_file(FilePaths.MOVES, move)
-        write_to_output_game_file(FilePaths.BOARD_OUTPUT, board_state)
+        if self.game_mode == GameMode.HUMAN: # Only output when in human game mode
+            write_to_output_game_file(FilePaths.MOVES, move)
+            write_to_output_game_file(FilePaths.BOARD_OUTPUT, board_state)
 
 
     def _player_first_turn_random(self):
