@@ -20,7 +20,7 @@ endOfTurn = function() {
 	//Recalculate score.
 	playerScore = startingMarbles - whiteMarbles;
 	timeRemaining = timeLimit;
-	frameCount = 59;
+	frameCount = 0;
 	
 }
 
