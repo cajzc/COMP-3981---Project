@@ -303,7 +303,7 @@ class Board:
         combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
 
         # Sort first by r (descending), then by q (ascending)
-        sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
+        sorted_combined = sorted(combined, key=lambda x: (x[0][1], x[0][0]))
         
         current_r = None
         row_values = []
