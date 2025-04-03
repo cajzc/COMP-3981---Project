@@ -106,7 +106,7 @@ class MinimaxAgent:
             if self.current_move: # Players first move, this will be random
                 self._player_first_turn_random()
                 player_first_move = False # Player has ran their first move
-                print("Random first turn: Applied")
+                print("Random first turn applied")
             else:
                 self._opponent_turn()
 
@@ -124,7 +124,6 @@ class MinimaxAgent:
 
             else:
                 self._opponent_turn() 
-                print("Opponent turn ended")
 
             self.current_move = not self.current_move # Alternate move
 
@@ -132,6 +131,8 @@ class MinimaxAgent:
 
         print("Game over")
         print(check_win(self.game_state.board.marble_positions), "won")
+        print("Final board")
+        self.game_state.board.print_board()
 
 
     def _player_turn(self):
@@ -177,7 +178,6 @@ class MinimaxAgent:
                 board_str, last_read_board_time = read_from_output_game_file(FilePaths.BOARD_INPUT, self.last_read_board_file)
                 self.last_read_board_file = last_read_board_time
                 self.board.update_board_from_str(board_str) # NOTE: Updates the board configuration from str
-                print("Updated board")
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
