@@ -58,17 +58,13 @@ def read_from_output_game_file(file_path: FilePaths, last_modified_time) -> Tupl
         print(f"File {file_path.value} not found. Waiting...")
         time.sleep(0.1)
 
-    while True:
-        current_modified_time = os.path.getmtime(file_path.value)
-        
-        if current_modified_time != last_modified_time:
-            last_modified_time = current_modified_time
+    
+    input("<Enter> to read opponent move")
+    with open(file_path.value, "r", encoding="utf-8") as file:
+        board_str = file.readline().strip()
 
-            with open(file_path.value, "r", encoding="utf-8") as file:
-                board_str = file.readline().strip()
-
-            print(f"File modified! New board state: {board_str}")
+        print(f"File modified! New board state: {board_str}")
             
-            return board_str, last_modified_time  # Reads, updates, and keeps running
+        return board_str, last_modified_time  # Reads, updates, and keeps running
 
         time.sleep(0.1)
