@@ -40,7 +40,7 @@ class AgentConfiguration:
         self.heuristic = heuristic
         self.heuristic_weights = heuristic_weights
 
-    
+
 class MinimaxAgent:
     """
     Game-playing agent using Minimax algorithm with alpha-beta pruning
@@ -63,7 +63,7 @@ class MinimaxAgent:
         Initialize minimax agent with search parameters
 
         :param board: the initial configuration of the Abalone game board as a Board object
-        :param player_config: the configuration of the Model 
+        :param player_config: the configuration of the Model
         :param opponent_config: the configuration of the opponent
         :param game_mode: the game mode to play, as an enum
         :param depth: maximum search depth (default: 3). A depth of -1 is valid and is considered an "infinite" depth. This depth makes the model continue the search until time runs out
@@ -87,12 +87,12 @@ class MinimaxAgent:
         self.board = board
         self.board_dict = board.marble_positions
         self.time_limit = player_config.time_limit
-        self.depth = 10**9 if depth == -1 else depth # Set an "infinite" depth 
+        self.depth = 10**9 if depth == -1 else depth # Set an "infinite" depth
         self.game_state = GameState(self.player_colour, board)
         self.transposition_table = TranspositionTable()
         self.game_mode = game_mode
         self.last_read_board_file = None
-        
+
 
     def run_game(self):
         """
@@ -119,11 +119,12 @@ class MinimaxAgent:
 
             self.game_state.board.print_board() # Debug
 
-            if self.current_move: 
+            if self.current_move:
                 self._player_turn()
 
             else:
-                self._opponent_turn() 
+                self._opponent_turn()
+                print("Opponent turn ended")
 
             self.current_move = not self.current_move # Alternate move
 
@@ -131,8 +132,6 @@ class MinimaxAgent:
 
         print("Game over")
         print(check_win(self.game_state.board.marble_positions), "won")
-        print("Final board")
-        self.game_state.board.print_board()
 
 
     def _player_turn(self):
@@ -140,7 +139,7 @@ class MinimaxAgent:
         print("\nPlayer Turn\n")
         start = time.time()
 
-        # Add a queue for moves, run the iterative deepening search 
+        # Add a queue for moves, run the iterative deepening search
         best_move_queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
         search_process.start()
@@ -178,6 +177,7 @@ class MinimaxAgent:
                 board_str, last_read_board_time = read_from_output_game_file(FilePaths.BOARD_INPUT, self.last_read_board_file)
                 self.last_read_board_file = last_read_board_time
                 self.board.update_board_from_str(board_str) # NOTE: Updates the board configuration from str
+                print("Updated board")
             case GameMode.RANDOM:
                 self._opponent_turn_random()
             case GameMode.DIFF_HEURISTIC:
@@ -193,8 +193,8 @@ class MinimaxAgent:
         :param move: the move string in the format: (0,0,0,b)→(1,0,-1,b)
         :param board_state: the board state in the format C5b, A2w, ...
         """
-        write_to_output_game_file(FilePaths.MOVES, move) 
-        write_to_output_game_file(FilePaths.BOARD_OUTPUT, board_state) 
+        write_to_output_game_file(FilePaths.MOVES, move)
+        write_to_output_game_file(FilePaths.BOARD_OUTPUT, board_state)
 
 
     def _player_first_turn_random(self):
@@ -203,7 +203,7 @@ class MinimaxAgent:
         if move_to_make:
             self.game_state.apply_move(move_to_make)
             self._output_game_state(str(move_to_make), self.board.to_string_board())
-       
+
 
     def _opponent_turn_random(self):
         """Simulates an opponent that makes random moves."""
@@ -276,13 +276,30 @@ class MinimaxAgent:
             # Generate moves for current depth
             moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
 
-            # 1) Separate pushes from non-pushes
-            push_moves = [mv for mv in moves if mv.push]
-            non_push_moves = [mv for mv in moves if not mv.push]
+            # # 1) Separate pushes from non-pushes
+            # push_moves = [mv for mv in moves if mv.push]
+            # non_push_moves = [mv for mv in moves if not mv.push]
+            #
+            # # 2) Sort the non-push moves by your quick heuristic
+            # non_push_moves_sorted = sorted(
+            #     non_push_moves,
+            #     key=lambda m: self.quick_heuristic_eval(
+            #         m,
+            #         self.player_colour if is_player else self.opponent_colour,
+            #         heuristic,
+            #         args
+            #     ),
+            #     reverse=True
+            # )
+            #
+            # # 3) Keep the top 20 non-push moves
+            # top_non_push = non_push_moves_sorted[:10]
+            #
+            # # 4) Combine them back. This ensures *all push moves* stay in the final list.
+            # moves = push_moves + top_non_push
 
-            # 2) Sort the non-push moves by your quick heuristic
-            non_push_moves_sorted = sorted(
-                non_push_moves,
+            moves = sorted(
+                moves,
                 key=lambda m: self.quick_heuristic_eval(
                     m,
                     self.player_colour if is_player else self.opponent_colour,
@@ -290,13 +307,7 @@ class MinimaxAgent:
                     args
                 ),
                 reverse=True
-            )
-
-            # 3) Keep the top 20 non-push moves
-            top_non_push = non_push_moves_sorted[:10]
-
-            # 4) Combine them back. This ensures *all push moves* stay in the final list.
-            moves = push_moves + top_non_push
+            )[:20]
 
             for move in moves:
                 new_board = self.board.copy()
@@ -318,6 +329,7 @@ class MinimaxAgent:
                 while not best_move_queue.empty(): # Clear the current queue
                     best_move_queue.get_nowait()
                 best_move_queue.put((best_move, depth)) # Add the best move and depth to the queue
+            print(best_score,best_move)
         print("Best score:", best_score)
 
         return best_move
@@ -489,6 +501,6 @@ class MinimaxAgent:
         """
         temp_board = self.board.copy()
         apply_move_dict(temp_board, move)
-        return heuristic(player_colour, temp_board, *args)
+        return heuristic(self.game_state.get_next_turn_colour(player_colour), temp_board, *args)
 
-    
+

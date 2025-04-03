@@ -9,10 +9,55 @@ from itertools import combinations
 
 
 def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wsc: float) -> float:
-    """ add the score diff to the heuristic """
-    return (wdc*distance_to_center(player_colour, board)
-            + wmc*marbles_coherence(player_colour, board)
-            + wsc*score_difference(player_colour, board))
+    """
+    Combined heuristic that computes:
+    - Distance to center (lower is better)
+    - Marble coherence (lower is better)
+    - Score difference (higher is better)
+
+    :param board: Dictionary of cube coordinates to marble colors.
+    :param wdc: weight for distance to center
+    :param wmc: weight for marble coherence
+    :param wsc: weight for score difference
+    :return: heuristic value
+    """
+    positions_b = [(q, r, s) for (q, r, s), color in board.items() if color == 'b']
+    positions_w = [(q, r, s) for (q, r, s), color in board.items() if color == 'w']
+
+    # Distance to center
+    dist_b = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions_b]
+    dist_w = [(abs(q) + abs(r) + abs(s)) / 2 for q, r, s in positions_w]
+    distance_to_center_val = sum(dist_w)/len(dist_w) - sum(dist_b)/len(dist_b)
+
+    # Marble coherence for 'b' only
+    mean_qb = sum(q for q, r, s in positions_b) / len(positions_b)
+    mean_rb = sum(r for q, r, s in positions_b) / len(positions_b)
+    mean_sb = -mean_qb - mean_rb
+    distances_b = [max(abs(q - mean_qb), abs(r - mean_rb), abs(s - mean_sb)) for q, r, s in positions_b]
+    coherence_val_b = sum(distances_b) / len(distances_b)
+
+    # Marble coherence for 'b' only
+    mean_qw = sum(q for q, r, s in positions_w) / len(positions_w)
+    mean_rw = sum(r for q, r, s in positions_b) / len(positions_w)
+    mean_sw = -mean_qb - mean_rb
+    distances_w = [max(abs(q - mean_qw), abs(r - mean_rw), abs(s - mean_sw)) for q, r, s in positions_w]
+    coherence_val_w = sum(distances_w) / len(distances_w)
+
+    coherence_val = coherence_val_w - coherence_val_b
+
+
+    # Score difference
+    score_diff = len(positions_b) - len(positions_w)
+
+    return (wdc * distance_to_center_val
+            + wmc * coherence_val
+            + wsc * score_diff)
+
+# def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wsc: float) -> float:
+#     """ add the score diff to the heuristic """
+#     return (wdc*distance_to_center(player_colour, board)
+#             + wmc*marbles_coherence(player_colour, board)
+#             + wsc*score_difference(player_colour, board))
 
 def c_heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: float, wmc: float, wt: float) -> float:
     """
