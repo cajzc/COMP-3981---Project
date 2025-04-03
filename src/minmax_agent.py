@@ -124,6 +124,7 @@ class MinimaxAgent:
 
             else:
                 self._opponent_turn() 
+                print("Opponent turn ended")
 
             self.current_move = not self.current_move # Alternate move
 
