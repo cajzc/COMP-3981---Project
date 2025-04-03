@@ -69,15 +69,15 @@ class MinimaxAgent:
         :param depth: maximum search depth (default: 3). A depth of -1 is valid and is considered an "infinite" depth. This depth makes the model continue the search until time runs out
         """
         # Player config
-        self.player_colour = Marble.BLACK.value # Player should always be black
+        self.player_colour = player_config.colour.value 
         self.heuristic = player_config.heuristic
         self.heuristic_weights = player_config.heuristic_weights
         self.player_move_limit = player_config.move_limit
         self.player_time_limit = player_config.time_limit
-        self.current_move = True if player_config.colour.value == Marble.BLACK.value else False # Determine if the player has the first turn in the game
+        self.current_move = True if self.player_colour == Marble.BLACK.value else False # Determine if the player has the first turn in the game
 
         # Opponent config
-        self.opponent_colour = Marble.WHITE.value # Opponent is always white
+        self.opponent_colour = opponent_config.colour.value
         self.opponent_heuristic = opponent_config.heuristic
         self.opponent_heuristic_weights = opponent_config.heuristic_weights
         self.opponent_move_limit = opponent_config.move_limit
