@@ -4,7 +4,7 @@ config = instance_find(ConfigHandler, 0);
 playerScore = 0;
 timeLimit = ds_map_find_value(config.player1, "time_limit");
 timeRemaining = timeLimit;
-frameCount = 59;
+frameCount = 0;
 totalTime = 0;
 totalTimeMin = 0;
 
@@ -27,7 +27,7 @@ endOfTurn = function() {
 //Handles reset button logic
 reset = function() {
 	timeRemaining = timeLimit;
-	frameCount = 59;
+	frameCount = 0;
 	totalTime = 0;
 	totalTimeMin = 0;
 }
