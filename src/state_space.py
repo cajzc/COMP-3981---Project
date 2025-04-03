@@ -595,18 +595,15 @@ class GameState:
         self.player = player
         self.board = board
 
-    def apply_move(self, move: Move | Tuple[int, int, int, str]):
+    def apply_move(self, move: Move):
         """
         Applies a move to the GameState, updating the board and player turn.
 
         :param move: the Move object to apply
         """
-        if isinstance(move, Move):
-            apply_move_obj(self.board, move)
-        elif isinstance(move, Tuple):
-            pass
+        apply_move_obj(self.board, move)
         # Swap player turn
-        self.player = GameState.get_next_turn_colour(self.player)
+        #self.player = GameState.get_next_turn_colour(self.player) # NOTE: Important change
 
     @staticmethod
     def get_next_turn_colour(player_colour: str) -> str:

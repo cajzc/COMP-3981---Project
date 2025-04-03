@@ -5,7 +5,7 @@ from enum import Enum, auto
 from typing import Tuple, Set, List
 from enums import Marble
 import copy
-
+from file_paths import FilePaths
 
 class BoardConfiguration(Enum):
     """Represents initial board configurations as an enum."""
@@ -21,7 +21,7 @@ class Board:
         self.empty_positions = set((q,r,s) for q in range(-4,5)
                                            for r in range(-4,5)
                                            for s in range(-4,5)
-                                           if q+r+s == 0)
+                                          if q+r+s == 0)
 
 
     def reset_board(self):
@@ -41,8 +41,8 @@ class Board:
         Creates a standard Abalone board with black marbles on the bottom
         (rows A–C) and white marbles on top (rows G–I).
         """
-        # Black marble initial positions (bottom 3 rows)
-        black_marble_initial_pos = [
+        # White marble initial positions (top 3 rows)
+        white_marble_initial_pos = [
             # Row G (r=-2), cols 4..6 => q=-1..1
             (0, -2, 2), (1, -2, 1), (2, -2, 0),
             # Row H (r=-3), cols 4..9 => q=-1..4
@@ -51,8 +51,8 @@ class Board:
             (0, -4, 4), (1, -4, 3), (2, -4, 2), (3, -4, 1), (4, -4, 0)
         ]       
 
-        # White marble initial positions (top 3 rows)
-        white_marble_initial_pos = [
+        # Black marble initial positions (bottom 3 rows)
+        black_marble_initial_pos = [
             # Row A (r=+4), cols 1..5 => q=-4..0, s=-q-r
             (-4, 4, 0), (-3, 4, -1), (-2, 4, -2), (-1, 4, -3), (0, 4, -4),
             # Row B (r=+3), cols 1..6 => q=-4..1
@@ -272,12 +272,38 @@ class Board:
 
         return board
 
+    def set_empty_positions(self):
+        """
+        Derives the empty board positions, setting it to the board objects state. 
+        """
+        keys = self.marble_positions.keys()
+        empty_positions = {
+                (q, r, s)
+                for q in range(-4, 5)
+                for r in range(-4, 5)
+                for s in range(-4, 5)
+                if q + r + s == 0 and (q, r, s) not in keys
+            }
+        self.empty_positions = empty_positions
+
+
+    def update_board_from_str(self, board_str: str):
+        """
+        Given an input string in the format: `C5b,A2w,...`, parses every line, updating it's marble positions dictionary and empty positions
+        """
+        self.reset_board()
+        for notation in board_str.split(","):
+            q, r, s, colour = Board.convert_marble_notation(notation)
+            self.marble_positions[(q, r, s)] = colour
+        self.set_empty_positions()
+
+
     def print_board(self):
         """Prints the board configuration to stdout as a hexagonal board."""
         combined = [(pos, self.marble_positions.get(pos, '.')) for pos in (set(self.marble_positions.keys()) | self.empty_positions)]
 
         # Sort first by r (descending), then by q (ascending)
-        sorted_combined = sorted(combined, key=lambda x: (-x[0][1], x[0][0]))
+        sorted_combined = sorted(combined, key=lambda x: (x[0][1], x[0][0]))
         
         current_r = None
         row_values = []
@@ -324,3 +350,4 @@ class Board:
         new_board = self.marble_positions.copy()
         return new_board
 
+    
