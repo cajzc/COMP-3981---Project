@@ -1,0 +1,1 @@
+if(turnPlayer == "w") draw_self();

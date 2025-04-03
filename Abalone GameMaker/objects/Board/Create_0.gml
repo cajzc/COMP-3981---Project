@@ -161,3 +161,15 @@ saveBoardState = function() {
 	file_text_write_string(file, boardState);
 	file_text_close(file);
 }
+
+reset = function() {
+	//Draw the board with the initial position.
+	drawBoard(ds_list_find_value(moveHistory, 0));
+	
+	var file = file_text_open_write(inFile);
+	file_text_write_string(file, ds_list_find_value(moveHistory, 0));
+	file_text_close(file);
+	
+	turnCount = 1;
+	TrimList(moveHistory, turnCount);
+}

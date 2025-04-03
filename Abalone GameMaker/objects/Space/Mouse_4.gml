@@ -1,4 +1,4 @@
-if (selected[0] != noone) {
+if (selected[0] != noone && marble = noone) {
 	//Move the selected marble to this coordinate.
 	marble = selected[0]
 	marble.x = x + sprite_width / 20;
