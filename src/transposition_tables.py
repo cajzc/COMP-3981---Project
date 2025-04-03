@@ -16,7 +16,6 @@ class TranspositionEntry:
 class TranspositionTable:
     """A transposition table to cache game state evaluations for performance enhancement."""
     def __init__(self):
-        random.seed(42)  # Ensures reproducibility and consistency
         self.table: Dict[int, TranspositionEntry] = {}
         self.zobrist_table = self._initialize_zobrist()
         self.player_hash = {'b': random.getrandbits(64), 'w': random.getrandbits(64)}
