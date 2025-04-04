@@ -76,10 +76,17 @@ def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
         if len(opponent_positions) >= len(group) or board.get(current) == player:
             continue  # prune invalid push
 
+        # pushed_off = False
+        # if opponent_positions:
+        #     last_pos = opponent_positions[-1]
+        #     last_op_dest = (last_pos[0] + dq, last_pos[1] + dr, last_pos[2] + ds)
+        #     if max(abs(last_op_dest[0]), abs(last_op_dest[1]), abs(last_op_dest[2])) > 4:
+        #         pushed_off = True
+
         # Valid push move found
         dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
         moves.append(Move(player, direction, "push", group, dest_positions,
-                          True, False,
+                          True, pushed_off,
                           [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
 
     return moves

@@ -313,8 +313,8 @@ class MinimaxAgent:
             # )[:20]
 
             for move in moves:
-                if move.pushed_off:
-                    return move
+                # if move.pushed_off:
+                #     return move
                 new_board = self.board.copy()
                 apply_move_dict(new_board, move)
 
