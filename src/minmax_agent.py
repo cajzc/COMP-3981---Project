@@ -92,6 +92,7 @@ class MinimaxAgent:
         self.transposition_table = TranspositionTable()
         self.game_mode = game_mode
         self.last_read_board_file = None
+        self.total_aggregate_time = 0
 
 
     def run_game(self):
@@ -160,11 +161,11 @@ class MinimaxAgent:
 
         if best_move:
             self.game_state.apply_move(best_move) # Update the board configuration
+            end = time.time()
+            self.total_aggregate_time += end-start
             self._output_game_state(str(best_move), self.game_state.board.to_string_board()) # Output the data to the file
-
-        end = time.time()
-        if depth:
             print(f"Using best move at depth: {depth}. Elapsed time: {end-start}")
+            print("Total Aggregate Time:", self.total_aggregate_time)
 
 
 
