@@ -143,7 +143,8 @@ class MinimaxAgent:
 
         # Add a queue for moves, run the iterative deepening search
         best_move_queue = multiprocessing.Queue()
-        search_process = multiprocessing.Process(target=self.get_best_move_prune, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
+        search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic,
+                                                                      self.heuristic_weights))
         search_process.start()
         search_process.join(timeout=self.time_limit)
 
