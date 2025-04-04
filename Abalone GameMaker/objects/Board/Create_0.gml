@@ -125,6 +125,7 @@ drawBoard = function(boardString) {
 	var file = file_text_open_write(inFile);
 	file_text_write_string(file, boardString);
 	file_text_close(file);
+	selected[0] = noone;
 }
 
 /// @desc clears all marbles off the board.
@@ -135,6 +136,7 @@ clearBoard = function(rows) {
 			rows[i][j].marble = noone;
 		}
 	}
+	selected[0] = noone;
 }
 
 /// @desc Saves the current state of the board

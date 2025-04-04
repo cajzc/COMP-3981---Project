@@ -13,7 +13,7 @@ whiteMarbles = 0;
 blackMarbles = 0;
 startingMarbles = 14;
 inFile = "board_input.txt";
-running = false;
+running = true;
 
 config = instance_find(ConfigHandler, 0);
 board = instance_find(Board, 0);
