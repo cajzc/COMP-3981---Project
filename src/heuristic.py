@@ -38,8 +38,8 @@ def heuristic(player_colour: str, board: Dict[Tuple[int, int, int], str], wdc: f
 
     # Marble coherence for 'b' only
     mean_qw = sum(q for q, r, s in positions_w) / len(positions_w)
-    mean_rw = sum(r for q, r, s in positions_b) / len(positions_w)
-    mean_sw = -mean_qb - mean_rb
+    mean_rw = sum(r for q, r, s in positions_w) / len(positions_w)
+    mean_sw = -mean_qw - mean_rw
     distances_w = [max(abs(q - mean_qw), abs(r - mean_rw), abs(s - mean_sw)) for q, r, s in positions_w]
     coherence_val_w = sum(distances_w) / len(distances_w)
 
