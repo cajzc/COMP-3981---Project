@@ -497,7 +497,7 @@ class MinimaxAgent:
         apply_move_dict(temp_board, move)
         return heuristic(self.game_state.get_next_turn_colour(player_colour), temp_board, *args)
 
-    def get_best_move(self, is_player: bool, heuristic, args, fixed_depth: int) -> Move | None:
+    def get_best_move_prune(self, is_player: bool, heuristic, args, fixed_depth: int) -> Move | None:
         alpha = -math.inf
         beta = math.inf
         best_move = None
@@ -549,5 +549,25 @@ class MinimaxAgent:
 
         return best_move
 
-
+    def get_best_move(self, is_player: bool, heuristic, args, fixed_depth: int) -> Move | None:
+        best_score = -math.inf
+        best_move = None
+        moves = generate_move_dict(
+            self.player_colour if is_player else self.opponent_colour,
+            self.board.marble_positions
+        )
+        for move in moves:
+            new_board = self.board.copy()
+            apply_move_dict(new_board, move)
+            score = self.mini_max(
+                not is_player,
+                new_board,
+                fixed_depth,
+                heuristic,
+                args
+            )
+            if score > best_score:
+                best_score = score
+                best_move = move
+        return best_move
 
