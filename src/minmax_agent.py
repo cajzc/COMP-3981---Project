@@ -299,17 +299,17 @@ class MinimaxAgent:
             #
             # # 4) Combine them back. This ensures *all push moves* stay in the final list.
             # moves = push_moves + top_non_push
-
-            moves = sorted(
-                moves,
-                key=lambda m: self.quick_heuristic_eval(
-                    m,
-                    self.player_colour if is_player else self.opponent_colour,
-                    heuristic,
-                    args
-                ),
-                reverse=True
-            )[:20]
+            #
+            # moves = sorted(
+            #     moves,
+            #     key=lambda m: self.quick_heuristic_eval(
+            #         m,
+            #         self.player_colour if is_player else self.opponent_colour,
+            #         heuristic,
+            #         args
+            #     ),
+            #     reverse=True
+            # )[:20]
 
             for move in moves:
                 new_board = self.board.copy()
