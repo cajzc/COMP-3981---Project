@@ -1,1 +1,1 @@
-B1b,B2b,B3b,C2b,C3b,D2b,D3b,G7b,G8b,H7b,H8b,H9b,I8b,I9b,A3w,A4w,B4w,B5w,B6w,C5w,C6w,E4w,G4w,G5w,H4w,H5w,I5w,I6w
+A2b,B1b,B2b,B3b,C2b,C3b,D4b,F7b,G7b,G8b,H7b,H8b,I8b,I9b,A3w,A4w,B4w,B6w,C6w,C7w,D5w,F3w,F4w,F5w,F6w,H4w,H5w,H6w

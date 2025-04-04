@@ -76,7 +76,7 @@ def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
         if len(opponent_positions) >= len(group) or board.get(current) == player:
             continue  # prune invalid push
 
-        # pushed_off = False
+        pushed_off = False
         # if opponent_positions:
         #     last_pos = opponent_positions[-1]
         #     last_op_dest = (last_pos[0] + dq, last_pos[1] + dr, last_pos[2] + ds)
