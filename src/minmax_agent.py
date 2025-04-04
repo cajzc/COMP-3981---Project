@@ -10,6 +10,8 @@ from board import Board
 import random
 from file_paths import *
 import multiprocessing, queue
+import logging
+logging.basicConfig(level=logging.DEBUG)  # Configure logging
 
 class AgentConfiguration:
     """
@@ -269,8 +271,8 @@ class MinimaxAgent:
         self.transposition_table.clear()
         best_move = None
 
-        best_score = -math.inf
         for depth in range(1, self.depth + 1):
+            best_score = -math.inf
             current_best_move = None
 
             # Generate moves for current depth
@@ -330,7 +332,6 @@ class MinimaxAgent:
                     best_move_queue.get_nowait()
                 best_move_queue.put((best_move, depth)) # Add the best move and depth to the queue
             print(best_score,best_move)
-        print("Best score:", best_score)
 
         return best_move
 
@@ -407,26 +408,24 @@ class MinimaxAgent:
         v = -math.inf
         moves_generated = generate_move_dict(player_colour, board)
         for move in moves_generated:
-            # Create the resulting game state
             new_board = board.copy()
             apply_move_dict(new_board, move)
-
-            v = max(v, self.min_value(
+            child_value = self.min_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
                 new_board,
-                depth-1,
+                depth - 1,
                 alpha,
                 beta,
                 heuristic,
                 args
-            ))
-
+            )
+            v = max(v, child_value)
             if v >= beta:
                 self.transposition_table.store(player_colour, board, v, depth, 'lower')
                 return v
             alpha = max(alpha, v)
 
-        flag = 'exact' if alpha < v < beta else 'upper' #important fixing from Yiming
+        flag = 'exact' if alpha < v < beta else 'upper'
         self.transposition_table.store(player_colour, board, v, depth, flag)
         return v
 
@@ -467,24 +466,20 @@ class MinimaxAgent:
             return value
 
         v = math.inf
-
         moves_generated = generate_move_dict(player_colour, board)
-
         for move in moves_generated:
-            # Create the resulting game state
             new_board = board.copy()
             apply_move_dict(new_board, move)
-
-            v = min(v, self.max_value(
+            child_value = self.max_value(
                 Marble.BLACK.value if player_colour == Marble.WHITE.value else Marble.WHITE.value,
                 new_board,
-                depth-1,
+                depth - 1,
                 alpha,
                 beta,
                 heuristic,
                 args
-                )
             )
+            v = min(v, child_value)
             if v <= alpha:
                 self.transposition_table.store(player_colour, board, v, depth, 'upper')
                 return v
@@ -492,7 +487,6 @@ class MinimaxAgent:
 
         flag = 'exact' if alpha < v < beta else 'lower'
         self.transposition_table.store(player_colour, board, v, depth, flag)
-
         return v
 
     def quick_heuristic_eval(self, move: Move, player_colour: str, heuristic, args):
@@ -502,5 +496,58 @@ class MinimaxAgent:
         temp_board = self.board.copy()
         apply_move_dict(temp_board, move)
         return heuristic(self.game_state.get_next_turn_colour(player_colour), temp_board, *args)
+
+    def get_best_move(self, is_player: bool, heuristic, args, fixed_depth: int) -> Move | None:
+        alpha = -math.inf
+        beta = math.inf
+        best_move = None
+
+        # Generate moves for the current board state.
+        moves = generate_move_dict(
+            self.player_colour if is_player else self.opponent_colour,
+            self.board.marble_positions
+        )
+
+        if is_player:
+            best_score = -math.inf
+            # For each move, apply the move and evaluate it with the minimax algorithm.
+            for move in moves:
+                new_board = self.board.copy()
+                apply_move_dict(new_board, move)
+                # We subtract 1 from the depth because the current move is already made.
+                score = self.min_value(
+                    self.opponent_colour,
+                    new_board,
+                    fixed_depth - 1,
+                    alpha,
+                    beta,
+                    heuristic,
+                    args
+                )
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+                alpha = max(alpha, best_score)
+        else:
+            best_score = math.inf
+            for move in moves:
+                new_board = self.board.copy()
+                apply_move_dict(new_board, move)
+                score = self.max_value(
+                    self.player_colour,
+                    new_board,
+                    fixed_depth - 1,
+                    alpha,
+                    beta,
+                    heuristic,
+                    args
+                )
+                if score < best_score:
+                    best_score = score
+                    best_move = move
+                beta = min(beta, best_score)
+
+        return best_move
+
 
 
