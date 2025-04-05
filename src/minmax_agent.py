@@ -1,3 +1,4 @@
+
 """ this agent will use all the modules to generate a best move"""
 from state_space import GameState, apply_move_dict, generate_move, terminal_test, generate_move_dict, check_win, game_status
 from transposition_tables import TranspositionTable
@@ -140,31 +141,33 @@ class MinimaxAgent:
         print("\nPlayer Turn\n")
         start = time.time()
 
-        # Add a queue for moves, run the iterative deepening search
-        best_move_queue = multiprocessing.Queue()
-        search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
-        search_process.start()
-        search_process.join(timeout=self.time_limit)
+        # # Add a queue for moves, run the iterative deepening search
+        # best_move_queue = multiprocessing.Queue()
+        # search_process = multiprocessing.Process(target=self.iterative_deepening_search, args=(best_move_queue, True, self.heuristic, self.heuristic_weights))
+        # search_process.start()
+        # search_process.join(timeout=self.time_limit)
+        #
+        # if search_process.is_alive():
+        #     search_process.terminate()
+        #     search_process.join()
+        # search_process.close()
 
-        if search_process.is_alive():
-            search_process.terminate()
-            search_process.join()
-        search_process.close()
+        # try:
+        #     best_move, depth = best_move_queue.get_nowait()
+        #     print(f"Using best move at depth: {depth}")
+        # except queue.Empty:
+        #     print("Empty queue")
+        #     best_move = None
+        #     depth = None
 
-        try:
-            best_move, depth = best_move_queue.get_nowait()
-            print(f"Using best move at depth: {depth}")
-        except queue.Empty:
-            print("Empty queue")
-            best_move = None
-            depth = None
+        best_move = self.iterative_deepening_search(True, self.heuristic, self.heuristic_weights)
 
         if best_move:
             self.game_state.apply_move(best_move) # Update the board configuration
             end = time.time()
             self.total_aggregate_time += end-start
             self._output_game_state(str(best_move), self.game_state.board.to_string_board()) # Output the data to the file
-            print(f"Using best move at depth: {depth}. Elapsed time: {end-start}")
+            # print(f"Using best move at depth: {depth}. Elapsed time: {end-start}")
             print("Total Aggregate Time:", self.total_aggregate_time)
 
 
@@ -267,13 +270,13 @@ class MinimaxAgent:
             else:
                 return opponent_move
 
-    def iterative_deepening_search(self, best_move_queue, is_player: bool, heuristic, args) -> Move | None:
+    def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
         self.transposition_table.clear()
         best_move = None
 
-        best_score = -math.inf
         for depth in range(1, self.depth + 1):
             current_best_move = None
+            best_score = -math.inf
 
             # Generate moves for current depth
             moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
@@ -329,11 +332,8 @@ class MinimaxAgent:
 
             if current_best_move is not None:
                 best_move = current_best_move
-                while not best_move_queue.empty(): # Clear the current queue
-                    best_move_queue.get_nowait()
-                best_move_queue.put((best_move, depth)) # Add the best move and depth to the queue
-            print(best_score,best_move)
-        print("Best score:", best_score)
+            print("Best score:", best_score)
+            print("Best move:", best_move)
 
         return best_move
 
