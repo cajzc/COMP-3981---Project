@@ -314,8 +314,11 @@ class DebugMenu:
                 DebugMenu._get_agent_configuration_input(heuristic_p2, weights_p2, opponent_colour)
                 if condition else DebugMenu._get_agent_configuration_input(player_colour=Marble(opponent_colour))
             )
+
+            # Depth
+            depth = DebugMenu._get_depth()
             
-            return MinimaxAgent(board, agent_config_p1, agent_config_p2, game_mode)
+            return MinimaxAgent(board, agent_config_p1, agent_config_p2, game_mode, depth)
 
 
 
