@@ -46,3 +46,7 @@ An intelligent game-playing agent for the board game *Abalone*, implementing adv
 1. Clone repository:
    ```bash
    https://github.com/cajzc/COMP-3981---Project.git
+   
+if you choose 'b' side ,please use default weights, else set default negative
+
+Now the code generate more moves than needed (duplicate, but efficient)

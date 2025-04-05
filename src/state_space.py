@@ -5,7 +5,6 @@ from typing import Dict, List, Tuple, Set
 from board import Board
 from enums import Marble
 
-
 """
 Below are faster implementations of existing move generation functions. Uses a dictionary over a Board object.
 """
@@ -23,7 +22,7 @@ def generate_move_dict(player: str, board: Dict[Tuple[int, int, int], str]) -> L
     inline_moves = get_inline_moves_dict(player, board, groups)
     side_step_moves = get_side_step_moves_dict(player, board, groups)
 
-    return  inline_moves + side_step_moves + single_moves
+    return   inline_moves + side_step_moves + single_moves
 
 def get_single_moves_dict(player: str, marble_positions: Dict[Tuple[int, int, int], str]) -> List[Move]:
     moves = []
@@ -76,10 +75,17 @@ def get_inline_moves_dict(player: str, board: Dict[Tuple[int, int, int], str],
         if len(opponent_positions) >= len(group) or board.get(current) == player:
             continue  # prune invalid push
 
+        pushed_off = False
+        # if opponent_positions:
+        #     last_pos = opponent_positions[-1]
+        #     last_op_dest = (last_pos[0] + dq, last_pos[1] + dr, last_pos[2] + ds)
+        #     if max(abs(last_op_dest[0]), abs(last_op_dest[1]), abs(last_op_dest[2])) > 4:
+        #         pushed_off = True
+
         # Valid push move found
         dest_positions = [(m[0] + dq, m[1] + dr, m[2] + ds, player) for m in group]
         moves.append(Move(player, direction, "push", group, dest_positions,
-                          True, False,
+                          True, pushed_off,
                           [(op[0], op[1], op[2], opponent) for op in opponent_positions]))
 
     return moves
@@ -95,29 +101,32 @@ def get_moveable_groups_dict(player: str, board: Dict[Tuple[int, int, int], str]
     """
     groups = []
     seen = set()
-    visited_positions = set()
 
     for pos, color in board.items():
-        if color != player or pos in visited_positions:
+        if color != player:
             continue
 
         for direction in DIRECTIONS:
             full_group = get_marble_group_dict(pos, direction, board, player)
-
             if len(full_group) < 2:
                 continue
 
-            candidate_groups = [full_group]
-            if len(full_group) == 3:
-                candidate_groups.append(full_group[:2])
-                candidate_groups.append(full_group[1:])
+            # Create candidate groups
+            candidate_groups = []
+            if len(full_group) == 2:
+                candidate_groups.append(full_group)
+            elif len(full_group) == 3:
+                candidate_groups.append(full_group)          # Full group of 3
+                candidate_groups.append(full_group[:2])        # First two marbles
+                candidate_groups.append(full_group[1:])        # Last two marbles
+            else:
+                candidate_groups.append(full_group)
 
             for group in candidate_groups:
                 canonical = (direction, tuple(sorted((q, r, s) for (q, r, s, _) in group)))
                 if canonical not in seen:
                     seen.add(canonical)
                     groups.append((direction, group))
-                    visited_positions.update((q, r, s) for (q, r, s, _) in group)
 
     return groups
 
@@ -241,29 +250,33 @@ def get_moveable_groups(player: str, board_obj) -> List[Tuple[str, List[Tuple[in
     """
     groups = []
     seen = set()
+
     for pos, color in board_obj.marble_positions.items():
         if color != player:
             continue
+
         for direction in DIRECTIONS:
-            full_group = get_marble_group(pos, direction, board_obj, player)
+            full_group = get_marble_group_dict(pos, direction, board_obj.marble_positions, player)
             if len(full_group) < 2:
                 continue
-            # Generate candidate groups.
+
+            # Create candidate groups
             candidate_groups = []
             if len(full_group) == 2:
                 candidate_groups.append(full_group)
             elif len(full_group) == 3:
-                candidate_groups.append(full_group)  # Full group of 3
-                candidate_groups.append(full_group[:2])  # First two
-                candidate_groups.append(full_group[1:])  # Last two
+                candidate_groups.append(full_group)          # Full group of 3
+                candidate_groups.append(full_group[:2])        # First two marbles
+                candidate_groups.append(full_group[1:])        # Last two marbles
             else:
                 candidate_groups.append(full_group)
+
             for group in candidate_groups:
-                # Create a canonical representation: (direction, sorted tuple of positions)
                 canonical = (direction, tuple(sorted((q, r, s) for (q, r, s, _) in group)))
                 if canonical not in seen:
                     seen.add(canonical)
                     groups.append((direction, group))
+
     return groups
 
 def get_single_moves(player: str, board_obj) -> List[Move]:
