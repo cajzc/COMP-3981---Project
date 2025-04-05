@@ -127,6 +127,7 @@ class MinimaxAgent:
             else:
                 self._opponent_turn()
                 print("Opponent turn ended")
+                input("Enter for player turn")
 
             self.current_move = not self.current_move # Alternate move
 
@@ -270,7 +271,7 @@ class MinimaxAgent:
             else:
                 return opponent_move
 
-    def iterative_deepening_search(self, is_player: bool, heuristic, args) -> Move | None:
+    def iterative_deepening_search(self,  is_player: bool, heuristic, args) -> Move | None:
         self.transposition_table.clear()
         best_move = None
 
