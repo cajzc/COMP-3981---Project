@@ -281,7 +281,6 @@ class MinimaxAgent:
 
             # Generate moves for current depth
             moves = generate_move_dict(self.player_colour if is_player else self.opponent_colour, self.board.marble_positions)
-
             # # 1) Separate pushes from non-pushes
             # push_moves = [mv for mv in moves if mv.push]
             # non_push_moves = [mv for mv in moves if not mv.push]
@@ -327,6 +326,7 @@ class MinimaxAgent:
                     heuristic,
                     args,
                 )
+                print(score, move)
                 if score > best_score:
                     best_score = score
                     current_best_move = move

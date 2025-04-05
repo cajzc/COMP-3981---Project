@@ -23,7 +23,7 @@ def generate_move_dict(player: str, board: Dict[Tuple[int, int, int], str]) -> L
     inline_moves = get_inline_moves_dict(player, board, groups)
     side_step_moves = get_side_step_moves_dict(player, board, groups)
 
-    return single_moves + inline_moves + side_step_moves
+    return  inline_moves + side_step_moves + single_moves
 
 def get_single_moves_dict(player: str, marble_positions: Dict[Tuple[int, int, int], str]) -> List[Move]:
     moves = []
